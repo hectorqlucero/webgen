@@ -44,7 +44,7 @@ lein database
 # 4. Start server
 lein with-profile dev run
 # Visit: http://localhost:8080
-# Default credentials: admin/admin
+# Default credentials: admin@example.com / admin
 ```
 
 ### Included Example Entities
@@ -345,7 +345,8 @@ Edit `resources/private/config.clj`:
 ```bash
 lein migrate              # Apply pending migrations
 lein rollback             # Rollback last migration
-lein database             # Seed default users (admin/admin)
+lein database             # Seed default users
+                          # (admin@example.com/admin, user@example.com/user, system@example.com/system)
 ```
 
 ## 📚 Documentation
@@ -369,7 +370,8 @@ cd myapp
 # Database Setup
 lein migrate                         # Run migrations
 lein rollback                        # Rollback last migration
-lein database                        # Seed default users (admin/admin)
+lein database                        # Seed default users
+                                     # (admin@example.com/admin, user@example.com/user, system@example.com/system)
 
 # Development
 lein with-profile dev run            # Start dev server (port 8080)
@@ -406,12 +408,15 @@ Built-in authentication and role-based access control.
 
 After running `lein database`:
 
-| Username | Password | Role | Access |
-|----------|----------|------|--------|
-| admin | admin | Administrator | Full access |
-| guest | guest | Guest | Read-only |
+| Username | Password | Role | Level | Access |
+|----------|----------|------|-------|--------|
+| user@example.com | user | Regular User | U | Standard access |
+| admin@example.com | admin | Administrator | A | Full access |
+| system@example.com | system | System | S | System-level access |
 
 **⚠️ Change default passwords in production!**
+
+**Login with:** `admin@example.com` / `admin`
 
 ### Authentication Features
 
