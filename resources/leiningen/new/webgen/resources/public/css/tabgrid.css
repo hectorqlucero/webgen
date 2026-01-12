@@ -1,0 +1,166 @@
+/* TabGrid Styles */
+
+.tabgrid-container {
+  margin: 0;
+  padding: 0;
+}
+
+/* Parent row selection */
+.parent-row.cursor-pointer {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.parent-row td.cursor-pointer {
+  cursor: pointer;
+}
+
+.parent-row.cursor-pointer:hover {
+  background-color: rgba(13, 110, 253, 0.1);
+}
+
+.parent-row td.cursor-pointer:hover {
+  background-color: rgba(13, 110, 253, 0.15);
+}
+
+.parent-row.selected {
+  background-color: rgba(13, 110, 253, 0.15);
+  font-weight: 600;
+}
+
+/* Tab styling */
+.nav-tabs .nav-link {
+  color: #6c757d;
+  font-weight: 500;
+  border: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.nav-tabs .nav-link:hover {
+  color: #0d6efd;
+  background-color: rgba(13, 110, 253, 0.05);
+}
+
+.nav-tabs .nav-link.active {
+  color: #0d6efd;
+  background-color: #fff;
+  border-color: #dee2e6 #dee2e6 #fff;
+  font-weight: 600;
+}
+
+.nav-tabs .nav-link i {
+  font-size: 0.9em;
+}
+
+/* Tab content */
+.tab-content {
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-top: none;
+  border-radius: 0 0 0.375rem 0.375rem;
+  padding: 1.5rem;
+}
+
+.tab-pane {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Subgrid loading */
+.subgrid-loading {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #6c757d;
+}
+
+.subgrid-loading .spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+/* DataTable in tabgrid */
+.tabgrid-container .dataTable {
+  font-size: 0.95rem;
+}
+
+.tabgrid-container .dataTable thead th {
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+  font-weight: 600;
+  color: #495057;
+  padding: 0.75rem;
+}
+
+.tabgrid-container .dataTable tbody td {
+  padding: 0.75rem;
+  vertical-align: middle;
+}
+
+/* Action buttons in tables */
+.tabgrid-container .btn-group-sm .btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.85rem;
+}
+
+/* Modal for parent selection */
+#modal .modal-dialog.modal-xl {
+  max-width: 90%;
+}
+
+.select-parent-btn {
+  min-width: 80px;
+}
+
+/* Badge styling */
+.badge {
+  font-weight: 500;
+  padding: 0.4em 0.6em;
+}
+
+/* Card shadows */
+.card.shadow-sm {
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  border: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .tabgrid-container .nav-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .tabgrid-container .nav-tabs .nav-item {
+    flex-shrink: 0;
+  }
+  
+  .tab-content {
+    padding: 1rem;
+  }
+}
+
+/* Add subgrid button */
+.add-subgrid-btn {
+  white-space: nowrap;
+}
+
+/* Empty state */
+.subgrid-table-wrapper:empty::after {
+  content: 'No records to display';
+  display: block;
+  text-align: center;
+  padding: 2rem;
+  color: #6c757d;
+  font-style: italic;
+}

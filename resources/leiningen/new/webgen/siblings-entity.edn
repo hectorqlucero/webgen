@@ -1,0 +1,69 @@
+;; AUTO-GENERATED entity configuration for siblings
+;; Generated: 2026-01-11T11:49:25.502089174
+;; 
+;; This file was scaffolded from the database schema.
+;; Feel free to edit and customize as needed.
+;; 
+;; JUNIOR DEVELOPER CHECKLIST:
+;;   ✅ Review field types and labels
+;;   ✅ Mark required fields
+;;   ✅ Set field visibility (hide in grid/form)
+;;   ✅ Add placeholders for text fields
+;;   ✅ Configure select options
+;;   ✅ Test CRUD operations
+;; 
+;; SENIOR DEVELOPER HANDOFF:
+;;   ⚠️  Implement hooks in: src/rs/hooks/siblings.clj
+;;   ⚠️  Add custom validators if needed
+;;   ⚠️  Add computed fields
+;;   ⚠️  Configure audit trail if needed
+;; 
+;; See: HOOKS_GUIDE.md for examples
+;; 
+
+{:entity :siblings
+ :title "Siblings"  ;; Edit this to your preference
+ :table "siblings"
+ :connection :default
+ :rights ["U" "A" "S"]  ;; User levels: U=User, A=Admin, S=System
+ :mode :parameter-driven
+ :menu-hidden? true  ;; Hide from main menu (child entity accessed via subgrids)
+
+ ;; Fields auto-detected from database schema
+ :fields [{:id :id :label "ID" :type :hidden}
+          {:id :name :label "Name" :type :textarea :placeholder "Name..."}
+          {:id :age :label "Age" :type :number}
+          {:id :imagen :label "Imagen" :type :file}
+          {:id :contacto_id :label "Contactos ID" :type :hidden}]
+
+ ;; Auto-generated queries (customize as needed)
+ :queries {:list "SELECT sib.*, con.name as contacto_nombre FROM siblings sib LEFT JOIN contactos con ON sib.contacto_id = con.id ORDER BY sib.id DESC"
+           :get "SELECT * FROM siblings WHERE id = ?"}
+
+ ;; Available actions
+ :actions {:new true :edit true :delete true}
+
+ ;; Enable audit trail (tracks who created/modified and when)
+ ;; Uncomment to enable:
+ ;; :audit? true
+
+ ;; Lifecycle hooks for business logic
+ ;; Senior developer: Implement these in src/rs/hooks/siblings.clj
+ ;; Uncomment and implement as needed:
+ ;; :hooks {:before-load :{{sanitized}}.hooks.siblings/before-load
+ ;;         :after-load :{{sanitized}}.hooks.siblings/after-load
+ ;;         :before-save :{{sanitized}}.hooks.siblings/before-save
+ ;;         :after-save :{{sanitized}}.hooks.siblings/after-save
+ ;;         :before-delete :{{sanitized}}.hooks.siblings/before-delete
+ ;;         :after-delete :{{sanitized}}.hooks.siblings/after-delete}
+ :hooks {:before-save :{{sanitized}}.hooks.cars/before-save
+         :after-load :{{sanitized}}.hooks.cars/after-load}
+
+ ;; Subgrids (parent-child relationships)
+ ;; Uncomment if this entity has child records:
+ ;; :subgrids [{:entity :related-table
+ ;;             :title "Related Records"
+ ;;             :foreign-key :parent_id
+ ;;             :icon "bi bi-list"
+ ;;             :label "Related Records"}]
+ }

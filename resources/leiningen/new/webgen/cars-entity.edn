@@ -1,0 +1,62 @@
+;; AUTO-GENERATED entity configuration for cars
+;; Generated: 2026-01-11T11:49:21.571220285
+;; 
+;; This file was scaffolded from the database schema.
+;; Feel free to edit and customize as needed.
+;; 
+;; JUNIOR DEVELOPER CHECKLIST:
+;;   ✅ Review field types and labels
+;;   ✅ Mark required fields
+;;   ✅ Set field visibility (hide in grid/form)
+;;   ✅ Add placeholders for text fields
+;;   ✅ Configure select options
+;;   ✅ Test CRUD operations
+;; 
+;; SENIOR DEVELOPER HANDOFF:
+;;   ⚠️  Implement hooks in: src/rs/hooks/cars.clj
+;;   ⚠️  Add custom validators if needed
+;;   ⚠️  Add computed fields
+;;   ⚠️  Configure audit trail if needed
+;; 
+;; See: HOOKS_GUIDE.md for examples
+;; 
+
+{:entity :cars
+ :title "Cars"  ;; Edit this to your preference
+ :table "cars"
+ :connection :default
+ :rights ["U" "A" "S"]  ;; User levels: U=User, A=Admin, S=System
+ :mode :parameter-driven
+ :menu-hidden? true  ;; Hide from main menu (child entity accessed via subgrids)
+
+ ;; Fields auto-detected from database schema
+ :fields [{:id :id :label "ID" :type :hidden}
+          {:id :company :label "Company" :type :text :placeholder "Company..."}
+          {:id :model :label "Model" :type :text :placeholder "Model..."}
+          {:id :year :label "Year" :type :number}
+          {:id :imagen :label "Imagen" :type :file}
+          {:id :contacto_id :label "Contactos ID" :type :hidden}]
+
+ ;; Auto-generated queries (customize as needed)
+ :queries {:list "SELECT car.*, con.name as contacto_nombre FROM cars car LEFT JOIN contactos con ON car.contacto_id = con.id ORDER BY car.id DESC"
+           :get "SELECT * FROM cars WHERE id = ?"}
+
+ ;; Available actions
+ :actions {:new true :edit true :delete true}
+
+ ;; Enable audit trail (tracks who created/modified and when)
+ ;; Uncomment to enable:
+ ;; :audit? true
+
+ ;; Lifecycle hooks for business logic
+ :hooks {:before-save :{{sanitized}}.hooks.cars/before-save
+         :after-load :{{sanitized}}.hooks.cars/after-load}
+
+ ;; Subgrids (parent-child relationships)
+ ;; Uncomment if this entity has child records:
+ ;; :subgrids [{:entity :related-table
+ ;;             :title "Related Records"
+ ;;             :foreign-key :parent_id
+ ;;             :icon "bi bi-list"
+ ;;             :label "Related Records"}]
+ }
