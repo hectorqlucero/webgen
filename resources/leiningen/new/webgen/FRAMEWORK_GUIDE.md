@@ -193,6 +193,69 @@ Create `resources/entities/products.edn`:
 
 ---
 
+## 🎛️ **Field Visibility Flags**
+
+Control where fields appear in your application:
+
+| Flag | Effect | Use Case |
+|------|--------|----------|
+| `:hidden-in-grid? true` | Hide from grid/list view | Sensitive data, long text, fields only needed in forms |
+| `:hidden-in-form? true` | Hide from entry/edit forms | Calculated values, read-only display data shown in grids |
+| `:grid-only? true` | Show in grid only | Display-only values (e.g., computed totals, joined names) |
+| `:type :hidden` | Completely hidden | ID fields, internal references |
+
+### **Examples**
+
+```clojure
+;; Show in grid but not in forms (read-only calculated field)
+{:id :total_amount 
+ :label "Total" 
+ :type :decimal
+ :hidden-in-form? true}  ; ← Shown in grid, hidden in forms
+
+;; Show in forms but not in grid (sensitive or verbose data)
+{:id :comments 
+ :label "Internal Notes" 
+ :type :textarea
+ :hidden-in-grid? true}  ; ← Hidden from grid, shown in forms
+
+;; Show only in grid (display-only joined data)
+{:id :customer_name 
+ :label "Customer" 
+ :type :text
+ :grid-only? true}  ; ← Grid only, not in forms
+
+;; Completely hidden (ID fields)
+{:id :id 
+ :label "ID" 
+ :type :hidden}  ; ← Never shown to user
+```
+
+### **Common Patterns**
+
+**Pattern 1: Foreign Key + Display Name**
+```clojure
+;; Hide the FK ID in grid, show the name instead
+{:id :customer_id :type :select :hidden-in-grid? true}
+{:id :customer_name :type :text :grid-only? true}
+```
+
+**Pattern 2: Calculated Read-Only Values**
+```clojure
+;; Calculated in hooks, shown in grid only
+{:id :days_overdue :type :number :hidden-in-form? true}
+{:id :total_with_tax :type :decimal :hidden-in-form? true}
+```
+
+**Pattern 3: Verbose Fields**
+```clojure
+;; Keep grids clean, show details in forms
+{:id :description :type :textarea :hidden-in-grid? true}
+{:id :internal_notes :type :textarea :hidden-in-grid? true}
+```
+
+---
+
 ## 🔐 **Access Control**
 
 ### **User Levels**

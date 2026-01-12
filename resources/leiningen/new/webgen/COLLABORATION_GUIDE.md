@@ -70,6 +70,7 @@ Edit `resources/entities/products.edn`:
 - ✅ Mark required fields (`:required? true`)
 - ✅ Change field types (text, date, select, etc.)
 - ✅ Hide fields in grid (`:hidden-in-grid? true`)
+- ✅ Hide fields in forms (`:hidden-in-form? true`)
 - ✅ Add placeholders
 - ✅ Write simple SQL queries
 - ✅ Enable/disable actions (new, edit, delete)

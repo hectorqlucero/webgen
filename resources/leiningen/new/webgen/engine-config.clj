@@ -311,8 +311,10 @@
   "Gets fields that should be displayed in forms."
   [entity]
   (let [config (get-entity-config entity)]
-    ;; Exclude grid-only fields from forms
-    (remove #(:grid-only? %) (:fields config))))
+    ;; Exclude grid-only fields and fields hidden in forms
+    (remove #(or (:grid-only? %)
+                 (:hidden-in-form? %))
+            (:fields config))))
 
 (defn has-permission?
   "Checks if a user level has permission to access an entity."
