@@ -16,8 +16,11 @@
 ### Installation
 
 ```bash
-# Local installation (for testing)
-cd ~/Downloads/webgen
+# Clone the template repository
+git clone https://github.com/hectorqlucero/webgen.git
+cd webgen
+
+# Install template locally
 lein install
 
 # Create new project
@@ -32,16 +35,36 @@ cd myapp
 cp resources/private/config.clj.example resources/private/config.clj
 # Edit config.clj with your database credentials
 
-# 2. Initialize database
+# 2. Run migrations
+lein migrate
+
+# 3. Seed database with default users
 lein database
 
-# 3. Start server
+# 4. Start server
 lein with-profile dev run
 # Visit: http://localhost:8080
 # Default credentials: admin/admin
 ```
 
-### Create Your First Entity
+### Included Example Entities
+
+The generated project includes four pre-configured entities to help you get started:
+
+- **Users** - User management with authentication and roles
+- **Contactos** - Main entity demonstrating file uploads (images)
+- **Cars** - Subgrid example (child of Contactos) with file uploads
+- **Siblings** - Another subgrid example (child of Contactos)
+
+These demonstrate:
+- Master-detail relationships (subgrids in modal windows)
+- File upload handling via hooks (before-save/after-load)
+- Menu organization and visibility (Cars and Siblings hidden from main menu)
+- Form validation and various field types
+
+**You can explore these examples or remove them to start fresh.**
+
+### Create Additional Entities
 
 ```bash
 lein scaffold products
@@ -324,23 +347,6 @@ lein migrate              # Apply pending migrations
 lein rollback             # Rollback last migration
 lein database             # Seed default users (admin/admin)
 ```
-
-## 📸 Example Application
-
-The generated application includes example entities demonstrating key features:
-
-- **Users** - Authentication, password management, roles
-- **Contactos** - Main entity with file uploads (images)
-- **Cars** - Subgrid example (child of Contactos) with file uploads
-- **Siblings** - Another subgrid example (child of Contactos)
-
-These examples show:
-- Master-detail relationships (subgrids)
-- File upload handling via hooks
-- Menu organization and visibility
-- Form validation and field types
-
-You can use these as templates or remove them to start fresh.
 
 ## 📚 Documentation
 
@@ -994,16 +1000,21 @@ Add to routes:
 
 ## 📦 Publishing to Clojars
 
+For template maintainers:
+
 ```bash
-cd ~/Downloads/webgen
+cd webgen  # Your cloned repository
 # Update version in project.clj
 lein deploy clojars
 ```
 
-Then users can:
+Once published to Clojars, users can install directly:
+
 ```bash
-lein new webgen myapp  # Once published
+lein new webgen myapp  # No git clone needed
 ```
+
+Until published, users need to clone and install locally (see Quick Start above).
 
 ## 📝 License
 
