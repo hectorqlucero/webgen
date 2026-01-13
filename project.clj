@@ -1,4 +1,4 @@
-(defproject webgen/lein-template "0.1.0"
+(defproject webgen/lein-template "0.1.1"
   :description "WebGen/LST Parameter-Driven Web Application Template"
   :url "https://github.com/hectorqlucero/webgen"
   :license {:name "MIT License"
