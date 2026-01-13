@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contactos App</title>
+    <!-- Bootswatch theme (default: Flatly) -->
+    <link id="bootswatch-theme" rel="stylesheet" href="https://bootswatch.com/5/flatly/bootstrap.min.css">
+    <!-- App CSS -->
+    <link rel="stylesheet" href="app.css">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Contactos</a>
+            <div class="d-flex align-items-center">
+                <label for="theme-select" class="me-2 mb-0">Theme:</label>
+                <select id="theme-select" class="form-select form-select-sm">
+                    <option value="flatly">Flatly</option>
+                    <option value="cerulean">Cerulean</option>
+                    <option value="cosmo">Cosmo</option>
+                    <option value="cyborg">Cyborg</option>
+                    <option value="darkly">Darkly</option>
+                    <option value="journal">Journal</option>
+                    <option value="litera">Litera</option>
+                    <option value="lumen">Lumen</option>
+                    <option value="lux">Lux</option>
+                    <option value="materia">Materia</option>
+                    <option value="minty">Minty</option>
+                    <option value="morph">Morph</option>
+                    <option value="pulse">Pulse</option>
+                    <option value="quartz">Quartz</option>
+                    <option value="sandstone">Sandstone</option>
+                    <option value="simplex">Simplex</option>
+                    <option value="sketchy">Sketchy</option>
+                    <option value="slate">Slate</option>
+                    <option value="solar">Solar</option>
+                    <option value="spacelab">Spacelab</option>
+                    <option value="superhero">Superhero</option>
+                    <option value="united">United</option>
+                    <option value="vapor">Vapor</option>
+                    <option value="yeti">Yeti</option>
+                    <option value="zephyr">Zephyr</option>
+                </select>
+            </div>
+        </div>
+    </nav>
+    <div class="container">
+        <h1 class="mb-4">Welcome to Contactos</h1>
+        <p>This is your main app page. The Bootswatch theme can be changed using the dropdown above.</p>
+        <button class="btn btn-primary">A Bootstrap Button</button>
+    </div>
+    <script src="jquery-3.7.1.min.js"></script>
+    <script src="app.js"></script>
+    <script>
+        $(function () {
+            $('#theme-select').on('change', function () {
+                var theme = this.value;
+                $('#bootswatch-theme').attr('href', `https://bootswatch.com/5/${theme}/bootstrap.min.css`);
+            });
+        });
+    </script>
+</body>
+
+</html>

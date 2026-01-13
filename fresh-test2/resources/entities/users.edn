@@ -1,0 +1,76 @@
+;; AUTO-GENERATED entity configuration for users
+;; Generated: 2026-01-11T09:48:50.225413485
+;; 
+;; This file was scaffolded from the database schema.
+;; Feel free to edit and customize as needed.
+;; 
+;; JUNIOR DEVELOPER CHECKLIST:
+;;   ✅ Review field types and labels
+;;   ✅ Mark required fields
+;;   ✅ Set field visibility (hide in grid/form)
+;;   ✅ Add placeholders for text fields
+;;   ✅ Configure select options
+;;   ✅ Test CRUD operations
+;; 
+;; SENIOR DEVELOPER HANDOFF:
+;;   ⚠️  Implement hooks in: src/rs/hooks/users.clj
+;;   ⚠️  Add custom validators if needed
+;;   ⚠️  Add computed fields
+;;   ⚠️  Configure audit trail if needed
+;; 
+;; See: HOOKS_GUIDE.md for examples
+;; 
+
+{:entity :users
+ :title "Users"  ;; Edit this to your preference
+ :table "users"
+ :connection :default
+ :rights ["U" "A" "S"]  ;; User levels: U=User, A=Admin, S=System
+ :mode :parameter-driven
+ 
+ ;; Fields auto-detected from database schema
+ :fields [
+          {:id :id :label "ID" :type :hidden}
+          {:id :lastname :label "Lastname" :type :textarea :placeholder "Lastname..."}
+          {:id :firstname :label "Firstname" :type :textarea :placeholder "Firstname..."}
+          {:id :username :label "Username" :type :textarea :placeholder "Username..."}
+          {:id :password :label "Password" :type :password}
+          {:id :dob :label "Dob" :type :textarea :placeholder "Dob..."}
+          {:id :cell :label "Cell" :type :text :placeholder "Cell..."}
+          {:id :phone :label "Phone" :type :text :placeholder "Phone..."}
+          {:id :fax :label "Fax" :type :textarea :placeholder "Fax..."}
+          {:id :email :label "Email" :type :email :placeholder "user@example.com"}
+          {:id :level :label "Level" :type :textarea :placeholder "Level..."}
+          {:id :active :label "Active" :type :textarea :placeholder "Active..."}
+          {:id :imagen :label "Imagen" :type :file}
+          {:id :last_login :label "Last Login" :type :textarea :placeholder "Last Login..."}]
+ 
+ ;; Auto-generated queries (customize as needed)
+ :queries {:list "SELECT * FROM users ORDER BY id DESC"
+           :get "SELECT * FROM users WHERE id = ?"}
+ 
+ ;; Available actions
+ :actions {:new true :edit true :delete true}
+ 
+ ;; Enable audit trail (tracks who created/modified and when)
+ ;; Uncomment to enable:
+ ;; :audit? true
+ 
+ ;; Lifecycle hooks for business logic
+ ;; Senior developer: Implement these in src/rs/hooks/users.clj
+ ;; Uncomment and implement as needed:
+ ;; :hooks {:before-load :fresh_test2.hooks.users/before-load
+ ;;         :after-load :fresh_test2.hooks.users/after-load
+ ;;         :before-save :fresh_test2.hooks.users/before-save
+ ;;         :after-save :fresh_test2.hooks.users/after-save
+ ;;         :before-delete :fresh_test2.hooks.users/before-delete
+ ;;         :after-delete :fresh_test2.hooks.users/after-delete}
+ 
+ ;; Subgrids (parent-child relationships)
+ ;; Uncomment if this entity has child records:
+ ;; :subgrids [{:entity :related-table
+ ;;             :title "Related Records"
+ ;;             :foreign-key :parent_id
+ ;;             :icon "bi bi-list"
+ ;;             :label "Related Records"}]
+}

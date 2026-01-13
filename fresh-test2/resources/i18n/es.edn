@@ -1,0 +1,163 @@
+{;; Common UI Elements
+ :common/save "Guardar"
+ :common/cancel "Cancelar"
+ :common/submit "Enviar"
+ :common/edit "Editar"
+ :common/delete "Eliminar"
+ :common/add "Agregar"
+ :common/new "Nuevo"
+ :common/search "Buscar"
+ :common/filter "Filtrar"
+ :common/export "Exportar"
+ :common/import "Importar"
+ :common/close "Cerrar"
+ :common/back "Volver"
+ :common/next "Siguiente"
+ :common/previous "Anterior"
+ :common/loading "Cargando..."
+ :common/actions "Acciones"
+ :common/yes "Sí"
+ :common/no "No"
+ :common/ok "OK"
+ :common/confirm "Confirmar"
+ :common/select "Seleccionar"
+ :common/required "Requerido"
+ 
+ ;; Menu Categories
+ :menu/clients "Clientes"
+ :menu/properties "Propiedades"
+ :menu/transactions "Transacciones"
+ :menu/financial "Finanzas"
+ :menu/documents "Documentos"
+ :menu/system "Sistema"
+ :menu/admin "Administración"
+ :menu/logout "Cerrar Sesión"
+ :menu/profile "Perfil"
+ :menu/settings "Configuración"
+ 
+ ;; Entities
+ :entity/alquileres "Alquileres"
+ :entity/ventas "Ventas"
+ :entity/propiedades "Propiedades"
+ :entity/clientes "Clientes"
+ :entity/agentes "Agentes"
+ :entity/avaluos "Avalúos"
+ :entity/comisiones "Comisiones"
+ :entity/contratos "Contratos"
+ :entity/documentos "Documentos"
+ :entity/fiadores "Fiadores"
+ :entity/pagos_renta "Pagos de Renta"
+ :entity/pagos_ventas "Pagos de Ventas"
+ :entity/tramites "Trámites"
+ :entity/bitacora "Bitácora"
+ :entity/users "Usuarios"
+ 
+ ;; Form Labels
+ :form/email "Correo Electrónico"
+ :form/password "Contraseña"
+ :form/username "Usuario"
+ :form/name "Nombre"
+ :form/phone "Teléfono"
+ :form/address "Dirección"
+ :form/date "Fecha"
+ :form/amount "Monto"
+ :form/description "Descripción"
+ :form/status "Estado"
+ :form/notes "Notas"
+ :form/file "Archivo"
+ 
+ ;; Validation Messages
+ :validation/required "{field} es requerido"
+ :validation/invalid-email "Correo electrónico inválido"
+ :validation/invalid-date "Fecha inválida"
+ :validation/min-length "{field} debe tener al menos {min} caracteres"
+ :validation/max-length "{field} no puede exceder {max} caracteres"
+ :validation/positive "{field} debe ser un número positivo"
+ :validation/negative "{field} no puede ser negativo"
+ :validation/date-range "La fecha final debe ser posterior a la fecha inicial"
+ :validation/unique "{field} ya existe"
+ 
+ ;; Error Messages
+ :error/general "Ocurrió un error. Por favor intente nuevamente"
+ :error/not-found "Registro no encontrado"
+ :error/unauthorized "No tiene permisos para realizar esta acción"
+ :error/forbidden "Acceso denegado"
+ :error/server "Error del servidor"
+ :error/network "Error de conexión"
+ :error/timeout "Tiempo de espera agotado"
+ :error/invalid-data "Datos inválidos"
+ :error/database "Error de base de datos"
+ :error/file-upload "Error al subir archivo"
+ 
+ ;; Success Messages
+ :success/saved "Guardado exitosamente"
+ :success/deleted "Eliminado exitosamente"
+ :success/created "Creado exitosamente"
+ :success/updated "Actualizado exitosamente"
+ :success/uploaded "Archivo subido exitosamente"
+ :success/sent "Enviado exitosamente"
+ 
+ ;; Confirmation Messages
+ :confirm/delete "¿Está seguro que desea eliminar este registro?"
+ :confirm/cancel "¿Está seguro que desea cancelar?"
+ :confirm/discard "¿Descartar los cambios?"
+ 
+ ;; Grid/Table
+ :grid/no-data "No hay datos para mostrar"
+ :grid/showing "Mostrando {from} a {to} de {total} registros"
+ :grid/per-page "Por página"
+ :grid/page "Página"
+ :grid/of "de"
+ 
+ ;; Authentication
+ :auth/login "Iniciar Sesión"
+ :auth/logout "Cerrar Sesión"
+ :auth/register "Registrarse"
+ :auth/forgot-password "¿Olvidó su contraseña?"
+ :auth/reset-password "Restablecer Contraseña"
+ :auth/change-password "Cambiar Contraseña"
+ :auth/invalid-credentials "Usuario o contraseña incorrectos"
+ :auth/session-expired "Su sesión ha expirado"
+ :auth/welcome "Bienvenido"
+ 
+ ;; Date/Time
+ :date/today "Hoy"
+ :date/yesterday "Ayer"
+ :date/tomorrow "Mañana"
+ :date/days "días"
+ :date/months "meses"
+ :date/years "años"
+ 
+ ;; File Upload
+ :file/select "Seleccionar archivo"
+ :file/drag-drop "Arrastre y suelte archivos aquí"
+ :file/max-size "Tamaño máximo: {size}"
+ :file/allowed-types "Tipos permitidos: {types}"
+ 
+ ;; Subgrids
+ :subgrid/title "Registros relacionados"
+ :subgrid/loading "Cargando registros..."
+ :subgrid/empty "No hay registros relacionados"
+ 
+ ;; Business Logic (Alquileres example)
+ :alquiler/duration "Duración"
+ :alquiler/initial-total "Total Inicial"
+ :alquiler/monthly-payment "Pago Mensual"
+ :alquiler/deposit "Depósito"
+ :alquiler/active "Activo"
+ :alquiler/expired "Vencido"
+ :alquiler/canceled "Cancelado"
+ 
+ ;; Language Selector
+ :lang/select "Seleccionar idioma"
+ :lang/spanish "Español"
+ :lang/english "English"
+ 
+ ;; DataTables
+ :datatables/search "Buscar:"
+ :datatables/search-placeholder "Buscar..."
+ :datatables/length-menu "Mostrar _MENU_ registros"
+ :datatables/info "Mostrando _START_ a _END_ de _TOTAL_ registros"
+ :datatables/info-empty "Mostrando 0 a 0 de 0 registros"
+ :datatables/info-filtered "(filtrado de _MAX_ registros totales)"
+ :datatables/zero-records "No se encontraron registros coincidentes"}

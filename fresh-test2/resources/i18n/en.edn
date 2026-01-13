@@ -1,0 +1,163 @@
+{;; Common UI Elements
+ :common/save "Save"
+ :common/cancel "Cancel"
+ :common/submit "Submit"
+ :common/edit "Edit"
+ :common/delete "Delete"
+ :common/add "Add"
+ :common/new "New"
+ :common/search "Search"
+ :common/filter "Filter"
+ :common/export "Export"
+ :common/import "Import"
+ :common/close "Close"
+ :common/back "Back"
+ :common/next "Next"
+ :common/previous "Previous"
+ :common/loading "Loading..."
+ :common/actions "Actions"
+ :common/yes "Yes"
+ :common/no "No"
+ :common/ok "OK"
+ :common/confirm "Confirm"
+ :common/select "Select"
+ :common/required "Required"
+ 
+ ;; Menu Categories
+ :menu/clients "Clients"
+ :menu/properties "Properties"
+ :menu/transactions "Transactions"
+ :menu/financial "Financial"
+ :menu/documents "Documents"
+ :menu/system "System"
+ :menu/admin "Administration"
+ :menu/logout "Logout"
+ :menu/profile "Profile"
+ :menu/settings "Settings"
+ 
+ ;; Entities
+ :entity/alquileres "Rentals"
+ :entity/ventas "Sales"
+ :entity/propiedades "Properties"
+ :entity/clientes "Clients"
+ :entity/agentes "Agents"
+ :entity/avaluos "Appraisals"
+ :entity/comisiones "Commissions"
+ :entity/contratos "Contracts"
+ :entity/documentos "Documents"
+ :entity/fiadores "Guarantors"
+ :entity/pagos_renta "Rental Payments"
+ :entity/pagos_ventas "Sale Payments"
+ :entity/tramites "Procedures"
+ :entity/bitacora "Audit Log"
+ :entity/users "Users"
+ 
+ ;; Form Labels
+ :form/email "Email"
+ :form/password "Password"
+ :form/username "Username"
+ :form/name "Name"
+ :form/phone "Phone"
+ :form/address "Address"
+ :form/date "Date"
+ :form/amount "Amount"
+ :form/description "Description"
+ :form/status "Status"
+ :form/notes "Notes"
+ :form/file "File"
+ 
+ ;; Validation Messages
+ :validation/required "{field} is required"
+ :validation/invalid-email "Invalid email address"
+ :validation/invalid-date "Invalid date"
+ :validation/min-length "{field} must be at least {min} characters"
+ :validation/max-length "{field} cannot exceed {max} characters"
+ :validation/positive "{field} must be a positive number"
+ :validation/negative "{field} cannot be negative"
+ :validation/date-range "End date must be after start date"
+ :validation/unique "{field} already exists"
+ 
+ ;; Error Messages
+ :error/general "An error occurred. Please try again"
+ :error/not-found "Record not found"
+ :error/unauthorized "You don't have permission to perform this action"
+ :error/forbidden "Access denied"
+ :error/server "Server error"
+ :error/network "Connection error"
+ :error/timeout "Request timeout"
+ :error/invalid-data "Invalid data"
+ :error/database "Database error"
+ :error/file-upload "File upload error"
+ 
+ ;; Success Messages
+ :success/saved "Saved successfully"
+ :success/deleted "Deleted successfully"
+ :success/created "Created successfully"
+ :success/updated "Updated successfully"
+ :success/uploaded "File uploaded successfully"
+ :success/sent "Sent successfully"
+ 
+ ;; Confirmation Messages
+ :confirm/delete "Are you sure you want to delete this record?"
+ :confirm/cancel "Are you sure you want to cancel?"
+ :confirm/discard "Discard changes?"
+ 
+ ;; Grid/Table
+ :grid/no-data "No data to display"
+ :grid/showing "Showing {from} to {to} of {total} records"
+ :grid/per-page "Per page"
+ :grid/page "Page"
+ :grid/of "of"
+ 
+ ;; Authentication
+ :auth/login "Login"
+ :auth/logout "Logout"
+ :auth/register "Register"
+ :auth/forgot-password "Forgot your password?"
+ :auth/reset-password "Reset Password"
+ :auth/change-password "Change Password"
+ :auth/invalid-credentials "Invalid username or password"
+ :auth/session-expired "Your session has expired"
+ :auth/welcome "Welcome"
+ 
+ ;; Date/Time
+ :date/today "Today"
+ :date/yesterday "Yesterday"
+ :date/tomorrow "Tomorrow"
+ :date/days "days"
+ :date/months "months"
+ :date/years "years"
+ 
+ ;; File Upload
+ :file/select "Select file"
+ :file/drag-drop "Drag and drop files here"
+ :file/max-size "Maximum size: {size}"
+ :file/allowed-types "Allowed types: {types}"
+ 
+ ;; Subgrids
+ :subgrid/title "Related records"
+ :subgrid/loading "Loading records..."
+ :subgrid/empty "No related records"
+ 
+ ;; Business Logic (Alquileres example)
+ :alquiler/duration "Duration"
+ :alquiler/initial-total "Initial Total"
+ :alquiler/monthly-payment "Monthly Payment"
+ :alquiler/deposit "Deposit"
+ :alquiler/active "Active"
+ :alquiler/expired "Expired"
+ :alquiler/canceled "Canceled"
+ 
+ ;; Language Selector
+ :lang/select "Select language"
+ :lang/spanish "Español"
+ :lang/english "English"
+ 
+ ;; DataTables
+ :datatables/search "Search:"
+ :datatables/search-placeholder "Search..."
+ :datatables/length-menu "Show _MENU_ entries"
+ :datatables/info "Showing _START_ to _END_ of _TOTAL_ entries"
+ :datatables/info-empty "Showing 0 to 0 of 0 entries"
+ :datatables/info-filtered "(filtered from _MAX_ total entries)"
+ :datatables/zero-records "No matching records found"}
