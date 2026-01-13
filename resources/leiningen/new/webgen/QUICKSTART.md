@@ -2,31 +2,42 @@
 
 ## New Project Setup (5 Minutes)
 
-### 1. Clone Repository
+### 1. Create Project
 ```bash
-git clone <repo-url> my-project
+lein new org.clojars.hector/webgen my-project
 cd my-project
 ```
 
 ### 2. Configure Database
 
-Copy and edit config:
+Edit `resources/private/config.clj` with your settings:
+
 ```bash
-cp resources/private/config_example.clj resources/private/config.clj
+nano resources/private/config.clj
+# or
+vim resources/private/config.clj
 ```
 
-Edit `resources/private/config.clj`:
+The file comes pre-configured with template values. Just update:
 ```clojure
-{:port 8080
- :uploads "uploads"
- :path "/uploads"
- :session-secret "your-secret-key-here"
+{:connections
+ {:sqlite {:db-type "sqlite"
+           :db-class "org.sqlite.JDBC"
+           :db-name "db/my-project.sqlite"}  ; ← Already set with your project name
+  
+  :mysql {:db-type "mysql"
+          :db-class "com.mysql.cj.jdbc.Driver"
+          :db-name "//localhost:3306/my-project"  ; ← Already set
+          :db-user "root"
+          :db-pwd "your_password"}  ; ← Update this
+  
+  :main :sqlite      ; Used for migrations
+  :default :sqlite}  ; Used by application - SQLite by default
  
- :connections
- {:default {:db-type "sqlite"           ; or "mysql", "postgresql"
-            :db-name "data/myapp.db"    ; or connection string
-            :db-user "user"             ; (not needed for SQLite)
-            :db-pwd "password"}}}       ; (not needed for SQLite)
+ :port 8080
+ :uploads "./uploads/my-project/"  ; ← Already set with your project name
+ :site-name "my-project"           ; ← Already set
+ :theme "sketchy"}
 ```
 
 ### 3. Run Migrations
@@ -52,7 +63,31 @@ Visit http://localhost:8080 (or your configured port)
 
 ## Your First Entity (2 Minutes)
 
-### 1. Create Migration
+### Option 1: Use Scaffold Command (Recommended)
+
+The `lein scaffold` command creates everything for you:
+
+```bash
+lein scaffold products
+```
+
+This creates:
+- Entity config: `resources/entities/products.edn`
+- Migrations for all databases: `resources/migrations/XXX-products.{mysql,postgresql,sqlite}.{up,down}.sql`
+- Hook file: `src/{{name}}/hooks/products.clj`
+
+Then run:
+```bash
+lein migrate
+```
+
+Visit: http://localhost:8080/admin/products
+
+### Option 2: Manual Creation
+
+If you prefer manual setup:
+
+#### 1. Create Migration
 
 `resources/migrations/002-products.sqlite.up.sql`:
 ```sql
@@ -72,19 +107,19 @@ CREATE TABLE IF NOT EXISTS products (
 DROP TABLE IF EXISTS products;
 ```
 
-### 2. Run Migration
+#### 2. Run Migration
 ```bash
 lein migrate
 ```
 
-### 3. Create Entity Config
+#### 3. Create Entity Config
 
 `resources/entities/products.edn`:
 ```clojure
 {:entity :products
  :title "Products"
  :table "products"
- :rights ["U" "A" "S"]
+ :menu-group :catalog
  
  :fields [{:id :id
            :label "ID"
@@ -93,30 +128,32 @@ lein migrate
           {:id :code
            :label "Product Code"
            :type :text
-           :required? true
+           :required true
            :placeholder "SKU-001"}
           
           {:id :name
            :label "Product Name"
            :type :text
-           :required? true
+           :required true
            :placeholder "Enter product name..."}
           
           {:id :description
            :label "Description"
            :type :textarea
-           :required? false}
+           :rows 5}
           
           {:id :price
            :label "Price"
            :type :decimal
-           :required? true
+           :required true
+           :min 0
+           :step 0.01
            :placeholder "0.00"}
           
           {:id :stock
            :label "Stock Quantity"
            :type :number
-           :required? false
+           :min 0
            :placeholder "0"}
           
           {:id :active
@@ -132,7 +169,7 @@ lein migrate
  :actions {:new true :edit true :delete true}}
 ```
 
-### 4. Access Your New Grid
+#### 4. Access Your New Grid
 
 Visit: http://localhost:8080/admin/products
 
@@ -155,6 +192,41 @@ Edit `src/rs/menu.clj`:
 ---
 
 ## Common Patterns
+
+### All Available Field Types
+
+WebGen supports the following field types:
+
+```clojure
+;; Text inputs
+{:id :name :label "Name" :type :text :placeholder "Enter name..." :required true}
+{:id :notes :label "Notes" :type :textarea :rows 5 :placeholder "Enter notes..."}
+
+;; Numeric inputs
+{:id :quantity :label "Quantity" :type :number :min 0 :max 1000}
+{:id :price :label "Price" :type :decimal :min 0 :step 0.01 :placeholder "0.00"}
+
+;; Date/time inputs
+{:id :birthdate :label "Birth Date" :type :date}
+{:id :created_at :label "Created" :type :datetime}
+{:id :opening_time :label "Opens At" :type :time}
+
+;; Selection inputs
+{:id :category :label "Category" :type :select 
+ :options [{:value "A" :label "Category A"} {:value "B" :label "Category B"}]}
+
+{:id :status :label "Status" :type :radio :value "active"
+ :options [{:id "statusActive" :label "Active" :value "active"}
+           {:id "statusInactive" :label "Inactive" :value "inactive"}]}
+
+{:id :featured :label "Featured" :type :checkbox :value "T"}
+
+;; Special inputs
+{:id :email :label "Email" :type :email :placeholder "user@example.com"}
+{:id :password :label "Password" :type :password}
+{:id :imagen :label "Image" :type :file}
+{:id :user_id :label "User ID" :type :hidden}
+```
 
 ### Dropdown with Database Values
 
@@ -365,4 +437,4 @@ java -jar rs.jar
 - 💬 Ask Questions: GitHub Discussions
 - 📧 Email: support@example.com
 
-**Happy Building! 🚀**
+**Happy Building! **

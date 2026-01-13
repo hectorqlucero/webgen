@@ -2,7 +2,7 @@
 
 **Build enterprise web applications through declarative configuration, not code generation.**
 
-## 🌟 Why WebGen?
+## **Highlights:** Why WebGen?
 
 - **Parameter-Driven**: Define entities in EDN files - no code generation needed
 - **Hot Reload**: Change entity configs and hooks, refresh browser - no server restart
@@ -11,29 +11,25 @@
 - **Built for Enterprise**: MRP, Accounting, Inventory, POS-capable
 - **Hook System**: Customize behavior without modifying core framework code
 
-## ⚡ Quick Start
+## **Performance:** Quick Start
 
 ### Installation
 
 ```bash
-# Clone the template repository
-git clone https://github.com/hectorqlucero/webgen.git
-cd webgen
-
-# Install template locally
-lein install
-
-# Create new project
-lein new webgen myapp
+# Create new project from Clojars
+lein new org.clojars.hector/webgen myapp
 cd myapp
 ```
+
+**Note:** The template is published to Clojars, so no manual installation needed!
 
 ### First Run
 
 ```bash
 # 1. Configure database
-cp resources/private/config.clj.example resources/private/config.clj
 # Edit config.clj with your database credentials
+# Default uses SQLite - just update passwords for MySQL/PostgreSQL if needed
+nano resources/private/config.clj
 
 # 2. Run migrations
 lein migrate
@@ -75,7 +71,7 @@ This creates:
 - `resources/migrations/XXX-products.*.sql` - Database migrations
 - `src/myapp/hooks/products.clj` - Hook file for customization
 
-## 🎯 What's Different?
+## **Important:** What's Different?
 
 ### Traditional Code Generation (v1)
 ```
@@ -89,7 +85,7 @@ Create users.edn (80 lines) → Refresh browser → Done ✅
 Modify config → Never lose changes
 ```
 
-## ✨ Key Features
+## **Features:** Key Features
 
 | Feature | Description |
 |---------|-------------|
@@ -168,17 +164,23 @@ Entity configs define everything about a CRUD interface. Located in `resources/e
 
 ### Supported Field Types
 
-| Type | Description | Example |
-|------|-------------|---------|
-| `:text` | Single-line text input | Name, title, SKU |
-| `:textarea` | Multi-line text | Description, notes |
-| `:number` | Numeric input | Price, quantity |
-| `:select` | Dropdown select | Category, status |
-| `:checkbox` | Boolean checkbox | Active, featured |
-| `:radio` | Radio buttons | Size, color |
-| `:date` | Date picker | Birth date, expiry |
-| `:file` | File upload | Image, document |
-| `:hidden` | Hidden field | ID, timestamps |
+| Type | Description | Example | Options |
+|------|-------------|---------|---------|
+| `:text` | Single-line text input | Name, SKU, title | `placeholder`, `required` |
+| `:textarea` | Multi-line text input | Description, notes | `rows`, `placeholder` |
+| `:number` | Numeric integer input | Quantity, age | `min`, `max`, `placeholder` |
+| `:decimal` | Decimal/float input | Price, percentage | `min`, `max`, `step`, `placeholder` |
+| `:email` | Email input with validation | Email address | `placeholder`, `required` |
+| `:password` | Password input (masked) | Password field | `placeholder`, `required` |
+| `:date` | Date picker | Birth date, expiry | `min`, `max` |
+| `:datetime` | Date and time picker | Created timestamp | `min`, `max` |
+| `:time` | Time picker | Event time | `min`, `max` |
+| `:select` | Dropdown select | Category, status | `options` (array of `{:value :label}`) |
+| `:radio` | Radio button group | Status, type | `options` (array with `:id`, `:label`, `:value`) |
+| `:checkbox` | Single checkbox | Active, featured | `value` (default checked value) |
+| `:file` | File upload | Image, PDF | Handled via hooks |
+| `:hidden` | Hidden field | ID, foreign keys | `value` |
+| `:computed` | Calculated/display only | Total, full name | Read-only, computed via hooks |
 
 ### Menu Organization
 
@@ -287,7 +289,7 @@ Register hooks in entity config `resources/entities/products.edn`:
   (assoc row :updated_at (java.time.LocalDateTime/now)))
 ```
 
-## 🗄️ Database Support
+## **Database** Database Support
 
 WebGen generates vendor-specific migrations automatically.
 
@@ -310,34 +312,49 @@ Edit `resources/private/config.clj`:
 
 ```clojure
 {:connections
- {;; MySQL
-  :mysql {:db-type "mysql"
-          :db-class "com.mysql.cj.jdbc.Driver"
-          :db-name "//localhost:3306/mydb"
-          :db-user "root"
-          :db-pwd "password"}
-  
-  ;; PostgreSQL
-  :postgres {:db-type "postgresql"
-             :db-class "org.postgresql.Driver"
-             :db-name "//localhost:5432/mydb"
-             :db-user "postgres"
-             :db-pwd "password"}
-  
-  ;; SQLite (no credentials needed)
-  :sqlite {:db-type "sqlite"
-           :db-class "org.sqlite.JDBC"
-           :db-name "db/myapp.sqlite"}}
- 
- ;; Active connection
- :db :mysql         ; Change to :postgres or :sqlite
- 
- ;; Application settings
- :port 8080
- :site-name "My Application"
- :uploads "./uploads/"
- :max-upload-mb 5
- :allowed-image-exts ["jpg" "jpeg" "png" "gif" "bmp" "webp"]}
+ {;; --- Mysql database ---
+  :mysql {:db-type   "mysql"                                 ;; "mysql", "postgresql", "sqlite", etc.
+          :db-class  "com.mysql.cj.jdbc.Driver"              ;; JDBC driver class
+          :db-name   "//localhost:3306/your_dbname"          ;; JDBC subname (host:port/db)
+          :db-user   "root"
+          :db-pwd    "your_password"}
+
+  ;; --- Local SQLite database ---
+  :sqlite {:db-type   "sqlite"
+           :db-class  "org.sqlite.JDBC"
+           :db-name   "db/your_dbname.sqlite"}               ;; No user/pwd needed for SQLite
+
+  ;; --- PostgreSQL database ---
+  :postgres {:db-type   "postgresql"
+             :db-class  "org.postgresql.Driver"
+             :db-name   "//localhost:5432/your_dbname"
+             :db-user   "root"
+             :db-pwd    "your_password"}
+
+  ;; --- Default connection used by the app ---
+  :main :sqlite ; Used for migrations (SQLite by default for easy prototyping)
+  :default :sqlite ; Used for application (switch to :mysql or :postgres for production)
+  :db :mysql
+  :pg :postgres
+  :localdb :sqlite}
+
+ ;; --- Other global app settings ---
+ :uploads      "./uploads/your_dbname/"    ;; Path for file uploads
+ :site-name    "your_site_name"            ;; App/site name
+ :company-name "your_company_name"         ;; Company name
+ :port         3000                        ;; App port
+ :tz           "US/Pacific"                ;; Timezone
+ :base-url     "http://0.0.0.0:3000/"      ;; Base URL
+ :img-url      "https://0.0.0.0/uploads/"  ;; Image base URL
+ :path         "/uploads/"                 ;; Uploads path (for web)
+ :max-upload-mb 5                            ;; Optional: max image upload size in MB
+ :allowed-image-exts ["jpg" "jpeg" "png" "gif" "bmp" "webp"] ;; Optional: allowed image extensions
+ ;; --- Theme selection ---
+ :theme "sketchy" ;; Options: "default" (Bootstrap), "cerulean", "slate", "minty", "lux", "cyborg", "sandstone", "superhero", "flatly", "yeti"
+ ;; Optional email config
+ :email-host   "smtp.example.com"
+ :email-user   "user@example.com"
+ :email-pwd    "emailpassword"}
 ```
 
 ### Migration Commands
@@ -349,7 +366,7 @@ lein database             # Seed default users
                           # (admin@example.com/admin, user@example.com/user, system@example.com/system)
 ```
 
-## 📚 Documentation
+## **Documentation:** Documentation
 
 Generated projects include comprehensive documentation:
 
@@ -360,7 +377,7 @@ Generated projects include comprehensive documentation:
 - **QUICK_REFERENCE.md** - Command reference
 - **RUN_APP.md** - Running and deployment
 
-## 🛠️ Common Commands
+## **Tools:** Common Commands
 
 ```bash
 # Project Creation
@@ -414,7 +431,7 @@ After running `lein database`:
 | admin@example.com | admin | Administrator | A | Full access |
 | system@example.com | system | System | S | System-level access |
 
-**⚠️ Change default passwords in production!**
+****WARNING** Change default passwords in production!**
 
 **Login with:** `admin@example.com` / `admin`
 
@@ -446,7 +463,7 @@ Configure in entity configs:
 
 ---
 
-## 🎨 Advanced Customization (The 20%)
+## **Design:** Advanced Customization (The 20%)
 
 While 80% of your application is configuration-driven, the framework provides full control for the remaining 20% through manual customization.
 
@@ -495,7 +512,7 @@ Edit `src/myapp/menu.clj` to add custom menu items that don't come from entities
 
 ---
 
-### 🛣️ Custom Routes
+### **Routes** Custom Routes
 
 WebGen separates routes into two categories:
 
@@ -705,7 +722,7 @@ Hooks provide deep customization without modifying framework code.
 
 ---
 
-### 🏗️ Custom Handlers (MVC Pattern)
+### **Architecture** Custom Handlers (MVC Pattern)
 
 Create custom handlers for non-CRUD functionality.
 
@@ -829,7 +846,7 @@ src/myapp/handlers/
 
 ---
 
-### 🔧 Direct Database Access
+### **Setup:** Direct Database Access
 
 For complex queries beyond CRUD, use direct database access:
 
@@ -875,7 +892,7 @@ For complex queries beyond CRUD, use direct database access:
 
 ---
 
-### 🎛️ Middleware Customization
+### **Configuration** Middleware Customization
 
 Add custom middleware in `src/myapp/core.clj`:
 
@@ -1003,9 +1020,11 @@ Add to routes:
 
 ---
 
-## 📦 Publishing to Clojars
+## **Package:** Publishing to Clojars
 
-For template maintainers:
+The template is already published to Clojars at `org.clojars.hector/webgen`.
+
+For template maintainers to publish updates:
 
 ```bash
 cd webgen  # Your cloned repository
@@ -1013,15 +1032,13 @@ cd webgen  # Your cloned repository
 lein deploy clojars
 ```
 
-Once published to Clojars, users can install directly:
+Users can now install directly:
 
 ```bash
-lein new webgen myapp  # No git clone needed
+lein new org.clojars.hector/webgen myapp  # No git clone needed!
 ```
 
-Until published, users need to clone and install locally (see Quick Start above).
-
-## 📝 License
+## **Note:** License
 
 MIT License - see LICENSE file for details.
 

@@ -4,18 +4,21 @@ This is a Leiningen template for creating new LST/WebGen parameter-driven web ap
 
 ## Installation
 
-### Local Installation (for testing)
-```bash
-cd /path/to/webgen
-lein install
-```
+The template is published to Clojars at `org.clojars.hector/webgen`.
 
 ### Usage
 
-Create a new project:
+Create a new project directly from Clojars:
 ```bash
 lein new org.clojars.hector/webgen myapp
 cd myapp
+```
+
+### Local Development (for template maintainers)
+```bash
+cd /path/to/webgen
+lein install  # Install locally for testing
+lein new org.clojars.hector/webgen test-project  # Test local version
 ```
 
 Follow the instructions displayed after project creation.

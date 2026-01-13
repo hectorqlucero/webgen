@@ -22,7 +22,7 @@ The scaffolding engine detected **15 database tables** and generated complete CR
 
 ---
 
-## 🚀 Start the Server
+## **Quick Start:** Start the Server
 
 ### Step 1: Start the Application
 
@@ -113,7 +113,7 @@ Once the server is running, you can immediately access any entity:
 
 ---
 
-## 🎨 What You Get Out of the Box
+## **Design:** What You Get Out of the Box
 
 ### Each Entity Has:
 - ✅ **Data Grid** - Sortable, searchable, paginated table with DataTables
@@ -130,12 +130,12 @@ Once the server is running, you can immediately access any entity:
 - 📅 Date fields → type `:date` with date picker
 - 💰 Decimal fields → type `:decimal` for money
 - 🔢 Number fields → type `:number` for integers
-- 📝 Long text → type `:textarea` for descriptions
-- 🔑 Primary keys → type `:hidden` (auto-populated)
+- **Note:** Long text → type `:textarea` for descriptions
+- **Key:** Primary keys → type `:hidden` (auto-populated)
 
 ---
 
-## 🛠️ Customization
+## **Tools:** Customization
 
 All entity configurations are in `resources/entities/`
 
@@ -160,7 +160,7 @@ See `FRAMEWORK_GUIDE.md` for detailed examples.
 
 ---
 
-## 📝 Configuration Files
+## **Note:** Configuration Files
 
 All auto-generated configs are ready to use but can be customized:
 
@@ -247,7 +247,7 @@ Just visit each URL listed above - all 15 entities work the same way!
 
 ---
 
-## 📚 Documentation
+## **Documentation:** Documentation
 
 Full documentation available:
 
@@ -291,7 +291,7 @@ Edit the `:rights` field in the entity config:
 
 ---
 
-## 🎯 What's Next?
+## **Important:** What's Next?
 
 ### Immediate Actions:
 1. **Start the server**: `lein with-profile dev run` (with auto-reload)
@@ -311,7 +311,7 @@ See **ADVANCED_EXAMPLES.md** for detailed tutorials.
 
 ---
 
-## 💡 Pro Tips
+## **Tip:** Pro Tips
 
 1. **Start with one entity** - Master `clientes` before customizing others
 2. **Use hot-reload** - Edit configs without restarting

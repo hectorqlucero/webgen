@@ -410,4 +410,4 @@ When moving to production, enhance hooks to:
 - Hooks NOT implemented (just use framework defaults)
 - Can add hooks following the Alquileres pattern
 
-The hooks demonstrate the full power of the framework - you can add any business logic without changing framework code! 🚀
+The hooks demonstrate the full power of the framework - you can add any business logic without changing framework code! 

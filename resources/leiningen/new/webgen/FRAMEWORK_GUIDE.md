@@ -4,7 +4,7 @@ A revolutionary Clojure framework for building enterprise business applications 
 
 ---
 
-## 🚀 **What Makes This Different?**
+## **Quick Start:** **What Makes This Different?**
 
 ### **Traditional Approach (Code Generation) ❌**
 ```
@@ -20,7 +20,7 @@ Edit EDN Config → Refresh Browser → Changes Applied → Professional Code
 
 ---
 
-## 🎯 **Philosophy**
+## **Important:** **Philosophy**
 
 Built for **enterprise business solutions** (MRP, Accounting, Inventory, POS), not SPAs. Focuses on:
 
@@ -32,7 +32,7 @@ Built for **enterprise business solutions** (MRP, Accounting, Inventory, POS), n
 
 ---
 
-## 📦 **Quick Start (5 Minutes)**
+## **Package:** **Quick Start (5 Minutes)**
 
 ### **1. Clone and Setup**
 ```bash
@@ -78,7 +78,7 @@ Create `resources/entities/products.edn`:
 
 ---
 
-## 🏗️ **Architecture**
+## **Architecture** **Architecture**
 
 ```
 ┌──────────────────────────────────────────────────────┐
@@ -107,7 +107,7 @@ Create `resources/entities/products.edn`:
 
 ---
 
-## 📝 **Entity Configuration Reference**
+## **Note:** **Entity Configuration Reference**
 
 ### **Complete Example**
 
@@ -172,28 +172,87 @@ Create `resources/entities/products.edn`:
 
 ---
 
-## 🎨 **Field Types**
+## **Design:** **Field Types**
 
-| Type | HTML Input | Use Case |
-|------|------------|----------|
-| `:text` | text | Short text fields |
-| `:email` | email | Email addresses |
-| `:password` | password | Passwords (auto-hidden) |
-| `:date` | date | Date picker |
-| `:datetime` | datetime-local | Date & time |
-| `:number` | number | Integers |
-| `:decimal` | number (step=0.01) | Money, prices |
-| `:textarea` | textarea | Long text |
-| `:select` | select dropdown | Single choice |
-| `:radio` | radio buttons | Few choices |
-| `:checkbox` | checkbox | Boolean |
-| `:file` | file upload | File attachments |
-| `:hidden` | hidden | ID fields |
-| `:computed` | read-only | Calculated values |
+WebGen supports comprehensive field types for building enterprise forms:
+
+### Text Input Types
+
+| Type | HTML Input | Description | Common Options |
+|------|------------|-------------|----------------|
+| `:text` | text | Single-line text input | `placeholder`, `required`, `maxlength` |
+| `:textarea` | textarea | Multi-line text input | `rows`, `placeholder`, `required` |
+| `:email` | email | Email with validation | `placeholder`, `required` |
+| `:password` | password | Password (masked) | `placeholder`, `required` |
+
+### Numeric Input Types
+
+| Type | HTML Input | Description | Common Options |
+|------|------------|-------------|----------------|
+| `:number` | number | Integer input | `min`, `max`, `placeholder` |
+| `:decimal` | number (step=0.01) | Decimal/float for currency | `min`, `max`, `step`, `placeholder` |
+
+### Date/Time Input Types
+
+| Type | HTML Input | Description | Common Options |
+|------|------------|-------------|----------------|
+| `:date` | date | Date picker | `min`, `max` |
+| `:datetime` | datetime-local | Date and time picker | `min`, `max` |
+| `:time` | time | Time picker | `min`, `max` |
+
+### Selection Input Types
+
+| Type | HTML Input | Description | Common Options |
+|------|------------|-------------|----------------|
+| `:select` | select dropdown | Single choice from list | `options` (array of `{:value :label}`) |
+| `:radio` | radio buttons | Single choice (visible) | `options` (array with `:id`, `:label`, `:value`), `value` |
+| `:checkbox` | checkbox | Boolean on/off | `value` (default checked value) |
+
+### Special Input Types
+
+| Type | HTML Input | Description | Common Options |
+|------|------------|-------------|----------------|
+| `:file` | file upload | File/image upload | Handled via hooks (before-save/after-load) |
+| `:hidden` | hidden | Hidden field (not visible) | `value` |
+| `:computed` | read-only | Calculated/display only | Computed via hooks |
+
+### Field Type Examples
+
+```clojure
+;; Text inputs
+{:id :name :label "Name" :type :text :placeholder "Enter name..." :required true}
+{:id :notes :label "Notes" :type :textarea :rows 5}
+{:id :email :label "Email" :type :email :placeholder "user@example.com"}
+{:id :password :label "Password" :type :password}
+
+;; Numeric inputs
+{:id :quantity :label "Quantity" :type :number :min 0 :max 1000}
+{:id :price :label "Price" :type :decimal :min 0 :step 0.01 :placeholder "0.00"}
+
+;; Date/time inputs
+{:id :birthdate :label "Birth Date" :type :date}
+{:id :created_at :label "Created" :type :datetime}
+{:id :opening_time :label "Opens At" :type :time}
+
+;; Selection inputs
+{:id :category :label "Category" :type :select 
+ :options [{:value "electronics" :label "Electronics"}
+           {:value "clothing" :label "Clothing"}]}
+
+{:id :status :label "Status" :type :radio :value "active"
+ :options [{:id "statusActive" :label "Active" :value "active"}
+           {:id "statusInactive" :label "Inactive" :value "inactive"}]}
+
+{:id :featured :label "Featured" :type :checkbox :value "T"}
+
+;; Special types
+{:id :imagen :label "Image" :type :file}
+{:id :id :label "ID" :type :hidden}
+```
 
 ---
 
-## 🎛️ **Field Visibility Flags**
+## **Configuration** **Field Visibility Flags**
 
 Control where fields appear in your application:
 
@@ -331,7 +390,7 @@ Reference in config:
 
 ---
 
-## 🔍 **Custom Queries**
+## **Search:** **Custom Queries**
 
 ### **Simple SQL**
 ```clojure
@@ -361,7 +420,7 @@ Execute:
 
 ---
 
-## 🎯 **Complex Scenarios**
+## **Important:** **Complex Scenarios**
 
 ### **MRP (Material Requirements Planning)**
 
@@ -496,7 +555,7 @@ lein scaffold avaluos
 
 ---
 
-## 🗄️ **Multi-Database Support**
+## **Database** **Multi-Database Support**
 
 ### **Configuration**
 
@@ -551,7 +610,7 @@ Override the default connection for specific entities:
 
 ---
 
-## 🛠️ **Development Workflow**
+## **Tools:** **Development Workflow**
 
 ### **1. Create Database Schema**
 
@@ -712,7 +771,7 @@ Run: `lein migrate`
 
 ---
 
-## 🚀 **Migrating from Code Generation**
+## **Quick Start:** **Migrating from Code Generation**
 
 ### **Before (Generated)**
 
@@ -735,7 +794,7 @@ Multiply by 27 entities = **1,755 lines saved!**
 
 ---
 
-## 📚 **API Reference**
+## **Documentation:** **API Reference**
 
 ### **Configuration (`rs.engine.config`)**
 
@@ -803,7 +862,7 @@ ERROR: relation "products" does not exist
 
 ---
 
-## 🎯 **Best Practices**
+## **Important:** **Best Practices**
 
 ### **1. Start Simple**
 
@@ -932,10 +991,10 @@ FROM users;
 
 ---
 
-## 📄 **License**
+## **File:** **License**
 
 MIT License - Build anything, commercially or personally.
 
 ---
 
-**Built with ❤️ for enterprise developers who value clean, maintainable code.**
+**Built with care for enterprise developers who value clean, maintainable code.**

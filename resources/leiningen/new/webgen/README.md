@@ -1,34 +1,40 @@
 # {{name}} - Parameter-Driven Enterprise Application
 
-This project was generated using the LST/WebGen framework template.
+This project was generated using the WebGen framework template from Clojars.
 
 ## Quick Start
 
 See [QUICKSTART.md](QUICKSTART.md) for detailed setup instructions.
 
 ### 1. Configure Database
+
+Edit `resources/private/config.clj` with your database settings:
+
 ```bash
 cd {{name}}
-cp resources/private/config.clj.example resources/private/config.clj
-# Edit config.clj with your database settings
+# Edit config.clj - update passwords and database names as needed
+nano resources/private/config.clj
 ```
+
+The file comes with sensible defaults using SQLite and your project name.
 
 ### 2. Setup Database
 ```bash
-lein database     # Initialize database with default users
+lein migrate       # Run database migrations
+lein database      # Initialize database with default users
 ```
 
-### 3. Create Your First Entity
-```bash
-lein scaffold products
-# This creates resources/entities/products.edn and migrations
-```
-
-### 4. Start Server
+### 3. Start Server
 ```bash
 lein with-profile dev run
 # Visit: http://localhost:8080
-# Default credentials: admin/admin
+# Default credentials: admin@example.com / admin
+```
+
+### 4. Create Your First Entity
+```bash
+lein scaffold products
+# This creates resources/entities/products.edn and migrations
 ```
 
 ## Key Features
@@ -39,6 +45,50 @@ lein with-profile dev run
 - ✅ **Enterprise-Ready** - MRP, Accounting, Inventory, POS capable
 - ✅ **Beginner-Friendly** - Non-programmers can create entities
 - ✅ **Expert-Extensible** - Hooks, plugins, custom functions
+
+## Supported Field Types
+
+WebGen supports a comprehensive set of field types for building complex forms:
+
+| Type | Description | Example | Common Options |
+|------|-------------|---------|----------------|
+| `:text` | Single-line text input | Name, SKU, code | `placeholder`, `required` |
+| `:textarea` | Multi-line text input | Description, notes, comments | `rows`, `placeholder` |
+| `:number` | Numeric integer input | Quantity, age, count | `min`, `max`, `placeholder` |
+| `:decimal` | Decimal/float input | Price, percentage, weight | `min`, `max`, `step`, `placeholder` |
+| `:email` | Email input with validation | Email address | `placeholder`, `required` |
+| `:password` | Password input (masked) | Password field | `placeholder`, `required` |
+| `:date` | Date picker | Birth date, expiry date | `min`, `max` |
+| `:datetime` | Date and time picker | Created timestamp | `min`, `max` |
+| `:time` | Time picker | Event time, opening hours | `min`, `max` |
+| `:select` | Dropdown select | Category, status, type | `options` (array of `{:value :label}`) |
+| `:radio` | Radio button group | Active/Inactive, type selection | `options` (array with `:id`, `:label`, `:value`), `value` |
+| `:checkbox` | Single checkbox | Active, featured, enabled | `value` (default checked value) |
+| `:file` | File upload | Image, PDF, attachment | Handled via hooks |
+| `:hidden` | Hidden field | ID, foreign keys | `value` |
+| `:computed` | Calculated/display only | Total, full name, age | Read-only, computed via hooks |
+
+**Example using various field types:**
+
+```clojure
+{:entity :products
+ :title "Products"
+ :table "products"
+ 
+ :fields [{:id :id :label "ID" :type :hidden}
+          {:id :code :label "SKU" :type :text :required true :placeholder "SKU-001"}
+          {:id :name :label "Name" :type :text :required true}
+          {:id :description :label "Description" :type :textarea :rows 5}
+          {:id :price :label "Price" :type :decimal :min 0 :step 0.01}
+          {:id :stock :label "Stock" :type :number :min 0}
+          {:id :category :label "Category" :type :select 
+           :options [{:value "electronics" :label "Electronics"}
+                     {:value "clothing" :label "Clothing"}]}
+          {:id :active :label "Status" :type :radio :value "T"
+           :options [{:id "activeT" :label "Active" :value "T"}
+                     {:id "activeF" :label "Inactive" :value "F"}]}
+          {:id :imagen :label "Image" :type :file}]}
+```
 
 ## Documentation
 
@@ -73,17 +123,17 @@ Visit `/admin/products` - **Full CRUD interface ready!**
 
 ---
 
-## 📚 **Documentation**
+## **Documentation:** **Documentation**
 
 - 📖 **[FRAMEWORK_GUIDE.md](FRAMEWORK_GUIDE.md)** - Complete framework documentation
-- 🚀 **[QUICKSTART.md](QUICKSTART.md)** - 5-minute setup guide
+- **Quick Start:** **[QUICKSTART.md](QUICKSTART.md)** - 5-minute setup guide
 - 🎣 **[HOOKS_GUIDE.md](HOOKS_GUIDE.md)** - Business logic hooks
 - 📋 **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Quick reference
 - 🏃 **[RUN_APP.md](RUN_APP.md)** - Deployment guide
 
 ---
 
-## 🏗️ **Architecture**
+## **Architecture** **Architecture**
 
 ```
 ┌─────────────────────────────────────┐
@@ -112,7 +162,7 @@ Visit `/admin/products` - **Full CRUD interface ready!**
 
 ---
 
-## 🎨 **Example Configurations**
+## **Design:** **Example Configurations**
 
 ### **Simple CRUD**
 ```clojure
@@ -145,7 +195,7 @@ Visit `/admin/products` - **Full CRUD interface ready!**
 
 ---
 
-## 🛠️ **Technology Stack**
+## **Tools:** **Technology Stack**
 
 - **Language:** Clojure 1.12.4
 - **Web:** Ring, Compojure, Hiccup
@@ -161,7 +211,7 @@ Built for real enterprise scenarios:
 
 - 💼 **MRP** - Material Requirements Planning
 - 💰 **Accounting** - Double-entry bookkeeping
-- 📦 **Inventory** - Stock management
+- **Package:** **Inventory** - Stock management
 - 🛒 **Point of Sale** - Retail systems
 - 👥 **CRM** - Customer relationship management
 - 📋 **Order Management** - Complex workflows
@@ -184,13 +234,13 @@ Contributions welcome! Please read our contributing guidelines.
 
 ---
 
-## 📄 **License**
+## **File:** **License**
 
 MIT License - See [LICENSE](LICENSE) for details.
 
 ---
 
-## 🌟 **Why RS Framework?**
+## **Highlights:** **Why RS Framework?**
 
 ### **Traditional Approach**
 - 81 generated files
@@ -204,4 +254,4 @@ MIT License - See [LICENSE](LICENSE) for details.
 - 10 minutes per entity
 - Clean, maintainable code
 
-**Built with ❤️ for developers who value clean code.**
+**Built with care for developers who value clean code.**

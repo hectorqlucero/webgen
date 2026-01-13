@@ -48,13 +48,15 @@
     (io/copy in out)))
 
 (defn copy-resources
-  "Copy resources from the classpath to destination directory."
+  "Copy resources from the classpath to destination directory, excluding config.clj."
   [resource-prefix dest-dir]
   (let [paths (get-resource-paths resource-prefix)]
     (doseq [path paths]
-      (let [rel-path (subs path (inc (count resource-prefix)))
-            dest-file (io/file dest-dir rel-path)]
-        (copy-resource path dest-file)))))
+      ;; Skip config.clj since it's rendered separately with template variables
+      (when-not (.endsWith path "private/config.clj")
+        (let [rel-path (subs path (inc (count resource-prefix)))
+              dest-file (io/file dest-dir rel-path)]
+          (copy-resource path dest-file))))))
 
 (defn webgen
   "WebGen/LST web app template"
@@ -166,9 +168,12 @@
              ["resources/entities/users.edn" (render "users-entity.edn" data)]
              ["resources/entities/contactos.edn" (render "contactos-entity.edn" data)]
              ["resources/entities/cars.edn" (render "cars-entity.edn" data)]
-             ["resources/entities/siblings.edn" (render "siblings-entity.edn" data)])
+             ["resources/entities/siblings.edn" (render "siblings-entity.edn" data)]
+             
+             ;; Config file (must be rendered to replace {{name}})
+             ["resources/private/config.clj" (render "private-config.clj" data)])
 
-    ;; Copy static resources (migrations, i18n, public files)
+    ;; Copy static resources (migrations, i18n, public files - excluding private/config.clj which is rendered above)
     (main/info "Copying resources...")
     (copy-resources "leiningen/new/webgen/resources" (str name "/resources"))
     
@@ -177,8 +182,9 @@
     (main/info "")
     (main/info "Next steps:")
     (main/info "  cd" name)
-    (main/info "  cp resources/private/config.clj.example resources/private/config.clj")
-    (main/info "  # Edit config.clj with your database credentials")
+    (main/info "  # Edit resources/private/config.clj with your database credentials")
+    (main/info "  # (Default: SQLite - just update passwords for MySQL/PostgreSQL)")
+    (main/info "  lein migrate")
     (main/info "  lein database")
     (main/info "  lein with-profile dev run")
     (main/info "")

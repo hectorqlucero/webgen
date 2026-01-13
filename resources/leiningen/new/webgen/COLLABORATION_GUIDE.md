@@ -6,7 +6,7 @@ This guide explains how junior and senior developers work together using the RS 
 
 ---
 
-## 🎯 **The 80/20 Rule**
+## **Important:** **The 80/20 Rule**
 
 - **Junior Developers:** Create 80% functional prototype using scaffolding and EDN configuration
 - **Senior Developers:** Add 20% business logic through hooks and custom code
@@ -15,7 +15,7 @@ This guide explains how junior and senior developers work together using the RS 
 
 ---
 
-## 👨‍💻 **Junior Developer Workflow**
+## 👨‍**Development:** **Junior Developer Workflow**
 
 ### Phase 1: Database Setup (5 minutes)
 
@@ -254,7 +254,7 @@ src/
 
 ---
 
-## 🎯 **Best Practices**
+## **Important:** **Best Practices**
 
 ### For Juniors:
 1. **Document everything** - Write business rules as comments
@@ -278,7 +278,7 @@ src/
 
 ---
 
-## 🚀 **Example Timeline**
+## **Quick Start:** **Example Timeline**
 
 ### Real-World Project: 10 Entities
 
@@ -304,7 +304,7 @@ src/
 
 ---
 
-## 🔧 **Troubleshooting**
+## **Setup:** **Troubleshooting**
 
 ### "I don't know what business logic to add"
 **Junior:** Document what you *think* the rules should be, mark as questions
@@ -330,7 +330,7 @@ src/
 
 ---
 
-## 📚 **Additional Resources**
+## **Documentation:** **Additional Resources**
 
 - **QUICKSTART.md** - Getting started guide
 - **FRAMEWORK_GUIDE.md** - Complete framework reference
@@ -382,4 +382,4 @@ src/
 
 ---
 
-**Remember:** The goal is to build quickly AND maintain quality. Juniors provide speed, seniors provide correctness. Together, you're unstoppable! 🚀
+**Remember:** The goal is to build quickly AND maintain quality. Juniors provide speed, seniors provide correctness. Together, you're unstoppable! 

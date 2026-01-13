@@ -1,10 +1,10 @@
 # Quick Reference - Command Cheat Sheet
 
-## 🚀 Running the App
+## **Quick Start:** Running the App
 
 **Note:** Port and database are configured in `resources/private/config.clj`
 
-### Development (Auto-Reload) - RECOMMENDED ⭐
+### Development (Auto-Reload) - RECOMMENDED 
 ```bash
 lein with-profile dev run
 ```
@@ -28,33 +28,35 @@ java -jar target/uberjar/rs.jar
 
 ---
 
-## ⚙️ Configuration
+## **Configuration:** Configuration
 
 **Location:** `resources/private/config.clj`
+
+The config file is included with your project and uses your project name automatically.
+Just update passwords and connection settings as needed.
 
 ### Key Settings
 ```clojure
 {:port 8080                    ; Server port
  :connections 
  {:sqlite {:db-type "sqlite"   ; SQLite database
-           :db-name "db/rs.sqlite"}
+           :db-class "org.sqlite.JDBC"
+           :db-name "db/{{name}}.sqlite"}
   :mysql {:db-type "mysql"     ; MySQL database
-          :db-host "localhost"
-          :db-port 3306
-          :db-name "mydb"
+          :db-class "com.mysql.cj.jdbc.Driver"
+          :db-name "//localhost:3306/{{name}}"
           :db-user "root"
-          :db-pwd "password"}
+          :db-pwd "your_password"}  ; ← Update this
   :postgres {:db-type "postgresql"  ; PostgreSQL
-             :db-host "localhost"
-             :db-port 5432
-             :db-name "mydb"
+             :db-class "org.postgresql.Driver"
+             :db-name "//localhost:5432/{{name}}"
              :db-user "postgres"
-             :db-pwd "password"}
+             :db-pwd "your_password"}  ; ← Update this
   :default :sqlite              ; Which connection to use
   :main :sqlite}                ; For migrations
  
  :theme "sketchy"               ; Bootstrap theme
- :uploads "./uploads/rs/"       ; Upload directory
+ :uploads "./uploads/{{name}}/" ; Upload directory
  :max-upload-mb 5}              ; Max file size
 ```
 
@@ -63,7 +65,7 @@ Edit `:default` and `:main` keys to point to `:mysql`, `:postgres`, or `:sqlite`
 
 ---
 
-## 🗄️ Database Commands
+## **Database** Database Commands
 
 ### Run Migrations
 ```bash
@@ -89,7 +91,7 @@ lein database localdb
 
 ---
 
-## 🗄️ Database Commands
+## **Database** Database Commands
 
 ### Migrations
 ```bash
@@ -114,7 +116,7 @@ See [DATABASE_MIGRATION_GUIDE.md](DATABASE_MIGRATION_GUIDE.md) for details.
 
 ---
 
-## 🏗️ Scaffolding Commands
+## **Architecture** Scaffolding Commands
 
 ### Scaffold Single Entity
 ```bash
@@ -138,7 +140,7 @@ lein scaffold table_name --force
 
 ---
 
-## 🔧 Development Commands
+## **Setup:** Development Commands
 
 ### Clean Build
 ```bash
@@ -238,7 +240,7 @@ resources/migrations/*.down.sql
 
 ---
 
-## 🔍 REPL Commands
+## **Search:** REPL Commands
 
 ### Load Menu System
 ```clojure
@@ -293,7 +295,7 @@ kill -9 <PID>
 
 ---
 
-## 📝 Quick Customizations
+## **Note:** Quick Customizations
 
 ### Add New Entity
 ```bash
@@ -321,15 +323,96 @@ Edit entity config:
 ```clojure
 :fields [{:id :email
           :type :email
-          :required? true
-          :validator :rs.validators/check-email}]
+          :required true
+          :validator :{{name}}.validators/check-email}]
 ```
+
+---
+
+## 📋 Complete Field Types Reference
+
+WebGen supports these field types in entity configurations:
+
+### Text Inputs
+```clojure
+;; Single-line text
+{:id :name :label "Name" :type :text :placeholder "Enter name..." :required true}
+
+;; Multi-line text
+{:id :notes :label "Notes" :type :textarea :rows 5 :placeholder "Enter notes..."}
+
+;; Email with validation
+{:id :email :label "Email" :type :email :placeholder "user@example.com"}
+
+;; Password (masked)
+{:id :password :label "Password" :type :password}
+```
+
+### Numeric Inputs
+```clojure
+;; Integer
+{:id :quantity :label "Quantity" :type :number :min 0 :max 1000}
+
+;; Decimal/Float
+{:id :price :label "Price" :type :decimal :min 0 :step 0.01 :placeholder "0.00"}
+```
+
+### Date/Time Inputs
+```clojure
+;; Date only
+{:id :birthdate :label "Birth Date" :type :date}
+
+;; Date and time
+{:id :created_at :label "Created" :type :datetime}
+
+;; Time only
+{:id :opening_time :label "Opens At" :type :time}
+```
+
+### Selection Inputs
+```clojure
+;; Dropdown select
+{:id :category :label "Category" :type :select 
+ :options [{:value "A" :label "Category A"} 
+           {:value "B" :label "Category B"}]}
+
+;; Radio buttons
+{:id :status :label "Status" :type :radio :value "active"
+ :options [{:id "statusActive" :label "Active" :value "active"}
+           {:id "statusInactive" :label "Inactive" :value "inactive"}]}
+
+;; Single checkbox
+{:id :featured :label "Featured" :type :checkbox :value "T"}
+```
+
+### Special Types
+```clojure
+;; File upload (requires hooks)
+{:id :imagen :label "Image" :type :file}
+
+;; Hidden field
+{:id :user_id :label "User ID" :type :hidden}
+
+;; Computed/read-only (via hooks)
+{:id :total :label "Total" :type :computed}
+```
+
+### Common Field Options
+- `required` - Mark field as required (boolean)
+- `placeholder` - Placeholder text
+- `min` / `max` - Min/max values (numbers, dates)
+- `step` - Step value for decimals (e.g., 0.01 for currency)
+- `rows` - Number of rows for textarea
+- `options` - Array of options for select/radio
+- `value` - Default value
+
+---
 
 ### Add Hook
 Edit entity config:
 ```clojure
-:hooks {:before-save :rs.hooks/calculate-total
-        :after-save :rs.hooks/send-email}
+:hooks {:before-save :{{name}}.hooks/calculate-total
+        :after-save :{{name}}.hooks/send-email}
 ```
 
 ### Add Subgrids (TabGrid)
@@ -344,7 +427,7 @@ Edit parent entity config:
 
 ---
 
-## 💡 Development Workflow
+## **Tip:** Development Workflow
 
 ### Typical Session
 ```bash
@@ -367,7 +450,7 @@ lein scaffold new_table
 
 ---
 
-## 📚 Documentation Quick Links
+## **Documentation:** Documentation Quick Links
 
 - **QUICKSTART.md** - 5-minute tutorial
 - **FRAMEWORK_GUIDE.md** - Complete framework API
@@ -376,7 +459,7 @@ lein scaffold new_table
 
 ---
 
-## ⚡ Most Used Commands
+## **Performance:** Most Used Commands
 
 ```bash
 # Start development server

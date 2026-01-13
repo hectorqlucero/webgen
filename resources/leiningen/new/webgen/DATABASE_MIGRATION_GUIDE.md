@@ -213,12 +213,12 @@ Source: SQLite (db/rs.db)
 Target: mysql
 Clear target tables: NO
 
-✓ Database connections successful
+• Database connections successful
 
-Copying users... ✓ 5 rows
-Copying contactos... ✓ 12 rows
-Copying propiedades... ✓ 23 rows
-Copying alquileres... ✓ 8 rows
+Copying users... • 5 rows
+Copying contactos... • 12 rows
+Copying propiedades... • 23 rows
+Copying alquileres... • 8 rows
 Copying ragtime_migrations... ⊘ No data in source table
 
 === Summary ===
@@ -228,7 +228,7 @@ Tables processed: 10
   Errors: 0
 Total rows copied: 156
 
-✓ Migration complete!
+• Migration complete!
 ```
 
 ### Handling Errors
@@ -237,7 +237,7 @@ Common issues:
 
 **Connection Error:**
 ```
-✗ Connection error: Access denied for user 'root'@'localhost'
+• Connection error: Access denied for user 'root'@'localhost'
 ```
 → Update password in `src/rs/db/migrator.clj`
 
@@ -249,13 +249,13 @@ Copying new_table... ⊘ Table doesn't exist in target database
 
 **Duplicate Key Error:**
 ```
-Copying users... ✗ Duplicate entry '1' for key 'PRIMARY'
+Copying users... • Duplicate entry '1' for key 'PRIMARY'
 ```
 → Use `--clear` flag to empty tables first, or manually clear data
 
 **Foreign Key Constraint:**
 ```
-Copying orders... ✗ Cannot add or update a child row
+Copying orders... • Cannot add or update a child row
 ```
 → Tables are copied in alphabetical order; you may need to temporarily disable FK checks
 
