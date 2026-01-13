@@ -13,6 +13,22 @@
    [{{sanitized}}.models.crud :as crud]))
 
 ;; =============================================================================
+;; Helper Functions
+;; =============================================================================
+
+(defn get-base-ns
+  "Gets the base namespace (project name) from the current namespace"
+  []
+  (-> (str *ns*)
+      (str/split #"\.")
+      first))
+
+(defn hooks-path
+  "Returns the path to hooks directory for this project"
+  []
+  (str "src/" (get-base-ns) "/hooks/"))
+
+;; =============================================================================
 ;; SQL Type Mapping
 ;; =============================================================================
 
@@ -92,6 +108,22 @@
 ;; Schema Introspection
 ;; =============================================================================
 
+(defn get-catalog-from-connection
+  "Extracts the database/catalog name from a JDBC connection.
+   For MySQL, this is critical for metadata queries."
+  [connection]
+  (try
+    (.getCatalog connection)
+    (catch Exception e
+      (println "[WARN] Could not get catalog from connection:" (.getMessage e))
+      nil)))
+
+(defn normalize-table-name
+  "Normalizes table name for metadata queries.
+   MySQL is case-sensitive depending on OS, so we try the original name first."
+  [table-name]
+  (name table-name))
+
 (defn get-table-columns
   "Gets column information for a table"
   [table-name conn-key]
@@ -100,10 +132,18 @@
     (try
       (with-open [connection (jdbc/get-connection db-spec)]
         (let [metadata (.getMetaData connection)
-              table (str/upper-case (name table-name))
-              rs (.getColumns metadata nil nil table nil)
+              catalog (get-catalog-from-connection connection)
+              table (normalize-table-name table-name)
+              ;; Try with catalog first (important for MySQL)
+              rs (.getColumns metadata catalog nil table nil)
               columns (jdbc/metadata-result rs)]
-          (vec columns)))
+          (if (seq columns)
+            (vec columns)
+            ;; Fallback: try uppercase table name
+            (let [table-upper (str/upper-case table)
+                  rs-upper (.getColumns metadata catalog nil table-upper nil)
+                  columns-upper (jdbc/metadata-result rs-upper)]
+              (vec columns-upper)))))
       (catch Exception e
         (println "[ERROR] Failed to introspect table:" table-name)
         (.printStackTrace e)
@@ -117,10 +157,17 @@
     (try
       (with-open [connection (jdbc/get-connection db-spec)]
         (let [metadata (.getMetaData connection)
-              table (str/upper-case (name table-name))
-              rs (.getPrimaryKeys metadata nil nil table)
+              catalog (get-catalog-from-connection connection)
+              table (normalize-table-name table-name)
+              rs (.getPrimaryKeys metadata catalog nil table)
               pks (jdbc/metadata-result rs)]
-          (or (:column_name (first pks)) "id")))
+          (if (seq pks)
+            (:column_name (first pks))
+            ;; Fallback: try uppercase
+            (let [table-upper (str/upper-case table)
+                  rs-upper (.getPrimaryKeys metadata catalog nil table-upper)
+                  pks-upper (jdbc/metadata-result rs-upper)]
+              (or (:column_name (first pks-upper)) "id")))))
       (catch Exception e
         (println "[WARN] Failed to get primary key for" table-name "- using 'id'")
         "id"))))
@@ -133,14 +180,25 @@
     (try
       (with-open [connection (jdbc/get-connection db-spec)]
         (let [metadata (.getMetaData connection)
-              table (str/upper-case (name table-name))
-              rs (.getImportedKeys metadata nil nil table)
+              catalog (get-catalog-from-connection connection)
+              table (normalize-table-name table-name)
+              rs (.getImportedKeys metadata catalog nil table)
               fks (jdbc/metadata-result rs)]
-          (mapv (fn [fk]
-                  {:column (keyword (str/lower-case (:fkcolumn_name fk)))
-                   :references-table (keyword (str/lower-case (:pktable_name fk)))
-                   :references-column (keyword (str/lower-case (:pkcolumn_name fk)))})
-                fks)))
+          (if (seq fks)
+            (mapv (fn [fk]
+                    {:column (keyword (str/lower-case (:fkcolumn_name fk)))
+                     :references-table (keyword (str/lower-case (:pktable_name fk)))
+                     :references-column (keyword (str/lower-case (:pkcolumn_name fk)))})
+                  fks)
+            ;; Fallback: try uppercase
+            (let [table-upper (str/upper-case table)
+                  rs-upper (.getImportedKeys metadata catalog nil table-upper)
+                  fks-upper (jdbc/metadata-result rs-upper)]
+              (mapv (fn [fk]
+                      {:column (keyword (str/lower-case (:fkcolumn_name fk)))
+                       :references-table (keyword (str/lower-case (:pktable_name fk)))
+                       :references-column (keyword (str/lower-case (:pkcolumn_name fk)))})
+                    fks-upper)))))
       (catch Exception e
         (println "[WARN] Failed to get foreign keys for" table-name)
         []))))
@@ -153,12 +211,17 @@
     (try
       (with-open [connection (jdbc/get-connection db-spec)]
         (let [metadata (.getMetaData connection)
-              rs (.getTables metadata nil nil "%" (into-array String ["TABLE"]))
+              catalog (get-catalog-from-connection connection)
+              rs (.getTables metadata catalog nil "%" (into-array String ["TABLE"]))
               tables (jdbc/metadata-result rs)
-              ;; Filter out system tables
+              ;; Filter out system tables (including MySQL system tables)
               filtered (remove #(let [name (str/lower-case (:table_name %))]
                                   (or (str/starts-with? name "sqlite_")
                                       (str/starts-with? name "pg_")
+                                      (str/starts-with? name "mysql_")
+                                      (str/starts-with? name "sys_")
+                                      (str/starts-with? name "information_schema")
+                                      (str/starts-with? name "performance_schema")
                                       (= name "schema_migrations")
                                       (= name "ragtime_migrations")))
                                tables)]
@@ -177,14 +240,26 @@
     (try
       (with-open [connection (jdbc/get-connection db-spec)]
         (let [metadata (.getMetaData connection)
-              table (str/upper-case (name table-name))
+              catalog (get-catalog-from-connection connection)
+              table (normalize-table-name table-name)
               ;; Get exported keys = tables that reference this table
-              rs (.getExportedKeys metadata nil nil table)
+              rs (.getExportedKeys metadata catalog nil table)
               refs (jdbc/metadata-result rs)]
-          (mapv (fn [ref]
-                  {:table (keyword (str/lower-case (:fktable_name ref)))
-                   :foreign-key (keyword (str/lower-case (:fkcolumn_name ref)))
-                   :column (keyword (str/lower-case (:pkcolumn_name ref)))})
+          (if (seq refs)
+            (mapv (fn [ref]
+                    {:table (keyword (str/lower-case (:fktable_name ref)))
+                     :foreign-key (keyword (str/lower-case (:fkcolumn_name ref)))
+                     :column (keyword (str/lower-case (:pkcolumn_name ref)))})
+                  refs)
+            ;; Fallback: try uppercase
+            (let [table-upper (str/upper-case table)
+                  rs-upper (.getExportedKeys metadata catalog nil table-upper)
+                  refs-upper (jdbc/metadata-result rs-upper)]
+              (mapv (fn [ref]
+                      {:table (keyword (str/lower-case (:fktable_name ref)))
+                       :foreign-key (keyword (str/lower-case (:fkcolumn_name ref)))
+                       :column (keyword (str/lower-case (:pkcolumn_name ref)))})
+                    refs-upper)))))
                 refs)))
       (catch Exception e
         (println "[WARN] Failed to get referencing tables for" table-name)
@@ -445,7 +520,7 @@
        "   SENIOR DEVELOPER: Implement custom business logic here.\n"
        "   \n"
        "   See: HOOKS_GUIDE.md for detailed documentation and examples.\n"
-       "   Example: src/rs/hooks/alquileres.clj\n"
+       "   Example: " (hooks-path) "alquileres.clj\n"
        "   \n"
        "   Uncomment the hooks you need and implement the logic.\"" 
        (when has-file-fields? "\n  (:require [{{sanitized}}.models.util :refer [image-link]])") ")\n"
@@ -596,7 +671,7 @@
 (defn write-hook-stub
   "Writes hook stub file if it doesn't exist"
   [entity-name fields]
-  (let [filename (str "src/rs/hooks/" entity-name ".clj")
+  (let [filename (str (hooks-path) entity-name ".clj")
         file (io/file filename)]
     (if (.exists file)
       (println (str "   ⚠️  Hook file already exists: " filename))
@@ -655,7 +730,7 @@
          ";;   ✅ Test CRUD operations\n"
          ";; \n"
          ";; SENIOR DEVELOPER HANDOFF:\n"
-         ";;   ⚠️  Implement hooks in: src/rs/hooks/" entity-name ".clj\n"
+         ";;   ⚠️  Implement hooks in: " (hooks-path) entity-name ".clj\n"
          ";;   ⚠️  Add custom validators if needed\n"
          ";;   ⚠️  Add computed fields\n"
          ";;   ⚠️  Configure audit trail if needed\n"
@@ -689,7 +764,7 @@
          " ;; :audit? true\n"
          " \n"
          " ;; Lifecycle hooks for business logic\n"
-         " ;; Senior developer: Implement these in src/rs/hooks/" entity-name ".clj\n"
+         " ;; Senior developer: Implement these in " (hooks-path) entity-name ".clj\n"
          " ;; Uncomment and implement as needed:\n"
          " ;; :hooks {:before-load :{{sanitized}}.hooks." entity-name "/before-load\n"
          " ;;         :after-load :{{sanitized}}.hooks." entity-name "/after-load\n"
@@ -771,7 +846,7 @@
       (println (str "     - Test at: /admin/" (name table-name)))
       (println)
       (println "SENIOR DEVELOPER - When needed:")
-      (println (str "  2. Implement hooks in: src/rs/hooks/" (name table-name) ".clj"))
+      (println (str "  2. Implement hooks in: " (hooks-path) (name table-name) ".clj"))
       (println (str "  3. Uncomment :hooks in " filename))
       (println (str "  4. See: HOOKS_GUIDE.md for examples"))
       (println))
@@ -803,7 +878,7 @@
     (println "All entity configurations created!")
     (println "Review and customize them in resources/entities/")
     (when with-hooks?
-      (println "Hook stubs created in src/rs/hooks/"))))
+      (println (str "Hook stubs created in " (hooks-path))))))
 
 (defn print-usage
   "Prints usage information"
@@ -834,7 +909,7 @@
   (println)
   (println "What gets generated:")
   (println "  ✅ Entity EDN config in resources/entities/")
-  (println "  ✅ Hook stub file in src/rs/hooks/ (unless --no-hooks)")
+  (println (str "  ✅ Hook stub file in " (hooks-path) " (unless --no-hooks)"))
   (println "  ✅ Auto-detected fields, foreign keys, subgrids")
   (println "  ✅ Junior/Senior handoff comments")
   (println))

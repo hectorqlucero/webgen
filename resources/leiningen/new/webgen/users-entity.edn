@@ -13,7 +13,7 @@
 ;;   ✅ Test CRUD operations
 ;; 
 ;; SENIOR DEVELOPER HANDOFF:
-;;   ⚠️  Implement hooks in: src/rs/hooks/users.clj
+;;   ⚠️  Implement hooks in: src/{{sanitized}}/hooks/users.clj
 ;;   ⚠️  Add custom validators if needed
 ;;   ⚠️  Add computed fields
 ;;   ⚠️  Configure audit trail if needed
@@ -57,7 +57,7 @@
  ;; :audit? true
  
  ;; Lifecycle hooks for business logic
- ;; Senior developer: Implement these in src/rs/hooks/users.clj
+ ;; Senior developer: Implement these in src/{{sanitized}}/hooks/users.clj
  ;; Uncomment and implement as needed:
  ;; :hooks {:before-load :{{sanitized}}.hooks.users/before-load
  ;;         :after-load :{{sanitized}}.hooks.users/after-load

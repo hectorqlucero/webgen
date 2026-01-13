@@ -13,7 +13,7 @@
 ;;   ✅ Test CRUD operations
 ;; 
 ;; SENIOR DEVELOPER HANDOFF:
-;;   ⚠️  Implement hooks in: src/rs/hooks/contactos.clj
+;;   ⚠️  Implement hooks in: src/{{sanitized}}/hooks/contactos.clj
 ;;   ⚠️  Add custom validators if needed
 ;;   ⚠️  Add computed fields
 ;;   ⚠️  Configure audit trail if needed

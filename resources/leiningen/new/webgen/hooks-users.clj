@@ -4,7 +4,7 @@
    SENIOR DEVELOPER: Implement custom business logic here.
    
    See: HOOKS_GUIDE.md for detailed documentation and examples.
-   Example: src/rs/hooks/alquileres.clj
+   Example: src/{{sanitized}}/hooks/alquileres.clj
    
    Uncomment the hooks you need and implement the logic.")
 

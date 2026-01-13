@@ -1,5 +1,25 @@
 # Change Log
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
+
+## [0.1.5] - 2026-01-13
+### Fixed
+- **CRITICAL:** Fixed hardcoded "rs" folder in hooks paths - hooks now created in correct project-specific directories (e.g., `src/my_project/hooks/` instead of `src/rs/hooks/`)
+- **CRITICAL:** Fixed MySQL scaffolding failures - scaffolding now works correctly with MySQL databases
+  - Added catalog parameter to all JDBC metadata queries for MySQL compatibility
+  - Fixed empty field vectors issue in generated EDN files
+  - Added fallback logic for case-sensitive table names
+- **CRITICAL:** Fixed cross-database scaffolding - MySQL now only scaffolds tables from your specific database, not from system databases or other databases on the same server
+- Enhanced system table filtering for MySQL (mysql_*, sys_*, information_schema, performance_schema)
+### Changed
+- Updated `engine-scaffold.clj`: Added `get-catalog-from-connection()` and `normalize-table-name()` helper functions
+- Updated `dev.clj`: Added dynamic namespace detection for hooks directory monitoring
+- Updated `models-routes.clj`: Added dynamic namespace detection for routes file paths
+- Updated all hook template files to use `{{sanitized}}` instead of hardcoded "rs"
+- Updated all entity template files to use `{{sanitized}}` instead of hardcoded "rs"
+### Compatibility
+- Fully backward compatible with SQLite and PostgreSQL
+- MySQL projects now work correctly
+
 ## [0.1.13] - 2025-08-26
 ### Fixed
 - Fixed malformed template tag `{{name}` in `models-routes.clj` that was preventing project generation.

@@ -4,11 +4,24 @@
             [{{sanitized}}.models.crud :refer [config]]
             [{{sanitized}}.engine.config :as entity-config]
             [{{sanitized}}.core :as core]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [clojure.string :as str]))
 
 (def ^:private last-reload (atom 0))
 (def ^:private last-hook-check (atom 0))
 (def ^:private hooks-last-modified (atom {}))
+
+(defn- get-base-ns
+  "Gets the base namespace (project name) from the current namespace"
+  []
+  (-> (str *ns*)
+      (str/split #"\.")
+      first))
+
+(defn- hooks-path
+  "Returns the path to hooks directory for this project"
+  []
+  (str "src/" (get-base-ns) "/hooks"))
 
 (defn wrap-auto-reload-entities
   "Middleware that checks if entity EDN files or hook CLJ files have changed and reloads them.
@@ -33,7 +46,7 @@
                   (println "[DEV] ✓ Reloaded all entity configs")))))
           
           ;; Check hook files
-          (let [hooks-dir (io/file "src/rs/hooks")]
+          (let [hooks-dir (io/file (hooks-path))]
             (when (.exists hooks-dir)
               (let [hook-files (filter #(.endsWith (.getName %) ".clj")
                                        (file-seq hooks-dir))

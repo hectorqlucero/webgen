@@ -2,6 +2,18 @@
   (:require
    [clojure.string :as str]))
 
+(defn- get-base-ns
+  "Gets the base namespace (project name) from the current namespace"
+  []
+  (-> (str *ns*)
+      (str/split #"\.")
+      first))
+
+(defn- proutes-path
+  "Returns the path to proutes.clj for this project"
+  []
+  (str "src/" (get-base-ns) "/routes/proutes.clj"))
+
 (defn build-grid-defroutes
   "Genera rutas especificas para el grid para una tabla"
   [table]
@@ -65,29 +77,29 @@
 (defn process-grid
   "Actualiza proutes.clj"
   [table]
-  (insert-lines-after-search "src/rs/routes/proutes.clj"
+  (insert-lines-after-search (proutes-path)
                              [(build-grid-require table)]
                              "[compojure.core :refer [defroutes GET POST")
-  (insert-lines-after-search "src/rs/routes/proutes.clj"
+  (insert-lines-after-search (proutes-path)
                              [(build-grid-defroutes table)]
                              "(defroutes proutes"))
 (defn process-dashboard
   "Actualiza proutes.clj"
   [table]
-  (insert-lines-after-search "src/rs/routes/proutes.clj"
+  (insert-lines-after-search (proutes-path)
                              [(build-require table)]
                              "[compojure.core :refer [defroutes GET POST")
-  (insert-lines-after-search "src/rs/routes/proutes.clj"
+  (insert-lines-after-search (proutes-path)
                              [(build-defroutes table)]
                              "(defroutes proutes"))
 
 (defn process-report
   "Actualiza proutes.clj"
   [table]
-  (insert-lines-after-search "src/rs/routes/proutes.clj"
+  (insert-lines-after-search (proutes-path)
                              [(build-reporte-require table)]
                              "[compojure.core :refer [defroutes GET POST")
-  (insert-lines-after-search "src/rs/routes/proutes.clj"
+  (insert-lines-after-search (proutes-path)
                              [(build-defroutes-reporte table)]
                              "(defroutes proutes"))
 
@@ -106,10 +118,10 @@
 (defn process-subgrid
   "Actualiza proutes.clj para subgrids"
   [table parent-table]
-  (insert-lines-after-search "src/rs/routes/proutes.clj"
+  (insert-lines-after-search (proutes-path)
                              [(build-grid-require table)]
                              "[compojure.core :refer [defroutes GET POST")
-  (insert-lines-after-search "src/rs/routes/proutes.clj"
+  (insert-lines-after-search (proutes-path)
                              [(build-subgrid-defroutes table parent-table)]
                              "(defroutes proutes"))
 
