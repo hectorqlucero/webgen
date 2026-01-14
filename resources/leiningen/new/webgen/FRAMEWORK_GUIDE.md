@@ -37,7 +37,7 @@ Built for **enterprise business solutions** (MRP, Accounting, Inventory, POS), n
 ### **1. Clone and Setup**
 ```bash
 git clone <your-repo-url>
-cd rs
+cd {{name}}
 cp resources/private/config_example.clj resources/private/config.clj
 # Edit config.clj with your database settings
 ```
@@ -87,7 +87,7 @@ Create `resources/entities/products.edn`:
 └──────────────────────────────────────────────────────┘
                           ↓
 ┌──────────────────────────────────────────────────────┐
-│   Engine Layer (src/rs/engine/)                      │
+│   Engine Layer (src/{{name}}/engine/)                │
 │   ├── config.clj   - Configuration registry         │
 │   ├── query.clj    - Query execution                │
 │   ├── crud.clj     - CRUD operations                │
@@ -356,10 +356,10 @@ Hooks allow custom business logic without modifying core code.
 
 ### **Example: Password Hashing**
 
-Create `src/rs/hooks/users.clj`:
+Create `src/{{name}}/hooks/users.clj`:
 
 ```clojure
-(ns rs.hooks.users
+(ns {{name}}.hooks.users
   (:require [buddy.hashers :as hashers]))
 
 (defn hash-password
@@ -384,8 +384,8 @@ Reference in config:
 
 ```clojure
 {:entity :users
- :hooks {:before-save :rs.hooks.users/hash-password
-         :after-save :rs.hooks.users/send-welcome-email}}
+ :hooks {:before-save :{{name}}.hooks.users/hash-password
+         :after-save :{{name}}.hooks.users/send-welcome-email}}
 ```
 
 ---
@@ -399,9 +399,9 @@ Reference in config:
 
 ### **Function-Based Queries**
 ```clojure
-;; In src/rs/queries/products.clj
-(ns rs.queries.products
-  (:require [rs.models.crud :as crud]))
+;; In src/{{name}}/queries/products.clj
+(ns {{name}}.queries.products
+  (:require [{{name}}.models.crud :as crud]))
 
 (defn low-stock [params conn]
   (let [threshold (or (:threshold params) 10)]
@@ -409,12 +409,12 @@ Reference in config:
                 :conn conn)))
 
 ;; In config
-:queries {:low-stock :rs.queries.products/low-stock}
+:queries {:low-stock :{{name}}.queries.products/low-stock}
 ```
 
 Execute:
 ```clojure
-(require '[rs.engine.query :as query])
+(require '[{{name}}.engine.query :as query])
 (query/custom-query :products :low-stock {:threshold 5})
 ```
 
@@ -567,7 +567,7 @@ lein scaffold avaluos
  :connections
  {:sqlite {:db-type "sqlite"
            :db-class "org.sqlite.JDBC"
-           :db-name "db/rs.sqlite"}
+           :db-name "db/{{name}}.sqlite"}
    
   :mysql {:db-type "mysql"
           :db-host "localhost"
@@ -588,7 +588,7 @@ lein scaffold avaluos
   :localdb :sqlite}             ; Alias for local development
  
  :theme "sketchy"               ; Bootstrap theme
- :uploads "./uploads/rs/"       ; Upload directory
+ :uploads "./uploads/{{name}}/" ; Upload directory
  :max-upload-mb 5}              ; Max file size (MB)
 ```
 
@@ -654,19 +654,19 @@ Add hooks, custom queries, validators - all in EDN or separate namespace.
 
 ```clojure
 ;; Load entity config
-(require '[rs.engine.config :as config])
+(require '[{{name}}.engine.config :as config])
 (config/load-entity-config :users)
 
 ;; List all entities
 (config/list-available-entities)
 
 ;; Query data
-(require '[rs.engine.query :as query])
+(require '[{{name}}.engine.query :as query])
 (query/list-records :users)
 (query/get-record :users 1)
 
 ;; CRUD operations
-(require '[rs.engine.crud :as crud])
+(require '[{{name}}.engine.crud :as crud])
 (crud/save-record :users {:lastname "Doe" :firstname "John"})
 (crud/delete-record :users 5)
 
@@ -741,11 +741,11 @@ Run: `lein migrate`
 
 ### **Step 4: Business Logic**
 
-`src/rs/hooks/inventory.clj`:
+`src/{{name}}/hooks/inventory.clj`:
 
 ```clojure
-(ns rs.hooks.inventory
-  (:require [rs.models.crud :as crud]))
+(ns {{name}}.hooks.inventory
+  (:require [{{name}}.models.crud :as crud]))
 
 (defn update-stock
   "Updates product stock after movement"
@@ -776,7 +776,7 @@ Run: `lein migrate`
 ### **Before (Generated)**
 
 ```
-src/rs/handlers/admin/users/
+src/{{name}}/handlers/admin/users/
 ├── controller.clj    (50 lines)
 ├── model.clj        (45 lines)
 └── view.clj         (130 lines)
@@ -796,7 +796,7 @@ Multiply by 27 entities = **1,755 lines saved!**
 
 ## **Documentation:** **API Reference**
 
-### **Configuration (`rs.engine.config`)**
+### **Configuration (`{{name}}.engine.config`)**
 
 ```clojure
 (load-entity-config :users)           ; Load config
@@ -806,7 +806,7 @@ Multiply by 27 entities = **1,755 lines saved!**
 (get-display-fields :users)           ; Get grid fields
 ```
 
-### **Queries (`rs.engine.query`)**
+### **Queries (`{{name}}.engine.query`)**
 
 ```clojure
 (list-records :users)                 ; List all
@@ -815,7 +815,7 @@ Multiply by 27 entities = **1,755 lines saved!**
 (list-with-hooks :users)              ; With hooks
 ```
 
-### **CRUD (`rs.engine.crud`)**
+### **CRUD (`{{name}}.engine.crud`)**
 
 ```clojure
 (save-record :users {...})            ; Create/update
@@ -856,7 +856,7 @@ ERROR: relation "products" does not exist
 
 ```clojure
 ;; Force reload
-(require '[rs.engine.config :as config])
+(require '[{{name}}.engine.config :as config])
 (config/reload-all!)
 ```
 
@@ -889,10 +889,10 @@ Define schema in migrations, reference in entities:
 ### **3. Separate Business Logic**
 
 ```
-src/rs/hooks/          - Business logic hooks
-src/rs/queries/        - Complex queries
-src/rs/validators/     - Custom validators
-src/rs/views/          - Custom UI renderers
+src/{{name}}/hooks/          - Business logic hooks
+src/{{name}}/queries/        - Complex queries
+src/{{name}}/validators/     - Custom validators
+src/{{name}}/views/          - Custom UI renderers
 ```
 
 ### **4. Leverage Subgrids**

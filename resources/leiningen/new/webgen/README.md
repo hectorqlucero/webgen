@@ -144,7 +144,7 @@ Visit `/admin/products` - **Full CRUD interface ready!**
 └─────────────────────────────────────┘
               ↓
 ┌─────────────────────────────────────┐
-│  Engine (src/rs/engine/)            │
+│  Engine (src/{{name}}/engine/)      │
 │  → config.clj   - Load configs      │
 │  → query.clj    - Execute queries   │
 │  → crud.clj     - CRUD operations   │
@@ -182,8 +182,8 @@ Visit `/admin/products` - **Full CRUD interface ready!**
  :title "Orders"
  :table "orders"
  :fields [...]
- :hooks {:before-save :orders/calculate-totals
-         :after-save :orders/send-confirmation}}
+ :hooks {:before-save :{{name}}.orders/calculate-totals
+         :after-save :{{name}}.orders/send-confirmation}}
 ```
 
 ### **With Subgrids**

@@ -212,7 +212,7 @@ resources/entities/*.edn
 
 ### Engine Files
 ```
-src/rs/engine/
+src/{{name}}/engine/
 ├── config.clj    - Config loader
 ├── crud.clj      - CRUD operations
 ├── query.clj     - Query execution
@@ -224,7 +224,7 @@ src/rs/engine/
 
 ### Core Files
 ```
-src/rs/
+src/{{name}}/
 ├── core.clj      - Main app
 ├── menu.clj      - Menu config
 ├── layout.clj    - Page layout
@@ -244,7 +244,7 @@ resources/migrations/*.down.sql
 
 ### Load Menu System
 ```clojure
-(require '[rs.engine.menu :as menu])
+(require '[{{name}}.engine.menu :as menu])
 (menu/discover-entities)        ; List all entities
 (menu/generate-menu-items)      ; See menu structure
 (menu/get-menu-config)          ; Full menu config
@@ -252,13 +252,13 @@ resources/migrations/*.down.sql
 
 ### Load Entity Config
 ```clojure
-(require '[rs.engine.config :as config])
+(require '[{{name}}.engine.config :as config])
 (config/load-entity-config :clientes)  ; Load specific entity
 ```
 
 ### Test Scaffold
 ```clojure
-(require '[rs.engine.scaffold :as scaffold])
+(require '[{{name}}.engine.scaffold :as scaffold])
 (scaffold/get-tables)           ; List database tables
 ```
 

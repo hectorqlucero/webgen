@@ -108,6 +108,13 @@
   (let [;; Auto-populate foreign key options if empty
         field (populate-fk-options field)
         {:keys [id label type required? placeholder options value]} field
+        ;; Resolve options: can be a vector, function, or keyword reference
+        options (cond
+                  (fn? options) (options)
+                  (keyword? options) (if-let [f (config/resolve-fn-ref options)]
+                                      (f)
+                                      options)
+                  :else options)
         field-value (or (get row id) value "")
         ;; If it's a select field (FK) with a pre-populated value and hidden-in-grid flag,
         ;; render it as hidden (used in subgrids where parent FK is auto-set)

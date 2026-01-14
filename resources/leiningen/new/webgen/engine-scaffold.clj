@@ -19,7 +19,7 @@
 (defn get-base-ns
   "Gets the base namespace (project name) from the current namespace"
   []
-  (-> (str *ns*)
+  (-> (namespace ::_)
       (str/split #"\.")
       first))
 
@@ -260,10 +260,9 @@
                        :foreign-key (keyword (str/lower-case (:fkcolumn_name ref)))
                        :column (keyword (str/lower-case (:pkcolumn_name ref)))})
                     refs-upper)))))
-                refs)))
       (catch Exception e
         (println "[WARN] Failed to get referencing tables for" table-name)
-        []))))
+        [])))) 
 
 ;; =============================================================================
 ;; Field Generation

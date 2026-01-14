@@ -162,25 +162,25 @@ Before running data migration:
    lein migrate
    ```
 
-2. **Configure database connection** in `src/rs/db/migrator.clj`:
+2. **Configure database connection** in `src/{{name}}/db/migrator.clj`:
    ```clojure
    (def db-configs
      {:sqlite
       {:classname "org.sqlite.JDBC"
        :subprotocol "sqlite"
-       :subname "db/rs.db"}
+       :subname "db/{{name}}.db"}
       
       :mysql
       {:classname "com.mysql.cj.jdbc.Driver"
        :subprotocol "mysql"
-       :subname "//127.0.0.1:3306/rs"
+       :subname "//127.0.0.1:3306/{{name}}"
        :user "root"
        :password "your_password"}  ; ← UPDATE THIS
       
       :postgresql
       {:classname "org.postgresql.Driver"
        :subprotocol "postgresql"
-       :subname "//localhost:5432/rs"
+       :subname "//localhost:5432/{{name}}"
        :user "postgres"
        :password "your_password"}})  ; ← UPDATE THIS
    ```
@@ -209,7 +209,7 @@ The data migrator:
 
 ```
 === Database Data Migrator ===
-Source: SQLite (db/rs.db)
+Source: SQLite (db/{{name}}.db)
 Target: mysql
 Clear target tables: NO
 
@@ -239,7 +239,7 @@ Common issues:
 ```
 • Connection error: Access denied for user 'root'@'localhost'
 ```
-→ Update password in `src/rs/db/migrator.clj`
+→ Update password in `src/{{name}}/db/migrator.clj`
 
 **Table Doesn't Exist:**
 ```
@@ -314,7 +314,7 @@ vim resources/private/config.clj
 
 ### Custom Type Mappings
 
-Edit `src/rs/db/converter.clj` to add custom conversions:
+Edit `src/{{name}}/db/converter.clj` to add custom conversions:
 
 ```clojure
 (def type-mappings
@@ -330,7 +330,7 @@ Edit `src/rs/db/converter.clj` to add custom conversions:
 
 ### Selective Data Migration
 
-To migrate specific tables only, edit `src/rs/db/migrator.clj`:
+To migrate specific tables only, edit `src/{{name}}/db/migrator.clj`:
 
 ```clojure
 (defn copy-all-data [& args]
@@ -344,9 +344,9 @@ Alternative approach using SQL dumps:
 
 ```bash
 # SQLite to MySQL via dump
-sqlite3 db/rs.db .dump > dump.sql
+sqlite3 db/{{name}}.db .dump > dump.sql
 # Manually edit dump.sql to fix syntax
-mysql -u root -p rs < dump.sql
+mysql -u root -p {{name}} < dump.sql
 
 # Or use automated tools
 # pip install mysql2sqlite
@@ -363,17 +363,17 @@ mysql -u root -p rs < dump.sql
 {:connections
   {:sqlite   {:classname   "org.sqlite.JDBC"
               :subprotocol "sqlite"
-              :subname     "db/rs.db"}
+              :subname     "db/{{name}}.db"}
    
    :mysql    {:classname   "com.mysql.cj.jdbc.Driver"
               :subprotocol "mysql"
-              :subname     "//127.0.0.1:3306/rs"
+              :subname     "//127.0.0.1:3306/{{name}}"
               :user        "root"
               :password    ""}
    
    :postgres {:classname   "org.postgresql.Driver"
               :subprotocol "postgresql"
-              :subname     "//localhost:5432/rs"
+              :subname     "//localhost:5432/{{name}}"
               :user        "postgres"
               :password    ""}}
  
@@ -419,7 +419,7 @@ In `resources/entities/propiedades.edn`:
 - Verify firewall allows connections
 
 **"Access denied"**
-- Update username/password in `src/rs/db/migrator.clj`
+- Update username/password in `src/{{name}}/db/migrator.clj`
 - Grant proper permissions to database user
 
 **"Duplicate key error"**

@@ -179,7 +179,7 @@ Visit: http://localhost:8080/admin/products
 
 ## Adding to Navigation Menu
 
-Edit `src/rs/menu.clj`:
+Edit `src/{{name}}/menu.clj`:
 
 ```clojure
 (def menu-items
@@ -232,8 +232,8 @@ WebGen supports the following field types:
 
 ```clojure
 ;; Create a query in model
-(ns rs.models.lookups
-  (:require [rs.models.crud :as crud]))
+(ns {{name}}.models.lookups
+  (:require [{{name}}.models.crud :as crud]))
 
 (defn get-categories []
   (crud/Query "SELECT id AS value, name AS label FROM categories ORDER BY name"
@@ -243,7 +243,7 @@ WebGen supports the following field types:
 {:id :category_id
  :label "Category"
  :type :select
- :options (rs.models.lookups/get-categories)}
+ :options :{{name}}.models.lookups/get-categories}
 ```
 
 ### Parent-Child Relationship
@@ -265,7 +265,7 @@ WebGen supports the following field types:
 
 ```clojure
 ;; Create compute function
-(ns rs.hooks.orders)
+(ns {{name}}.hooks.orders)
 
 (defn calculate-total [row]
   (* (:quantity row) (:price row)))
@@ -274,21 +274,21 @@ WebGen supports the following field types:
 {:id :total
  :label "Total"
  :type :computed
- :compute-fn :rs.hooks.orders/calculate-total}
+ :compute-fn :{{name}}.hooks.orders/calculate-total}
 ```
 
 ### Validation
 
 ```clojure
 ;; Create validator
-(ns rs.validators.products)
+(ns {{name}}.validators.products)
 
 (defn positive-price? [value data]
   (and (number? value) (> value 0)))
 
 ;; In entity config
 {:id :price
- :validation :rs.validators.products/positive-price?}
+ :validation :{{name}}.validators.products/positive-price?}
 ```
 
 ---
@@ -308,7 +308,7 @@ my-project/
 │   │   └── 002-products.sqlite.up.sql
 │   └── private/
 │       └── config.clj               # Database config
-├── src/rs/
+├── src/{{name}}/
 │   ├── engine/                      # Framework core (DON'T MODIFY)
 │   │   ├── config.clj
 │   │   ├── query.clj
@@ -347,10 +347,10 @@ Add EDN file to `resources/entities/`
 Changes are live immediately!
 
 ### 5. Add Business Logic (if needed)
-Create hooks in `src/rs/hooks/`
+Create hooks in `src/{{name}}/hooks/`
 
 ### 6. Customize UI (if needed)
-Create custom renderers in `src/rs/views/`
+Create custom renderers in `src/{{name}}/views/`
 
 ---
 
@@ -364,11 +364,11 @@ lein test
 lein repl
 
 # In REPL
-(require '[rs.engine.config :as config])
+(require '[{{name}}.engine.config :as config])
 (config/list-available-entities)
 (config/load-entity-config :products)
 
-(require '[rs.engine.query :as query])
+(require '[{{name}}.engine.query :as query])
 (query/list-records :products)
 ```
 

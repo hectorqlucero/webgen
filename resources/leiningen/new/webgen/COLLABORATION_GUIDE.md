@@ -43,7 +43,7 @@ lein scaffold products
 
 **What Gets Generated:**
 - ✅ `resources/entities/products.edn` - Entity configuration
-- ✅ `src/rs/hooks/products.clj` - Hook stub file (for senior)
+- ✅ `src/{{name}}/hooks/products.clj` - Hook stub file (for senior)
 - ✅ Auto-detected fields, foreign keys, subgrids
 - ✅ Working CRUD interface at `/admin/products`
 
@@ -131,10 +131,10 @@ Edit `resources/entities/products.edn`:
 
 ### Phase 2: Implement Hooks (30-60 minutes)
 
-Edit `src/rs/hooks/products.clj`:
+Edit `src/{{name}}/hooks/products.clj`:
 
 ```clojure
-(ns rs.hooks.products
+(ns {{name}}.hooks.products
   "Business logic for products")
 
 ;; Validation
@@ -173,8 +173,8 @@ Edit `resources/entities/products.edn` - **Uncomment the hooks section**:
  ;; ... fields, queries, etc ...
  
  ;; UNCOMMENT THIS:
- :hooks {:before-save :rs.hooks.products/before-save
-         :after-save :rs.hooks.products/after-save}}
+ :hooks {:before-save :{{name}}.hooks.products/before-save
+         :after-save :{{name}}.hooks.products/after-save}}
 ```
 
 ### Phase 4: Test (10 minutes)
@@ -229,7 +229,7 @@ Edit `resources/entities/products.edn` - **Uncomment the hooks section**:
 
 1. **Review & Test** basic functionality
 2. **Ask Questions** if business rules are unclear
-3. **Implement Hooks** in `src/rs/hooks/`
+3. **Implement Hooks** in `src/{{name}}/hooks/`
 4. **Uncomment :hooks** in entity EDN
 5. **Test Thoroughly**
 6. **Document** any changes or decisions
@@ -245,7 +245,7 @@ resources/
     products.edn       ← Junior edits this
     
 src/
-  rs/
+  {{name}}/
     hooks/
       products.clj     ← Senior edits this
 ```
@@ -313,7 +313,7 @@ src/
 ### "The hook isn't being called"
 **Check:**
 1. Hook is uncommented in entity EDN
-2. Namespace is correct (:rs.hooks.products/before-save)
+2. Namespace is correct (:{{name}}.hooks.products/before-save)
 3. Function name matches exactly
 4. File is saved and server restarted (if not using hot reload)
 
@@ -326,7 +326,7 @@ src/
 ### "Junior and senior editing same file causes conflicts"
 **Solution:** They shouldn't be! 
 - Junior edits: `resources/entities/*.edn`
-- Senior edits: `src/rs/hooks/*.clj`
+- Senior edits: `src/{{name}}/hooks/*.clj`
 
 ---
 
