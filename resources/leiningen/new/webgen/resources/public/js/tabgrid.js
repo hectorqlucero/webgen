@@ -312,6 +312,10 @@ window.TabGrid = (function() {
       },
       success: function(response) {
         if (response.success) {
+          // Store actions configuration globally for this subgrid
+          if (!window.subgridActions) window.subgridActions = {};
+          window.subgridActions[subgridEntity] = response.actions;
+          
           renderSubgridTable(pane, response.records, response.fields);
           pane.dataset.loaded = 'true';
         } else {
@@ -368,16 +372,24 @@ window.TabGrid = (function() {
       render: function(data, type, row) {
         const editUrl = '/admin/' + subgridEntity + '/edit-form/' + row.id;
         const deleteUrl = '/admin/' + subgridEntity + '/delete/' + row.id;
-        return `
-          <div class="btn-group btn-group-sm">
+        const actions = window.subgridActions && window.subgridActions[subgridEntity] 
+          ? window.subgridActions[subgridEntity] 
+          : {edit: true, delete: true};
+        
+        let buttons = '';
+        if (actions.edit) {
+          buttons += `
             <button class="btn btn-warning btn-sm edit-btn" data-url="${editUrl}">
               <i class="bi bi-pencil"></i> Edit
-            </button>
+            </button>`;
+        }
+        if (actions.delete) {
+          buttons += `
             <a href="${deleteUrl}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">
               <i class="bi bi-trash"></i> Delete
-            </a>
-          </div>
-        `;
+            </a>`;
+        }
+        return `<div class="btn-group btn-group-sm">${buttons}</div>`;
       }
     });
     

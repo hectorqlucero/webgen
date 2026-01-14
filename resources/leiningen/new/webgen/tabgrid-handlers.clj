@@ -20,16 +20,19 @@
         parent-id (:parent_id params)
         foreign-key (:foreign_key params)]
     
-    (try
+     (try
       (let [records (data/fetch-subgrid-records subgrid-entity parent-id foreign-key)
-            fields (data/build-fields-map subgrid-entity)]
+            fields (data/build-fields-map subgrid-entity)
+            subgrid-config (config/get-entity-config subgrid-entity)
+            actions (or (:actions subgrid-config) {:new true :edit true :delete true})]
         {:status 200
          :headers {"Content-Type" "application/json"}
          :body (json/generate-string
                 {:success true
                  :records records
                  :count (count records)
-                 :fields fields})})
+                 :fields fields
+                 :actions actions})})
       (catch Exception e
         (.printStackTrace e)
         {:status 500
