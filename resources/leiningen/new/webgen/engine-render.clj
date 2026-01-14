@@ -92,7 +92,8 @@
   "Populates foreign key options for select fields if they're empty."
   [field]
   (if (and (= :select (:type field))
-           (empty? (:options field)))
+           (or (nil? (:options field))
+               (and (coll? (:options field)) (empty? (:options field)))))
     (if-let [fk-entity (extract-fk-entity field)]
       (assoc field :options (load-fk-options fk-entity))
       field)
@@ -110,11 +111,21 @@
         {:keys [id label type required? placeholder options value]} field
         ;; Resolve options: can be a vector, function, or keyword reference
         options (cond
-                  (fn? options) (options)
+                  (fn? options) (try (options)
+                                     (catch Exception e
+                                       (println "[ERROR] Failed to call options function:" e)
+                                       [{:value "" :label "-- Error loading options --"}]))
                   (keyword? options) (if-let [f (config/resolve-fn-ref options)]
-                                      (f)
-                                      options)
-                  :else options)
+                                       (try (f)
+                                            (catch Exception e
+                                              (println "[ERROR] Failed to call resolved options function:" options e)
+                                              [{:value "" :label "-- Error loading options --"}]))
+                                       (do (println "[WARN] Could not resolve options function:" options)
+                                           [{:value "" :label "-- Select --"}]))
+                  (coll? options) options
+                  (nil? options) nil
+                  :else (do (println "[ERROR] Invalid options type:" (type options) "value:" options)
+                            [{:value "" :label "-- Error: invalid options --"}]))
         field-value (or (get row id) value "")
         ;; If it's a select field (FK) with a pre-populated value and hidden-in-grid flag,
         ;; render it as hidden (used in subgrids where parent FK is auto-set)
