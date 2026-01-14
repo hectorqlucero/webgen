@@ -119,7 +119,7 @@ lein migrate
 {:entity :products
  :title "Products"
  :table "products"
- :menu-group :catalog
+ :menu-category :catalog
  
  :fields [{:id :id
            :label "ID"
