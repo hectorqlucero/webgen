@@ -10,6 +10,7 @@
 (def ^:private last-reload (atom 0))
 (def ^:private last-hook-check (atom 0))
 (def ^:private hooks-last-modified (atom {}))
+(def ^:private validators-last-modified (atom {}))
 
 (defn- get-base-ns
   "Gets the base namespace (project name) from the current namespace"
@@ -22,6 +23,11 @@
   "Returns the path to hooks directory for this project"
   []
   (str "src/" (get-base-ns) "/hooks"))
+
+(defn- validators-path
+  "Returns the path to validators directory for this project"
+  []
+  (str "src/" (get-base-ns) "/validators"))
 
 (defn wrap-auto-reload-entities
   "Middleware that checks if entity EDN files or hook CLJ files have changed and reloads them.
@@ -63,6 +69,25 @@
                   (println "[DEV] Reloading affected entities...")
                   (entity-config/reload-all!)
                   (println "[DEV] ✓ Reloaded all entity configs with fresh hooks")))))
+          
+          ;; Check validator files
+          (let [validators-dir (io/file (validators-path))]
+            (when (.exists validators-dir)
+              (let [validator-files (filter #(.endsWith (.getName %) ".clj")
+                                            (file-seq validators-dir))
+                    changes (atom [])]
+                (doseq [f validator-files]
+                  (let [path (.getPath f)
+                        current-mod (.lastModified f)
+                        last-mod (@validators-last-modified path)]
+                    (when (or (nil? last-mod) (> current-mod last-mod))
+                      (swap! changes conj (.getName f))
+                      (swap! validators-last-modified assoc path current-mod))))
+                (when (seq @changes)
+                  (println "[DEV] Validator files changed:" (clojure.string/join ", " @changes))
+                  (println "[DEV] Reloading affected entities...")
+                  (entity-config/reload-all!)
+                  (println "[DEV] ✓ Reloaded all entity configs with fresh validators")))))
           
           (catch Exception e
             (println "[WARN] Auto-reload failed:" (.getMessage e))))
