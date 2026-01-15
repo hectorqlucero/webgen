@@ -5,6 +5,7 @@
    [hiccup.core :refer [html]]
    [{{sanitized}}.tabgrid.data :as data]
    [{{sanitized}}.tabgrid.render :as render]
+   [{{sanitized}}.engine.config :as config]
    [cheshire.core :as json]))
 
 ;; =============================================================================

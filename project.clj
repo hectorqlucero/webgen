@@ -1,4 +1,4 @@
-(defproject org.clojars.hector/lein-template.webgen "0.2.1"
+(defproject org.clojars.hector/lein-template.webgen "0.2.2"
   :description "WebGen/LST Parameter-Driven Web Application Template"
   :url "https://github.com/hectorqlucero/webgen"
   :license {:name "MIT License"
