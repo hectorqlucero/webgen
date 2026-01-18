@@ -283,8 +283,11 @@ WebGen supports the following field types:
 ;; Create validator
 (ns {{name}}.validators.products)
 
-(defn positive-price? [value data]
-  (and (number? value) (> value 0)))
+(defn positive-price?
+  "Always return a boolean - value is a string - coerce to BigDecimal (bigdec value)"
+  [value data]
+  (let [n (bigdec value)]
+    (and n (> n 0))))
 
 ;; In entity config
 {:id :price
