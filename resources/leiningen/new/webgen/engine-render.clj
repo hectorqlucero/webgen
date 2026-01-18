@@ -340,10 +340,6 @@
         subgrids (:subgrids config)
         enhanced? (:enhanced-tabgrid config)]
     
-    (println "[DEBUG render-grid]" entity "enhanced?" enhanced? "has subgrids:" (boolean (seq subgrids)))
-    (when (seq subgrids)
-      (println "[DEBUG] Subgrid count:" (count subgrids)))
-    
     (cond
       ;; Custom grid renderer
       custom-grid-fn

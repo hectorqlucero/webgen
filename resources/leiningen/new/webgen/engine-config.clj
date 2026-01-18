@@ -91,19 +91,16 @@
 ;; =============================================================================
 
 (defn resolve-fn-ref
-  "Resolves a function reference from a keyword.
-   Example: :user.validators/check-email -> (require 'user.validators) + (:check-email user.validators)
-   Note: To reload hooks, use config/reload-entity-config! which will re-resolve functions."
+  "Resolves a function reference from a keyword and returns the Var (not the function)."
   [kw]
   (when (keyword? kw)
     (let [ns-part (namespace kw)
           fn-part (name kw)]
       (when ns-part
         (try
-          ;; Use :reload to pick up changes to hook files
-          (require (symbol ns-part) :reload)
+          (require (symbol ns-part)) ;; ⚠️ no :reload here
           (if-let [fn-var (ns-resolve (symbol ns-part) (symbol fn-part))]
-            @fn-var
+            fn-var               ;; RETURN VAR
             (do
               (println "[WARN] Function not found:" kw)
               nil))
@@ -127,18 +124,18 @@
                           (keyword? v) (or (resolve-fn-ref v) v)
                           (fn? v) v
                           :else v))
-        
+
         process-field (fn [field]
                         (-> field
                             (update :validation #(when % (resolve-value %)))
                             (update :compute-fn #(when % (resolve-value %)))))
-        
+
         process-hooks (fn [hooks]
                         (when hooks
                           (into {}
                                 (map (fn [[k v]] [k (resolve-value v)])
                                      hooks))))]
-    
+
     (-> config
         enhance-if-has-subgrids
         (update :fields #(mapv process-field %))
@@ -153,10 +150,10 @@
   ;; Temporarily disable validation for scaffolded entities
   config
   #_(if (s/valid? ::entity-config config)
-    config
-    (throw (ex-info "Invalid entity configuration"
-                    {:entity (:entity config)
-                     :explain (s/explain-str ::entity-config config)}))))
+      config
+      (throw (ex-info "Invalid entity configuration"
+                      {:entity (:entity config)
+                       :explain (s/explain-str ::entity-config config)}))))
 
 (defn load-entity-config
   "Loads an entity configuration from resources/entities/<entity>.edn
@@ -288,11 +285,11 @@
                                                    (let [field-name (name (:id f))]
                                                      (or
                                                        ;; Pattern: id_X → X_nombre/X_name
-                                                       (re-find (re-pattern (str fk-id "_(nombre|name)"))
+                                                      (re-find (re-pattern (str fk-id "_(nombre|name)"))
                                                                field-name)
                                                        ;; Pattern: id_X → X_nombre (removing id_ prefix)
-                                                       (and (clojure.string/starts-with? fk-id "id_")
-                                                            (re-find (re-pattern (str (subs fk-id 3) "_(nombre|name)"))
+                                                      (and (clojure.string/starts-with? fk-id "id_")
+                                                           (re-find (re-pattern (str (subs fk-id 3) "_(nombre|name)"))
                                                                     field-name)))))
                                                  all-fields))))
                                all-fields)
@@ -313,7 +310,8 @@
   (let [config (get-entity-config entity)]
     ;; Exclude grid-only fields and fields hidden in forms
     (remove #(or (:grid-only? %)
-                 (:hidden-in-form? %))
+                 (:hidden-in-form? %)
+                 (= (:type %) :computed))
             (:fields config))))
 
 (defn has-permission?

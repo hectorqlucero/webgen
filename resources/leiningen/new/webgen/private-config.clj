@@ -33,20 +33,15 @@
  :uploads      "./uploads/{{name}}/"
  :site-name    "{{name}}"
  :company-name "Your Company"
- :port         8080
+ :port         3000
  :tz           "US/Pacific"
- :base-url     "http://localhost:8080/"
- :img-url      "http://localhost:8080/uploads/"
+ :base-url     "http://localhost:3000/"
+ :img-url      "http://localhost:3000/uploads/"
  :path         "/uploads/"
  
  ;; --- File Upload Settings ---
  :max-upload-mb 5
  :allowed-image-exts ["jpg" "jpeg" "png" "gif" "bmp" "webp"]
- 
- ;; --- Theme Selection ---
- ;; Options: "default" (Bootstrap), "cerulean", "slate", "minty", "lux", "cyborg", 
- ;;          "sandstone", "superhero", "flatly", "yeti", "sketchy"
- :theme "sketchy"
  
  ;; --- Optional Email Configuration ---
  ;; Uncomment and configure if you need email functionality

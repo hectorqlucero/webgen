@@ -54,7 +54,6 @@
   [request]
   (if-let [entity (get-entity-from-request request)]
     (do
-      (println "[DEBUG] Grid handler for:" entity)
       (if (check-permission entity request)
         (try
           (let [config (config/get-entity-config entity)
@@ -63,7 +62,6 @@
                 parent-id (get-in request [:params :id])]
             
             ;; Always use TabGrid for consistency
-            (println "[DEBUG] Using TabGrid for:" entity)
             (let [content (tabgrid/render-tabgrid request entity parent-id)]
               (application request title ok nil content)))
           (catch Exception e
@@ -74,7 +72,6 @@
                   content (render/render-error (.getMessage e))]
               (application request title ok nil content))))
         (do
-          (println "[DEBUG] Permission denied for:" entity)
           (unauthorized-response entity request))))
     (error-404 "Entity not found" "/")))
 
@@ -261,7 +258,6 @@
                                        (:id (first fk-candidates))))]
                        (if fk-field
                          (do
-                           (println "[DEBUG] Filtering subgrid by" fk-field "=" parent-id)
                            (filter #(= (str (get % fk-field)) (str parent-id)) all-rows))
                          (do
                            (println "[WARN] Could not determine FK field for subgrid filtering")

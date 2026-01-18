@@ -2,7 +2,8 @@
   "Clean TabGrid rendering - pure UI generation"
   (:require
    [{{sanitized}}.i18n.core :as i18n]
-   [hiccup.util :refer [raw-string]]))
+   [hiccup.util :refer [raw-string]]
+   [{{sanitized}}.engine.config :as config]))
 
 (defn- safe-id [s]
   "Convert string to safe HTML ID"
@@ -18,12 +19,18 @@
      [:table.table.table-bordered.table-hover.mb-0
       [:tbody
        (for [[field-id field-label] fields]
-         (let [value (get row field-id)]
+         (let [value (get row field-id)
+               field-config (first (filter #(= (:id %) field-id) (:fields (config/get-entity-config entity-name))))
+               computed-value (if (= (:type field-config) :computed)
+                                (if-let [compute-fn (:compute-fn field-config)]
+                                  (compute-fn row)
+                                  "")
+                                value)]
            [:tr
             [:th.bg-light.text-uppercase.fw-semibold {:style "width: 30%"} field-label]
-            [:td (if (and (string? value) (re-find #"^<" value))
-                   (raw-string value)
-                   value)]]))
+            [:td (if (and (string? computed-value) (re-find #"^<" computed-value))
+                   (raw-string computed-value)
+                   computed-value)]]))
        [:tr
         [:th.bg-light.text-uppercase.fw-semibold (i18n/tr request :common/actions)]
         [:td

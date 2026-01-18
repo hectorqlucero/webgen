@@ -7,96 +7,112 @@
             [clojure.java.io :as io]
             [clojure.string :as str]))
 
-(def ^:private last-reload (atom 0))
-(def ^:private last-hook-check (atom 0))
-(def ^:private hooks-last-modified (atom {}))
-(def ^:private validators-last-modified (atom {}))
+;; -----------------------------
+;; State for tracking file changes
+;; -----------------------------
+(def ^:private reload-state
+  (atom {:last-check 0
+         :hooks {}
+         :validators {}
+         :models {}
+         :entities-last-mod 0}))
 
-(defn- get-base-ns
-  "Gets the base namespace (project name) from the current namespace"
-  []
-  (-> (str *ns*)
-      (str/split #"\.")
-      first))
+;; -----------------------------
+;; Paths helpers
+;; -----------------------------
+(defn- get-base-ns []
+  (-> (str *ns*) (str/split #"\.") first))
 
-(defn- hooks-path
-  "Returns the path to hooks directory for this project"
-  []
-  (str "src/" (get-base-ns) "/hooks"))
+(defn- hooks-path []      (str "src/" (get-base-ns) "/hooks"))
+(defn- validators-path [] (str "src/" (get-base-ns) "/validators"))
+(defn- models-path []     (str "src/" (get-base-ns) "/models"))
 
-(defn- validators-path
-  "Returns the path to validators directory for this project"
-  []
-  (str "src/" (get-base-ns) "/validators"))
+;; -----------------------------
+;; Namespace reloading
+;; -----------------------------
+(defn- reload-ns! [ns-sym label]
+  (try
+    (require ns-sym :reload-all)
+    (println "[DEV] ✓ Reloaded" label ":" ns-sym)
+    (catch Exception e
+      (println "[WARN] Failed to reload" label ":" ns-sym)
+      (.printStackTrace e))))
 
-(defn wrap-auto-reload-entities
-  "Middleware that checks if entity EDN files or hook CLJ files have changed and reloads them.
-   Checks every 2 seconds to avoid excessive file system checks."
+;; -----------------------------
+;; Directory changes
+;; -----------------------------
+(defn- check-directory-changes
+  "Checks a directory for modified .clj files."
+  [dir-path state-key label]
+  (let [dir (io/file dir-path)]
+    (when (.exists dir)
+      (let [files (filter #(and (.isFile %) (.endsWith (.getName %) ".clj"))
+                          (file-seq dir))
+            changes (atom [])]
+        (doseq [f files]
+          (let [path (.getPath f)
+                mtime (.lastModified f)
+                last-mtime (get (@reload-state state-key) path)]
+            (when (or (nil? last-mtime) (> mtime last-mtime))
+              (swap! reload-state assoc-in [state-key path] mtime)
+              (swap! changes conj (.getName f)))))
+        @changes))))
+
+;; -----------------------------
+;; Entity reloading
+;; -----------------------------
+(defn- entities-changed? []
+  (when-let [dir (io/resource "entities")]
+    (let [edn-files (filter #(-> % .getName (.endsWith ".edn"))
+                            (file-seq (io/file dir)))]
+      (when (seq edn-files)
+        (let [newest-mod (apply max (map #(.lastModified %) edn-files))
+              last-mod  (:entities-last-mod @reload-state 0)]
+          (when (> newest-mod last-mod)
+            (swap! reload-state assoc :entities-last-mod newest-mod)
+            true))))))
+
+;; -----------------------------
+;; Middleware
+;; -----------------------------
+(defn wrap-auto-reload
+  "Development middleware for hooks, validators, models, and entities."
   [handler]
   (fn [request]
     (let [now (System/currentTimeMillis)
-          last @last-reload
-          elapsed (- now last)]
-      ;; Check every 2000ms (2 seconds)
-      (when (> elapsed 2000)
+          last-check (:last-check @reload-state)]
+      (when (> (- now last-check) 2000)
         (try
-          ;; Check EDN entity configs
-          (let [entities-dir (io/resource "entities")]
-            (when entities-dir
-              (let [edn-files (filter #(.endsWith (.getName %) ".edn")
-                                      (file-seq (io/file entities-dir)))
-                    newest-mod (apply max (map #(.lastModified %) edn-files))]
-                (when (> newest-mod last)
-                  (println "[DEV] Entity configs changed, reloading...")
-                  (entity-config/reload-all!)
-                  (println "[DEV] ✓ Reloaded all entity configs")))))
-          
-          ;; Check hook files
-          (let [hooks-dir (io/file (hooks-path))]
-            (when (.exists hooks-dir)
-              (let [hook-files (filter #(.endsWith (.getName %) ".clj")
-                                       (file-seq hooks-dir))
-                    changes (atom [])]
-                (doseq [f hook-files]
-                  (let [path (.getPath f)
-                        current-mod (.lastModified f)
-                        last-mod (@hooks-last-modified path)]
-                    (when (or (nil? last-mod) (> current-mod last-mod))
-                      (swap! changes conj (.getName f))
-                      (swap! hooks-last-modified assoc path current-mod))))
-                (when (seq @changes)
-                  (println "[DEV] Hook files changed:" (clojure.string/join ", " @changes))
-                  (println "[DEV] Reloading affected entities...")
-                  (entity-config/reload-all!)
-                  (println "[DEV] ✓ Reloaded all entity configs with fresh hooks")))))
-          
-          ;; Check validator files
-          (let [validators-dir (io/file (validators-path))]
-            (when (.exists validators-dir)
-              (let [validator-files (filter #(.endsWith (.getName %) ".clj")
-                                            (file-seq validators-dir))
-                    changes (atom [])]
-                (doseq [f validator-files]
-                  (let [path (.getPath f)
-                        current-mod (.lastModified f)
-                        last-mod (@validators-last-modified path)]
-                    (when (or (nil? last-mod) (> current-mod last-mod))
-                      (swap! changes conj (.getName f))
-                      (swap! validators-last-modified assoc path current-mod))))
-                (when (seq @changes)
-                  (println "[DEV] Validator files changed:" (clojure.string/join ", " @changes))
-                  (println "[DEV] Reloading affected entities...")
-                  (entity-config/reload-all!)
-                  (println "[DEV] ✓ Reloaded all entity configs with fresh validators")))))
-          
+          ;; Reload hooks
+          (doseq [n (check-directory-changes (hooks-path) :hooks "hook")]
+            (reload-ns! (symbol (str (get-base-ns) ".hooks." (str/replace n #"\.clj$" ""))) "hook"))
+
+          ;; Reload validators
+          (doseq [n (check-directory-changes (validators-path) :validators "validator")]
+            (reload-ns! (symbol (str (get-base-ns) ".validators." (str/replace n #"\.clj$" ""))) "validator"))
+
+          ;; Reload models
+          (doseq [n (check-directory-changes (models-path) :models "model")]
+            (reload-ns! (symbol (str (get-base-ns) ".models." (str/replace n #"\.clj$" ""))) "model"))
+
+          ;; Reload entities if EDN files changed
+          (when (entities-changed?)
+            (println "[DEV] Entity configs changed, reloading...")
+            (entity-config/reload-all!)
+            (println "[DEV] ✓ Reloaded all entity configs"))
+
           (catch Exception e
             (println "[WARN] Auto-reload failed:" (.getMessage e))))
-        (reset! last-reload now)))
+        (swap! reload-state assoc :last-check now)))
     (handler request)))
 
+;; -----------------------------
+;; Dev entrypoint
+;; -----------------------------
 (defn -main []
-  (jetty/run-jetty 
+  (jetty/run-jetty
    (-> #'core/app
        wrap-reload
-       wrap-auto-reload-entities)
-   {:port (:port config)}))
+       wrap-auto-reload)
+   {:port (:port config)
+    :join? false}))

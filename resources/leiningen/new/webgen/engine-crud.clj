@@ -11,11 +11,12 @@
 ;; =============================================================================
 
 (defn- execute-hook
-  "Executes a hook function if it exists."
+  "Executes a hook function or Var if it exists."
   [hook-fn data & args]
-  (if (fn? hook-fn)
-    (apply hook-fn data args)
-    data))
+  (cond
+    (var? hook-fn) (apply @hook-fn data args) ; Dereference Var and call
+    (fn? hook-fn) (apply hook-fn data args)   ; Call function directly
+    :else data))
 
 (defn- validate-fields
   "Validates form data against entity field definitions."
@@ -23,7 +24,7 @@
   (let [config (config/get-entity-config entity)
         fields (:fields config)
         errors (atom [])]
-    
+
     ;; Check required fields
     (doseq [field fields]
       (when (:required? field)
@@ -33,7 +34,7 @@
             (swap! errors conj
                    {:field field-id
                     :message (str (:label field) " is required")})))))
-    
+
     ;; Execute custom validators
     (doseq [field fields]
       (when-let [validator (:validation field)]
@@ -48,7 +49,7 @@
               (swap! errors conj
                      {:field field-id
                       :message (.getMessage e)}))))))
-    
+
     (if (empty? @errors)
       {:valid? true :data data}
       {:valid? false :errors @errors})))
@@ -57,7 +58,7 @@
   "Computes values for computed fields."
   [entity data]
   (let [config (config/get-entity-config entity)
-        fields (:fields config)]
+        fields-to-compute (remove #(or (:hidden-in-form? %) (= (:type %) :computed)) (:fields config))]
     (reduce
      (fn [acc field]
        (if-let [compute-fn (:compute-fn field)]
@@ -66,12 +67,18 @@
            (assoc acc field-id computed-value))
          acc))
      data
-     fields)))
+     fields-to-compute)))
 
 (defn- prepare-data
   "Prepares data for save - computes fields, runs validation."
   [entity data]
-  (let [data (compute-fields entity data)
+  (let [config (config/get-entity-config entity)
+        has-visible-computed? (some #(and (= (:type %) :computed)
+                                          (not (:hidden-in-form? %)))
+                                    (:fields config))
+        data (if has-visible-computed?
+               (compute-fields entity data)
+               data)
         validation (validate-fields entity data)]
     (if (:valid? validation)
       {:success true :data (:data validation)}
@@ -93,33 +100,33 @@
         hooks (:hooks config)
         connection (or (:conn opts) (:connection config) :default)
         table (:table config)
-        
+
         ;; Execute before-save hook
         data (if (and (not (:skip-hooks? opts))
                       (:before-save hooks))
                (execute-hook (:before-save hooks) data)
                data)
-        
+
         ;; Validate and prepare data
         prepared (if (:skip-validation? opts)
                    {:success true :data data}
                    (prepare-data entity data))]
-    
+
     (if (:success prepared)
       (let [clean-data (:data prepared)
-            
+
             ;; Save to database
             result (crud/build-form-save clean-data table :conn connection)
-            
+
             ;; Execute after-save hook
             _ (when (and result
                          (not (:skip-hooks? opts))
                          (:after-save hooks))
                 (execute-hook (:after-save hooks) clean-data result))]
-        
+
         {:success result
          :data clean-data})
-      
+
       ;; Validation failed
       prepared)))
 
@@ -138,21 +145,21 @@
         hooks (:hooks config)
         connection (or (:conn opts) (:connection config) :default)
         table (:table config)
-        
+
         ;; Execute before-delete hook
         _ (when (and (not (:skip-hooks? opts))
                      (:before-delete hooks))
             (execute-hook (:before-delete hooks) {:id id}))
-        
+
         ;; Delete from database
         result (crud/build-form-delete table id :conn connection)
-        
+
         ;; Execute after-delete hook
         _ (when (and result
                      (not (:skip-hooks? opts))
                      (:after-delete hooks))
             (execute-hook (:after-delete hooks) {:id id} result))]
-    
+
     {:success result}))
 
 ;; =============================================================================
@@ -227,7 +234,7 @@
   (let [config (config/get-entity-config entity)
         table (:table config)
         connection (or (:conn opts) (:connection config) :default)
-        
+
         ;; Try to update deleted_at or deleted field
         sql (str "UPDATE " table " SET deleted_at = NOW() WHERE id = ?")
         result (try
