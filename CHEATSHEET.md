@@ -163,6 +163,13 @@
  :options [{:value "low" :label "Low"}
            {:value "normal" :label "Normal"}
            {:value "high" :label "High"}]}
+
+;; Foreign key - FK
+{:id :property_id
+ :label "Property"
+ :type :fk
+ :fk :property
+ :fk-field [:titulo :estado :contacto]}
 ```
 
 #### Radio Buttons

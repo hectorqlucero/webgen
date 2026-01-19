@@ -226,6 +226,7 @@ WebGen supports the following field types:
 {:id :password :label "Password" :type :password}
 {:id :imagen :label "Image" :type :file}
 {:id :user_id :label "User ID" :type :hidden}
+{:id :property_id :label "Property" :type :fk :fk :property :fk-field [:titulo :estado :contacto]}
 ```
 
 ### Dropdown with Database Values

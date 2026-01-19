@@ -247,6 +247,7 @@ WebGen supports comprehensive field types for building enterprise forms:
 
 ;; Special types
 {:id :imagen :label "Image" :type :file}
+{:id :property_id :label "Property" :type :fk :fk :property :fk-field [:titulo :estado :contacto]}
 {:id :id :label "ID" :type :hidden}
 ```
 
