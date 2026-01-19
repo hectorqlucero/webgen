@@ -49,6 +49,32 @@
     field))
 
 ;; =============================================================================
+;; Option Keyword Resolution
+;; =============================================================================
+
+(defn- resolve-options
+  [options]
+  (cond
+    (vector? options) options
+    (nil? options) []
+    (keyword? options)
+    (let [ns-str (namespace options)
+          name-str (name options)]
+      (try
+        (let [fn-sym (symbol ns-str name-str)
+              fn-var (requiring-resolve fn-sym)]
+          (println "[DEBUG] Resolving options for" options "->" fn-sym)
+          (if (and fn-var (fn? (var-get fn-var)))
+            ((var-get fn-var))
+            (do
+              (println "[WARN] Could not resolve options function:" fn-sym)
+              [])))
+        (catch Exception e
+          (println "[WARN] Exception resolving options for" options ":" (.getMessage e))
+          [])))
+    :else []))
+
+;; =============================================================================
 ;; Field Rendering
 ;; =============================================================================
 
@@ -57,7 +83,8 @@
   [field row]
   (let [field (populate-fk-options field)
         {:keys [id label type required? placeholder options value]} field
-        field-value (or (get row id) value "")]
+        field-value (or (get row id) value "")
+        resolved-options (resolve-options options)]
     (case type
       :hidden
       (form/build-field {:type "hidden"
@@ -143,7 +170,7 @@
                          :name (name id)
                          :required required?
                          :value (str field-value)  ;; Convert to string to match option values
-                         :options options})
+                         :options resolved-options})
 
       :fk
       ;; Foreign key select
@@ -153,14 +180,14 @@
                          :name (name id)
                          :required required?
                          :value (str field-value)
-                         :options options})
+                         :options resolved-options})
 
       :radio
       (form/build-field {:label label
                          :type "radio"
                          :name (name id)
                          :value field-value
-                         :options options})
+                         :options resolved-options})
 
       :checkbox
       (form/build-field {:label label
