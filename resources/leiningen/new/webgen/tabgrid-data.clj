@@ -4,10 +4,6 @@
    [{{sanitized}}.engine.config :as config]
    [{{sanitized}}.engine.query :as query]))
 
-;; =============================================================================
-;; Field Mapping
-;; =============================================================================
-
 (defn build-fields-map
   "Builds a field map for rendering from entity config"
   [entity]
@@ -16,10 +12,6 @@
            (mapcat (fn [field]
                      [(:id field) (:label field)])
                    display-fields))))
-
-;; =============================================================================
-;; Parent Data
-;; =============================================================================
 
 (defn fetch-parent-record
   "Fetches a single parent record by ID"
@@ -32,10 +24,6 @@
   [entity]
   (query/list-with-hooks entity))
 
-;; =============================================================================
-;; Subgrid Data
-;; =============================================================================
-
 (defn fetch-subgrid-records
   "Fetches subgrid records filtered by parent foreign key"
   [subgrid-entity parent-id foreign-key]
@@ -44,10 +32,6 @@
           fk-keyword (keyword foreign-key)
           filtered (filter #(= (str (get % fk-keyword)) (str parent-id)) all-records)]
       filtered)))
-
-;; =============================================================================
-;; Subgrid Configuration
-;; =============================================================================
 
 (defn prepare-subgrid-config
   "Prepares a single subgrid configuration for rendering"
@@ -70,10 +54,6 @@
         subgrid-specs (:subgrids parent-config)]
     (when (seq subgrid-specs)
       (mapv #(prepare-subgrid-config parent-entity %) subgrid-specs))))
-
-;; =============================================================================
-;; Complete TabGrid Data
-;; =============================================================================
 
 (defn prepare-tabgrid-data
   "Prepares all data needed for tabgrid rendering"

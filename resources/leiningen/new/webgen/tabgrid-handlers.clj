@@ -8,10 +8,6 @@
    [{{sanitized}}.engine.config :as config]
    [cheshire.core :as json]))
 
-;; =============================================================================
-;; AJAX: Load Subgrid Data
-;; =============================================================================
-
 (defn handle-load-subgrid
   "AJAX handler: loads subgrid data for a specific parent"
   [request]
@@ -41,10 +37,6 @@
          :body (json/generate-string
                 {:success false
                  :error (.getMessage e)})}))))
-
-;; =============================================================================
-;; AJAX: Get Parent Record
-;; =============================================================================
 
 (defn handle-get-parent
   "AJAX handler: gets a specific parent record"

@@ -1,14 +1,8 @@
 (ns {{sanitized}}.engine.crud
-  "Generic CRUD operations for parameter-driven entities.
-   Handles create, read, update, delete with hooks and validation."
   (:require
    [{{sanitized}}.engine.config :as config]
    [{{sanitized}}.engine.query :as query]
    [{{sanitized}}.models.crud :as crud]))
-
-;; =============================================================================
-;; CRUD Operations
-;; =============================================================================
 
 (defn- execute-hook
   "Executes a hook function or Var if it exists."
@@ -84,10 +78,6 @@
       {:success true :data (:data validation)}
       {:success false :errors (:errors validation)})))
 
-;; =============================================================================
-;; Save Operation (Create/Update)
-;; =============================================================================
-
 (defn save-record
   "Saves a record (create or update based on presence of :id).
    
@@ -130,10 +120,6 @@
       ;; Validation failed
       prepared)))
 
-;; =============================================================================
-;; Delete Operation
-;; =============================================================================
-
 (defn delete-record
   "Deletes a record by ID.
    
@@ -162,10 +148,6 @@
 
     {:success result}))
 
-;; =============================================================================
-;; Batch Operations
-;; =============================================================================
-
 (defn save-batch
   "Saves multiple records in a batch.
    Returns {:success count :errors [...]}"
@@ -186,10 +168,6 @@
         failures (remove :success results)]
     {:success (count successes)
      :failed (count failures)}))
-
-;; =============================================================================
-;; Audit Trail Support
-;; =============================================================================
 
 (defn- create-audit-entry
   "Creates an audit log entry for a CRUD operation."
@@ -223,10 +201,6 @@
       (create-audit-entry entity :delete {:id id} user-id))
     result))
 
-;; =============================================================================
-;; Soft Delete Support
-;; =============================================================================
-
 (defn soft-delete
   "Soft deletes a record by setting a deleted flag instead of removing it.
    Requires entity to have a :deleted_at or :deleted field."
@@ -250,10 +224,6 @@
                        (println "[ERROR] Soft delete failed:" (.getMessage e))
                        false))))]
     {:success result}))
-
-;; =============================================================================
-;; Helper Functions
-;; =============================================================================
 
 (defn record-exists?
   "Checks if a record exists by ID."

@@ -1,6 +1,4 @@
 (ns {{sanitized}}.engine.query
-  "Query execution engine for parameter-driven entities.
-   Handles query resolution, parameter substitution, and execution."
   (:require
    [{{sanitized}}.engine.config :as config]
    [{{sanitized}}.models.crud :as crud]))
@@ -10,11 +8,6 @@
 ;; =============================================================================
 
 (defn- resolve-query
-  "Resolves a query definition to an executable form.
-   Queries can be:
-   - String: SQL query
-   - Function: Called with params
-   - Keyword: Reference to a function"
   [query-def]
   (cond
     (string? query-def) query-def
@@ -32,17 +25,7 @@
                       {:entity entity :query-key query-key})))
     (resolve-query query)))
 
-;; =============================================================================
-;; Query Execution
-;; =============================================================================
-
 (defn execute-query
-  "Executes a query for an entity with given parameters.
-   
-   Options:
-   - :conn - Database connection key (defaults to entity's connection or :default)
-   - :params - Query parameters
-   - :query-key - Which query to execute (:list, :get, :custom/name, etc.)"
   [entity {:keys [query-key params conn] :or {params [] conn nil}}]
   (let [config (config/get-entity-config entity)
         connection (or conn (:connection config) :default)
@@ -63,10 +46,6 @@
       :else
       (throw (ex-info "Unsupported query type"
                       {:entity entity :query-key query-key :query query})))))
-
-;; =============================================================================
-;; Common Query Shortcuts
-;; =============================================================================
 
 (defn list-records
   "Executes the :list query for an entity.
@@ -90,10 +69,6 @@
                  (merge {:query-key query-name
                          :params (or params [])}
                         opts)))
-
-;; =============================================================================
-;; Auto-Generated Queries
-;; =============================================================================
 
 (defn generate-list-query
   "Generates a default list query for an entity based on its table."
@@ -125,10 +100,6 @@
                   (assoc queries :get (generate-get-query entity)))]
     (swap! config/config-cache assoc-in [entity :queries] queries)
     queries))
-
-;; =============================================================================
-;; Query with Hooks
-;; =============================================================================
 
 (defn execute-with-hooks
   "Executes a query with before/after hooks.

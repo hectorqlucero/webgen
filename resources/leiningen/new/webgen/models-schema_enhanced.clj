@@ -1,10 +1,6 @@
 (ns {{sanitized}}.models.schema-enhanced
   "Enhanced schema for professional TabGrid configuration")
 
-;; =============================================================================
-;; UI Enhancement Functions
-;; =============================================================================
-
 (defn enhance-ui-config [entity-config]
   "Enhance UI configuration with professional defaults"
   (let [default-ui {:style :enhanced-tabgrid

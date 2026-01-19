@@ -1,6 +1,4 @@
 (ns {{sanitized}}.engine.render
-  "UI rendering engine for parameter-driven entities.
-   Generates grids, forms, and dashboards from entity configurations."
   (:require
    [{{sanitized}}.engine.config :as config]
    [{{sanitized}}.engine.query :as query]
@@ -9,10 +7,6 @@
    [{{sanitized}}.models.crud]
    [{{sanitized}}.i18n.core :as i18n]
    [clojure.string :as str]))
-
-;; =============================================================================
-;; Foreign Key Options Loading
-;; =============================================================================
 
 (defn- load-fk-options
   "Loads foreign key options from related table.
@@ -48,10 +42,6 @@
         field))
     field))
 
-;; =============================================================================
-;; Option Keyword Resolution
-;; =============================================================================
-
 (defn- resolve-options
   [options]
   (cond
@@ -63,7 +53,6 @@
       (try
         (let [fn-sym (symbol ns-str name-str)
               fn-var (requiring-resolve fn-sym)]
-          (println "[DEBUG] Resolving options for" options "->" fn-sym)
           (if (and fn-var (fn? (var-get fn-var)))
             ((var-get fn-var))
             (do
@@ -74,17 +63,14 @@
           [])))
     :else []))
 
-;; =============================================================================
-;; Field Rendering
-;; =============================================================================
-
 (defn- render-field
   "Renders a single form field based on its configuration."
   [field row]
-  (let [field (populate-fk-options field)
-        {:keys [id label type required? placeholder options value]} field
+  (let [fk-field? (= :fk (:type field))
+        populated-field (if fk-field? (populate-fk-options field) field)
+        {:keys [id label type required? placeholder options value]} populated-field
         field-value (or (get row id) value "")
-        resolved-options (resolve-options options)]
+        resolved-options (if fk-field? options (resolve-options options))]
     (case type
       :hidden
       (form/build-field {:type "hidden"
@@ -235,10 +221,6 @@
                          :required required?
                          :value field-value}))))
 
-;; =============================================================================
-;; Form Rendering
-;; =============================================================================
-
 (defn render-form
   "Renders a form for an entity based on its configuration."
   [request entity row]
@@ -258,10 +240,6 @@
   [title entity row]
   (let [form-content (render-form entity row)]
     (grid/build-modal title row form-content)))
-
-;; =============================================================================
-;; Grid Rendering
-;; =============================================================================
 
 (defn- build-fields-map
   "Builds a field map for grid rendering from entity config."
@@ -287,10 +265,6 @@
       (custom-grid-fn entity rows)
       (grid/build-grid request title rows table-id fields href actions))))
 
-;; =============================================================================
-;; Dashboard Rendering
-;; =============================================================================
-
 (defn render-dashboard
   "Renders a read-only dashboard for an entity."
   [entity rows]
@@ -309,10 +283,6 @@
   [entity rows]
   (render-dashboard entity rows))
 
-;; =============================================================================
-;; Subgrid Rendering
-;; =============================================================================
-
 (defn render-subgrid
   "Renders a subgrid for a parent-child relationship."
   [request entity parent-id rows]
@@ -325,10 +295,6 @@
         actions (or (:actions config) config/default-actions)
         new-href (str href "/add-form/" parent-id)]
     (grid/build-grid-with-custom-new request title rows table-id fields href actions new-href)))
-
-;; =============================================================================
-;; List/Select Rendering
-;; =============================================================================
 
 (defn render-select-list
   "Renders a simple list for selection (used in modals)."
@@ -352,10 +318,6 @@
             [:button.btn.btn-sm.btn-success {:type "submit"} "Select"]]]
           (for [[field-id _] fields]
             [:td (get row field-id)])])]]]))
-
-;; =============================================================================
-;; Helper Functions
-;; =============================================================================
 
 (defn render-error
   "Renders an error message."

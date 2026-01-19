@@ -1,14 +1,8 @@
 (ns {{sanitized}}.engine.menu
-  "Auto-generates menu items from entity configurations.
-   Scans resources/entities/ and creates menu structure with categorization."
   (:require
    [clojure.java.io :as io]
    [clojure.edn :as edn]
    [clojure.string :as str]))
-
-;; =============================================================================
-;; Entity Discovery
-;; =============================================================================
 
 (defn discover-entities
   "Discovers all entity configuration files in resources/entities/"
@@ -49,10 +43,6 @@
          :rights rights
          :category category
          :order order}))))
-
-;; =============================================================================
-;; Menu Categorization
-;; =============================================================================
 
 (def default-categories
   "Default menu categories with Spanish labels for real estate system"
@@ -95,10 +85,6 @@
                         auto-category
                         (:category entity-info))]
     (assoc entity-info :category final-category)))
-
-;; =============================================================================
-;; Menu Generation
-;; =============================================================================
 
 (defn generate-menu-items
   "Generates menu items from all discovered entities"
@@ -148,10 +134,6 @@
                         sorted-categories))]
     {:nav-links [["/" "Home"]]
      :dropdowns dropdowns}))
-
-;; =============================================================================
-;; Public API
-;; =============================================================================
 
 (defn get-menu-config
   "Returns the auto-generated menu configuration"

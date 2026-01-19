@@ -39,4 +39,4 @@
 (def not-enhanced (config/enhance-if-has-subgrids no-subgrid-config))
 (println "Entity without subgrids enhanced:" (:enhanced-tabgrid not-enhanced))
 
-(println "✅ Auto-enhancement system test completed successfully!")
+(println "Auto-enhancement system test completed successfully!")

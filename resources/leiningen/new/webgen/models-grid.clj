@@ -3,10 +3,6 @@
    [clojure.string :as st]
    [{{sanitized}}.i18n.core :as i18n]))
 
-;; =============================================================================
-;; Grid/Table Builders (using DataTables)
-;; =============================================================================
-
 (defn build-grid-head
   [request href fields & args]
   (let [args (first args)
@@ -155,10 +151,6 @@
       (unified-table-head request fields)
       (unified-table-body rows fields)]]]])
 
-;; =============================================================================
-;; Modal Builder
-;; =============================================================================
-
 (defn build-modal
   [title _ form]
   (list
@@ -247,10 +239,6 @@
       {:id table-id}
       (build-grid-head-with-custom-new request fields args href custom-new-url)
       (build-grid-body request rows href fields args)]]]])
-
-;; =============================================================================
-;; Subgrid functionality - linking grids via foreign keys
-;; =============================================================================
 
 (defn build-subgrid-trigger
   "Creates a trigger button/link to open a subgrid for a specific parent record"
@@ -487,12 +475,6 @@ modal.find('#subgrid-content').html(
          ;; Subgrid JavaScript
          (subgrid-javascript)]))))
 
-
-
-;; =============================================================================
-;; Convenience functions for common subgrid scenarios
-;; =============================================================================
-
 (defn create-subgrid-config
   "Helper to create subgrid configuration"
   [options]
@@ -520,10 +502,6 @@ modal.find('#subgrid-content').html(
                         :icon "bi bi-person-badge"
                         :label "Roles"})]
     (build-grid-with-subgrids request title rows table-id fields href (assoc args :subgrids [roles-subgrid]))))
-
-;; =============================================================================
-;; Example usage and documentation
-;; =============================================================================
 
 (comment
   ;; Example usage for main functions in this file

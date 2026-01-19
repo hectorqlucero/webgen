@@ -12,10 +12,6 @@
    [clojure.java.jdbc :as jdbc]
    [{{sanitized}}.models.crud :as crud]))
 
-;; =============================================================================
-;; Helper Functions
-;; =============================================================================
-
 (defn get-base-ns
   "Gets the base namespace (project name) from the current namespace"
   []
@@ -27,10 +23,6 @@
   "Returns the path to hooks directory for this project"
   []
   (str "src/" (get-base-ns) "/hooks/"))
-
-;; =============================================================================
-;; SQL Type Mapping
-;; =============================================================================
 
 (def sql-type-map
   "Maps SQL types to entity field types"
@@ -93,20 +85,12 @@
       :else (or (get sql-type-map (first (str/split sql-type #"[(]")))
                 :text))))
 
-;; =============================================================================
-;; Label Humanization
-;; =============================================================================
-
 (defn humanize-label
   "Converts field name to human-readable label"
   [field-name]
   (->> (str/split (name field-name) #"[_-]")
        (map str/capitalize)
        (str/join " ")))
-
-;; =============================================================================
-;; Schema Introspection
-;; =============================================================================
 
 (defn get-catalog-from-connection
   "Extracts the database/catalog name from a JDBC connection.
@@ -264,10 +248,6 @@
         (println "[WARN] Failed to get referencing tables for" table-name)
         [])))) 
 
-;; =============================================================================
-;; Field Generation
-;; =============================================================================
-
 (defn get-parent-tables
   "Gets tables that this table is a subgrid of (tables that reference back to us).
    Returns set of parent table keywords that have this table as a subgrid."
@@ -324,10 +304,6 @@
           (= field-type :text) (assoc :placeholder (str (humanize-label column-name) "..."))
           (= field-type :textarea) (assoc :placeholder (str (humanize-label column-name) "..."))
           (= field-type :email) (assoc :placeholder "user@example.com"))))))
-
-;; =============================================================================
-;; Entity Config Generation
-;; =============================================================================
 
 (defn get-display-field-name
   "Gets the display field name for a foreign key reference.
@@ -503,10 +479,6 @@
       ;; Add subgrids if any tables reference this one
       (seq subgrids) (assoc :subgrids subgrids))))
 
-;; =============================================================================
-;; Hook Stub Generation
-;; =============================================================================
-
 (defn generate-hook-stub
   "Generates a hook stub file for an entity"
   [entity-name & [fields]]
@@ -677,12 +649,8 @@
       (do
         (io/make-parents file)
         (spit file (generate-hook-stub entity-name fields))
-        (println (str "   ✅ Generated hook stub: " filename))
-        (println (str "      → Senior developer: Implement business logic here"))))))
-
-;; =============================================================================
-;; Config File Writing
-;; =============================================================================
+        (println (str "   Generated hook stub: " filename))
+        (println (str "      Senior developer: Implement business logic here"))))))
 
 (defn format-field
   "Formats a field configuration for EDN output"
@@ -721,12 +689,12 @@
          ";; Feel free to edit and customize as needed.\n"
          ";; \n"
          ";; JUNIOR DEVELOPER CHECKLIST:\n"
-         ";;   ✅ Review field types and labels\n"
-         ";;   ✅ Mark required fields\n"
-         ";;   ✅ Set field visibility (hide in grid/form)\n"
-         ";;   ✅ Add placeholders for text fields\n"
-         ";;   ✅ Configure select options\n"
-         ";;   ✅ Test CRUD operations\n"
+         ";;   Review field types and labels\n"
+         ";;   Mark required fields\n"
+         ";;   Set field visibility (hide in grid/form)\n"
+         ";;   Add placeholders for text fields\n"
+         ";;   Configure select options\n"
+         ";;   Test CRUD operations\n"
          ";; \n"
          ";; SENIOR DEVELOPER HANDOFF:\n"
          ";;   ⚠️  Implement hooks in: " (hooks-path) entity-name ".clj\n"
@@ -804,10 +772,6 @@
     (spit file (generate-edn-content config))
     filename))
 
-;; =============================================================================
-;; CLI Interface
-;; =============================================================================
-
 (defn scaffold-table
   "Scaffolds a single table"
   [table-name & {:keys [conn rights title force? with-hooks?]
@@ -827,7 +791,7 @@
           field-count (count (:fields config))
           subgrid-count (count (:subgrids config))]
       
-      (println (str "✅ Generated " filename))
+      (println (str "Generated " filename))
       (println (str "   - " field-count " fields detected"))
       (when (pos? subgrid-count)
         (println (str "   - " subgrid-count " subgrid(s) detected")))
@@ -851,7 +815,7 @@
       (println))
     
     (catch Exception e
-      (println (str "❌ Failed to scaffold " table-name ": " (.getMessage e)))
+      (println (str "Failed to scaffold " table-name ": " (.getMessage e)))
       (.printStackTrace e))))
 
 (defn scaffold-all
@@ -872,7 +836,7 @@
     (doseq [table tables-to-scaffold]
       (scaffold-table table :conn conn :force? force? :with-hooks? with-hooks?))
     
-    (println (str "✅ Scaffolded " (count tables-to-scaffold) " entities"))
+    (println (str "Scaffolded " (count tables-to-scaffold) " entities"))
     (println)
     (println "All entity configurations created!")
     (println "Review and customize them in resources/entities/")
@@ -907,15 +871,11 @@
   (println "  lein scaffold --all --exclude sessions,schema_migrations")
   (println)
   (println "What gets generated:")
-  (println "  ✅ Entity EDN config in resources/entities/")
-  (println (str "  ✅ Hook stub file in " (hooks-path) " (unless --no-hooks)"))
-  (println "  ✅ Auto-detected fields, foreign keys, subgrids")
-  (println "  ✅ Junior/Senior handoff comments")
+  (println "  Entity EDN config in resources/entities/")
+  (println (str "  Hook stub file in " (hooks-path) " (unless --no-hooks)"))
+  (println "  Auto-detected fields, foreign keys, subgrids")
+  (println "  Junior/Senior handoff comments")
   (println))
-
-;; =============================================================================
-;; Main Entry Point
-;; =============================================================================
 
 (defn -main
   "Main entry point for scaffold command"

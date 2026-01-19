@@ -5,10 +5,6 @@
    [clojure.edn :as edn]
    [clojure.java.io :as io]))
 
-;; =============================================================================
-;; Configuration
-;; =============================================================================
-
 (def default-locale :es)  ;; Spanish by default
 
 (def supported-locales
@@ -19,10 +15,6 @@
 (def translations-cache
   "Atom holding all loaded translations by locale"
   (atom {}))
-
-;; =============================================================================
-;; Translation Loading
-;; =============================================================================
 
 (defn load-translations
   "Loads translations for a specific locale from EDN file"
@@ -51,10 +43,6 @@
   (reset! translations-cache {})
   (doseq [locale (keys supported-locales)]
     (ensure-translations-loaded locale)))
-
-;; =============================================================================
-;; Translation Function
-;; =============================================================================
 
 (defn t
   "Translates a key to the current locale.
@@ -93,10 +81,6 @@
   [& args]
   (apply t args))
 
-;; =============================================================================
-;; Locale Management
-;; =============================================================================
-
 (defn get-locale-from-session
   "Gets the current locale from session, defaults to :es"
   [session]
@@ -119,10 +103,6 @@
   [locale]
   (get-in supported-locales [locale :flag] ""))
 
-;; =============================================================================
-;; Helper Functions
-;; =============================================================================
-
 (defn tr
   "Translates using request's session locale.
    
@@ -136,10 +116,6 @@
   ([request key params]
    (let [locale (get-locale-from-session (:session request))]
      (t key locale params))))
-
-;; =============================================================================
-;; Initialization
-;; =============================================================================
 
 (defn init!
   "Initializes the i18n system by loading all translations"

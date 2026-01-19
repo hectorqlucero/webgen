@@ -7,9 +7,6 @@
             [clojure.java.io :as io]
             [clojure.string :as str]))
 
-;; -----------------------------
-;; State for tracking file changes
-;; -----------------------------
 (def ^:private reload-state
   (atom {:last-check 0
          :hooks {}
@@ -17,9 +14,6 @@
          :models {}
          :entities-last-mod 0}))
 
-;; -----------------------------
-;; Paths helpers
-;; -----------------------------
 (defn- get-base-ns []
   (-> (str *ns*) (str/split #"\.") first))
 
@@ -27,9 +21,6 @@
 (defn- validators-path [] (str "src/" (get-base-ns) "/validators"))
 (defn- models-path []     (str "src/" (get-base-ns) "/models"))
 
-;; -----------------------------
-;; Namespace reloading
-;; -----------------------------
 (defn- reload-ns! [ns-sym label]
   (try
     (require ns-sym :reload-all)
@@ -38,9 +29,6 @@
       (println "[WARN] Failed to reload" label ":" ns-sym)
       (.printStackTrace e))))
 
-;; -----------------------------
-;; Directory changes
-;; -----------------------------
 (defn- check-directory-changes
   "Checks a directory for modified .clj files."
   [dir-path state-key label]
@@ -58,9 +46,6 @@
               (swap! changes conj (.getName f)))))
         @changes))))
 
-;; -----------------------------
-;; Entity reloading
-;; -----------------------------
 (defn- entities-changed? []
   (when-let [dir (io/resource "entities")]
     (let [edn-files (filter #(-> % .getName (.endsWith ".edn"))
@@ -72,9 +57,6 @@
             (swap! reload-state assoc :entities-last-mod newest-mod)
             true))))))
 
-;; -----------------------------
-;; Middleware
-;; -----------------------------
 (defn wrap-auto-reload
   "Development middleware for hooks, validators, models, and entities."
   [handler]
@@ -106,9 +88,6 @@
         (swap! reload-state assoc :last-check now)))
     (handler request)))
 
-;; -----------------------------
-;; Dev entrypoint
-;; -----------------------------
 (defn -main []
   (jetty/run-jetty
    (-> #'core/app

@@ -7,11 +7,6 @@
    [ragtime.jdbc :as jdbc]
    [ragtime.repl :as repl]))
 
-
-
-;; Loads migration config for a given connection key (e.g., :main, :analytics, :localdb)
-
-
 ;; Find migration files for a given dbtype (e.g., "sqlite") using filesystem path for dev
 (defn migration-files-for-dbtype [dbtype]
   (let [migdir "resources/migrations"
@@ -20,17 +15,6 @@
                    (filter #(re-find (re-pattern (str ".*\\." dbtype "\\.(up|down)\\.sql$")) %)))]
     (map #(str migdir "/" %) (sort files))))
 
-
-
-
-;; Helper: parse migration file into {:id ... :up ...} or {:id ... :down ...}
-
-;; Parse migration file into {:id ... :up ...} or {:id ... :down ...}
-
-
-
-
-
 (defn parse-migration-file [filename]
   (let [content (slurp filename)
         fname (-> filename (st/split #"/") last)]
@@ -38,14 +22,6 @@
       (let [[_ id _ direction] m
             dir-key (keyword direction)]
         {:id id dir-key content}))))
-
-;; Group up/down migrations by id and build migration maps for Ragtime
-
-;; Group up/down migrations by id and build migration maps for Ragtime
-
-;; Improved: Ensure both :up and :down keys are present, and migration IDs are unique and sorted
-
-
 
 (defn split-sql [sql]
   (->> (clojure.string/split sql #";[\r\n]*")
@@ -107,20 +83,15 @@
        {:datastore (jdbc/sql-database conn)
         :migrations migrations}))))
 
-
-
 (defn migrate
   ([] (migrate :main))
   ([conn-key]
    (repl/migrate (load-config conn-key))))
 
-
-
 (defn rollback
   ([] (rollback :main))
   ([conn-key]
    (repl/rollback (load-config conn-key))))
-
 
 (comment
   ;; Run migrations on the main (default) database

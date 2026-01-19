@@ -1,6 +1,4 @@
 (ns {{sanitized}}.engine.router
-  "Dynamic routing engine for parameter-driven entities.
-   Provides generic routes that work for all configured entities."
   (:require
    [compojure.core :refer [defroutes GET POST context]]
    [ring.util.response :refer [redirect]]
@@ -12,10 +10,6 @@
    [{{sanitized}}.tabgrid.core :as tabgrid]
    [{{sanitized}}.models.util :refer [get-session-id user-level]]
    [{{sanitized}}.layout :refer [application error-404]]))
-
-;; =============================================================================
-;; Request Helpers
-;; =============================================================================
 
 (defn- get-entity-from-request
   "Extracts and validates entity from request parameters."
@@ -45,10 +39,6 @@
         content (render/render-not-authorized entity (user-level request))]
     (application request title ok nil content)))
 
-;; =============================================================================
-;; Grid/List Handler
-;; =============================================================================
-
 (defn handle-grid
   "Handles grid/list view for an entity."
   [request]
@@ -75,10 +65,6 @@
           (unauthorized-response entity request))))
     (error-404 "Entity not found" "/")))
 
-;; =============================================================================
-;; Dashboard Handler
-;; =============================================================================
-
 (defn handle-dashboard
   "Handles dashboard view for an entity."
   [request]
@@ -100,10 +86,6 @@
             (application request title ok nil content))))
       (unauthorized-response entity request))
     (error-404 "Entity not found" "/")))
-
-;; =============================================================================
-;; Form Handlers
-;; =============================================================================
 
 (defn handle-add-form
   "Handles add form display."
@@ -150,10 +132,6 @@
       (html (render/render-error "Not authorized")))
     (html (render/render-error "Entity not found"))))
 
-;; =============================================================================
-;; Save Handler
-;; =============================================================================
-
 (defn handle-save
   "Handles form save (create/update)."
   [request]
@@ -191,10 +169,6 @@
      :headers {"Content-Type" "application/json"}
      :body "{\"ok\":false,\"error\":\"Entity not found\"}"}))
 
-;; =============================================================================
-;; Delete Handler
-;; =============================================================================
-
 (defn handle-delete
   "Handles record deletion."
   [request]
@@ -221,10 +195,6 @@
           (error-404 (.getMessage e) (str "/admin/" (name entity)))))
       (error-404 "Not authorized" "/"))
     (error-404 "Entity not found" "/")))
-
-;; =============================================================================
-;; Subgrid Handler
-;; =============================================================================
 
 (defn handle-subgrid
   "Handles subgrid AJAX requests."
@@ -282,10 +252,6 @@
      :headers {"Content-Type" "text/html"}
      :body (html (render/render-error "Entity not found"))}))
 
-;; =============================================================================
-;; Dynamic Routes
-;; =============================================================================
-
 (defroutes engine-routes
   ;; Admin Grid Routes
   (context "/admin/:entity" [entity]
@@ -331,7 +297,7 @@
       {:status 200
        :headers {"Content-Type" "text/html"}
        :body (str "<html><body style='font-family: monospace; padding: 20px;'>"
-                  "<h2>✅ Configuration Reloaded</h2>"
+                  "<h2>Configuration Reloaded</h2>"
                   "<p>All entity configurations have been reloaded from disk.</p>"
                   "<ul>"
                   "<li>Entity EDN files: reloaded</li>"
@@ -344,14 +310,10 @@
         {:status 500
          :headers {"Content-Type" "text/html"}
          :body (str "<html><body style='font-family: monospace; padding: 20px;'>"
-                    "<h2>❌ Reload Failed</h2>"
+                    "<h2>Reload Failed</h2>"
                     "<pre>" (.getMessage e) "</pre>"
                     "<p><a href='javascript:history.back()'>← Go Back</a></p>"
                     "</body></html>")}))))
-
-;; =============================================================================
-;; Public API
-;; =============================================================================
 
 (defn get-routes
   "Returns the dynamic engine routes to be included in the main app."

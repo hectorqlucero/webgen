@@ -6,10 +6,6 @@
    [{{sanitized}}.i18n.core :as i18n]
    [{{sanitized}}.models.crud :refer [config]]))
 
-;; =============================================================================
-;; Authentication Forms
-;; =============================================================================
-
 (defn password-form
   "Renders a professional password change form with Bootstrap 5 styling"
   [title]
@@ -101,10 +97,6 @@
          {:role "button"
           :href "/change/password"}
          [:i.bi.bi-key.me-2] "Change Password"]]]]]]))
-
-;; =============================================================================
-;; Form Field Builders
-;; =============================================================================
 
 (defn build-image-field
   "Renders an image upload field with preview functionality"
@@ -324,10 +316,6 @@
           :inputmode (:inputmode args)
           :spellcheck (:spellcheck args)})]])))
 
-;; =============================================================================
-;; Button Builders
-;; =============================================================================
-
 (defn build-primary-input-button
   "Creates a primary styled input button
    Args: {:type string :value string}"
@@ -395,10 +383,6 @@
        :href cancel-url}
       "Cancel"])))
 
-;; =============================================================================
-;; Main Form Builder
-;; =============================================================================
-
 (defn form
   "Creates a professional form container with Bootstrap 5 styling and themed colors.
    If title is passed, it is rendered in the header. Handles HTML5 validation.
@@ -449,10 +433,6 @@
                (doall buttons)
                :else
                buttons)]]]]])))))
-
-;; =============================================================================
-;; Usage Examples (Documentation)
-;; =============================================================================
 
 (comment
   ;; Example usage for testing

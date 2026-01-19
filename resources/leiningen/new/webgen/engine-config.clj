@@ -1,15 +1,9 @@
 (ns {{sanitized}}.engine.config
-  "Configuration registry and loader for entity definitions.
-   Loads, validates, and caches entity configurations from EDN files."
   (:require
    [clojure.edn :as edn]
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.spec.alpha :as s]))
-
-;; =============================================================================
-;; Schema Validation with clojure.spec
-;; =============================================================================
 
 (s/def ::id keyword?)
 (s/def ::label string?)
@@ -73,10 +67,6 @@
           :opt-un [::connection ::rights ::fields ::queries ::actions
                    ::hooks ::ui ::subgrids ::mode ::audit?]))
 
-;; =============================================================================
-;; Configuration Cache
-;; =============================================================================
-
 (def config-cache
   "Atom holding all loaded entity configurations.
    Map of entity-keyword -> config-map"
@@ -85,10 +75,6 @@
 (def ^:private config-watchers
   "Atom holding file watchers for hot-reload"
   (atom {}))
-
-;; =============================================================================
-;; Configuration Loading
-;; =============================================================================
 
 (defn resolve-fn-ref
   "Resolves a function reference from a keyword and returns the Var (not the function)."
@@ -226,10 +212,6 @@
       (catch Exception e
         (println "[ERROR] Failed to reload" entity ":" (.getMessage e))))))
 
-;; =============================================================================
-;; Configuration Defaults
-;; =============================================================================
-
 (def default-field-config
   {:text {:type :text :required? false}
    :email {:type :email :required? false}
@@ -256,10 +238,6 @@
       (update :rights #(or % default-rights))
       (update :actions #(merge default-actions %))
       (update :mode #(or % :parameter-driven))))
-
-;; =============================================================================
-;; Helper Functions
-;; =============================================================================
 
 (defn get-field-config
   "Gets a specific field configuration from an entity."

@@ -1,26 +1,3 @@
-;; AUTO-GENERATED entity configuration for contactos
-;; Generated: 2026-01-11T11:49:11.000766237
-;; 
-;; This file was scaffolded from the database schema.
-;; Feel free to edit and customize as needed.
-;; 
-;; JUNIOR DEVELOPER CHECKLIST:
-;;   ✅ Review field types and labels
-;;   ✅ Mark required fields
-;;   ✅ Set field visibility (hide in grid/form)
-;;   ✅ Add placeholders for text fields
-;;   ✅ Configure select options
-;;   ✅ Test CRUD operations
-;; 
-;; SENIOR DEVELOPER HANDOFF:
-;;   ⚠️  Implement hooks in: src/{{sanitized}}/hooks/contactos.clj
-;;   ⚠️  Add custom validators if needed
-;;   ⚠️  Add computed fields
-;;   ⚠️  Configure audit trail if needed
-;; 
-;; See: HOOKS_GUIDE.md for examples
-;; 
-
 {:entity :contactos
  :title "Contactos"  ;; Edit this to your preference
  :table "contactos"
@@ -30,7 +7,7 @@
 
  ;; Fields auto-detected from database schema
  :fields [{:id :id :label "ID" :type :hidden}
-          {:id :name :label "Name" :type :textarea :placeholder "Name..."}
+          {:id :name :label "Name" :type :text :placeholder "Name..."}
           {:id :email :label "Email" :type :email :placeholder "user@example.com"}
           {:id :phone :label "Phone" :type :text :placeholder "Phone..."}
           {:id :imagen :label "Imagen" :type :file}]

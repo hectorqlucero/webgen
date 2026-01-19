@@ -1,6 +1,3 @@
-;; WebGen Configuration File
-;; This file uses template variables that will be replaced when you create a new project
-
 {:connections
  {;; --- MySQL Database ---
   :mysql {:db-type   "mysql"

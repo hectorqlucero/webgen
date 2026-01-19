@@ -1,11 +1,4 @@
 (ns {{sanitized}}.core
-  "Main Ring application entry point and HTTP middleware.
-
-  Provides:
-  - Authentication gate (wrap-login)
-  - Centralized exception handling with JSON for AJAX (wrap-exception-handling)
-  - Routing setup (public + private routes)
-  - App builder and -main launcher"
   (:require
    [compojure.core :refer [routes]]
    [compojure.route :as route]
@@ -27,8 +20,6 @@
 
 ;; Middleware for handling login
 (defn wrap-login
-  "Protects private routes by requiring a session :user_id.
-  If missing, redirects to the login page; otherwise forwards the request."
   [handler]
   (fn [request]
     (if (nil? (get-in request [:session :user_id]))
@@ -37,14 +28,6 @@
 
 ;; Middleware for handling exceptions
 (defn wrap-exception-handling
-  "Catches all exceptions and returns friendly responses.
-
-  Behavior:
-  - For AJAX (X-Requested-With: XMLHttpRequest): returns application/json with concise error details.
-  - For non-AJAX: returns a plain text body with an appropriate HTTP status.
-  - Logs the root cause and stack trace to the console.
-
-  Classifies common SQL errors across MySQL/PostgreSQL/SQLite to improve messages (unique/FK/not-null/too-long)."
   [handler]
   (letfn [(ajax? [req]
             (= "XMLHttpRequest" (get-in req [:headers "x-requested-with"])))
@@ -141,7 +124,6 @@
 
 ;; Middleware to wrap public and private routes
 (defn wrap-routes
-  "Tiny helper to wrap route groups consistently."
   [route-fn]
   (fn [routes]
     (route-fn routes)))
@@ -149,8 +131,6 @@
 ;; Define the application routes dynamically
 ;; NOTE: Route order matters; more specific routes should come before generic ones.
 (def app-routes
-  "Dynamic route definition that re-evaluates routes on each access.
-   Now includes the parameter-driven engine routes alongside legacy generated routes."
   (fn []
     (routes
      (route/resources "/")
@@ -178,7 +158,6 @@
 ;; Application configuration
 ;; The order of middleware matters: defaults/multipart first, exception handling outermost.
 (defn create-app
-  "Create a fresh Ring handler with current routes and middleware."
   []
   (-> (app-routes)
       (wrap-multipart-params)
@@ -190,7 +169,6 @@
       (wrap-exception-handling)))
 
 (def app
-  "Ring handler - re-evaluate create-app on each access to ensure routes are current"
   (reify
     clojure.lang.IDeref
     (deref [_] (create-app))
@@ -200,7 +178,6 @@
 
 ;; Main entry point
 (defn -main
-  "Starts the Jetty HTTP server using the configured port."
   []
   (ensure-upload-dirs!)
   (jetty/run-jetty app {:port (:port config)}))

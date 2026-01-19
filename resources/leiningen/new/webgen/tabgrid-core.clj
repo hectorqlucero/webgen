@@ -4,10 +4,6 @@
    [{{sanitized}}.tabgrid.data :as data]
    [{{sanitized}}.tabgrid.render :as render]))
 
-;; =============================================================================
-;; Main TabGrid Entry Point
-;; =============================================================================
-
 (defn render-tabgrid
   "Main entry point for rendering a tabgrid interface
   
@@ -30,10 +26,6 @@
      all-records
      actions
      (or subgrids []))))
-
-;; =============================================================================
-;; Helper: Check if entity should use TabGrid
-;; =============================================================================
 
 (defn should-use-tabgrid?
   "Determines if an entity should use tabgrid interface"
