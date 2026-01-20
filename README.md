@@ -76,12 +76,12 @@ This creates:
 ### Traditional Code Generation (v1)
 ```
 lein grid users → Generates 3 files (225 lines)
-Customize → Regenerate → LOSE CHANGES ❌
+Customize → Regenerate → LOSE CHANGES
 ```
 
 ### Parameter-Driven (WebGen)
 ```
-Create users.edn (80 lines) → Refresh browser → Done ✅
+Create users.edn (80 lines) → Refresh browser → Done
 Modify config → Never lose changes
 ```
 
@@ -99,7 +99,7 @@ Modify config → Never lose changes
 | **Auto-Menu** | Menu generated from entity configs |
 | **Modern UI** | Bootstrap 5 + DataTables |
 
-## 📁 Entity Configuration
+## Entity Configuration
 
 Entity configs define everything about a CRUD interface. Located in `resources/entities/*.edn`:
 
@@ -108,7 +108,7 @@ Entity configs define everything about a CRUD interface. Located in `resources/e
  :pk :id                             ; Primary key column
  :title "Products"                   ; Page title
  :menu-label "Products"              ; Menu display text
- :menu-group :catalog                ; Menu grouping (:catalog, :admin, etc.)
+ :menu-category :catalog             ; Menu grouping (:catalog, :admin, etc.)
  :menu-hidden? false                 ; Hide from menu (for subgrids)
  
  ;; Field definitions
@@ -120,7 +120,7 @@ Entity configs define everything about a CRUD interface. Located in `resources/e
   {:id :name 
    :label "Product Name" 
    :type :text                       ; Text input
-   :required true                    ; Validation
+   :required? true                   ; Validation
    :placeholder "Enter product name"}
   
   {:id :description 
@@ -132,6 +132,13 @@ Entity configs define everything about a CRUD interface. Located in `resources/e
    :label "Price" 
    :type :number                     ; Number input
    :min 0}
+
+   {:id :price
+    :label "Price"
+    :type :decimal
+    :min 0
+    :step 0.01
+    :placeholder "0.00"}            ; decimal input
   
   {:id :category 
    :label "Category" 
@@ -139,6 +146,32 @@ Entity configs define everything about a CRUD interface. Located in `resources/e
    :options [{:value "electronics" :label "Electronics"}
              {:value "clothing" :label "Clothing"}
              {:value "food" :label "Food"}]}
+
+  {:id :categories_id
+   :label "Category"
+   :type :fk
+   :fk :categories
+   :fk-field [:name]  ; you can have more than one [:name :email :phone]
+   :required? true}                   ; FK field, does not require fk in db
+
+   {:id :categories_id
+    :label "Category"
+    :type :select
+    :options :myapp.models.lookups/get-categories} ; Dropdown with Database Values
+
+  {:id :total                  
+   :type :computed
+   :compute-fn :myapp.hooks.products/calculate-total  ; computed
+
+  {:id :price
+   :label "Price"
+   :type :decimal
+   :min 0
+   :step 0.01
+   :placeholder "0.00"
+   :required? true
+   :validation :myapp.validators.products/positive-price?} ; validator
+
   
   {:id :active 
    :label "Active" 
@@ -194,7 +227,7 @@ Entities are automatically grouped in menus by `:menu-group`:
 
 Or hide from menu with `:menu-hidden? true` (useful for subgrids).
 
-## 🪝 Hook System
+## Hook System
 
 Hooks let you customize behavior without modifying core code. All hooks are optional.
 
@@ -417,7 +450,7 @@ The dev server watches for changes and reloads automatically:
 - **Hook files** (`src/myapp/hooks/*.clj`) - Reloads on file change
 - **No server restart needed** - Just refresh your browser!
 
-## 🔒 Security
+## Security
 
 Built-in authentication and role-based access control.
 
@@ -467,7 +500,7 @@ Configure in entity configs:
 
 While 80% of your application is configuration-driven, the framework provides full control for the remaining 20% through manual customization.
 
-### 📋 Manual Menu Customization
+### Manual Menu Customization
 
 Edit `src/myapp/menu.clj` to add custom menu items that don't come from entities.
 
@@ -578,7 +611,7 @@ Edit `src/myapp/routes/proutes.clj` for authenticated pages:
 
 ---
 
-### 🎣 Advanced Hook Patterns
+### Advanced Hook Patterns
 
 Hooks provide deep customization without modifying framework code.
 
@@ -930,7 +963,7 @@ Add custom middleware in `src/myapp/core.clj`:
 
 ---
 
-### 📊 Custom Layout Components
+### Custom Layout Components
 
 Override or extend the default layout in `src/myapp/layout.clj`:
 
@@ -976,7 +1009,7 @@ Override or extend the default layout in `src/myapp/layout.clj`:
 
 ---
 
-### 🔗 API Integration
+### API Integration
 
 Create RESTful APIs alongside your CRUD interface:
 
@@ -1042,11 +1075,11 @@ lein new org.clojars.hector/webgen myapp  # No git clone needed!
 
 MIT License - see LICENSE file for details.
 
-## 🤝 Contributing
+## Contributing
 
 Issues and pull requests welcome! This is an active project used in production environments.
 
-## 🔗 Resources
+## Resources
 
 - [Clojure](https://clojure.org/)
 - [Leiningen](https://leiningen.org/)

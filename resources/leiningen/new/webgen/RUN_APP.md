@@ -1,24 +1,24 @@
 # Running Your Scaffolded Application
 
-## 🎉 Success! Your app is ready to run
+## Success! Your app is ready to run
 
 The scaffolding engine detected **15 database tables** and generated complete CRUD interfaces for:
 
-- ✅ **agentes** (10 fields) - Real estate agents
-- ✅ **alquileres** (22 fields) - Rentals
-- ✅ **avaluos** (20 fields) - Property appraisals
-- ✅ **bitacora** (9 fields) - Activity log
-- ✅ **clientes** (39 fields) - Clients
-- ✅ **comisiones** (9 fields) - Commissions
-- ✅ **contratos** (3 fields) - Contracts
-- ✅ **documentos** (17 fields) - Documents
-- ✅ **fiadores** (15 fields) - Guarantors
-- ✅ **pagos_renta** (12 fields) - Rental payments
-- ✅ **pagos_ventas** (12 fields) - Sales payments
-- ✅ **propiedades** (40 fields) - Properties
-- ✅ **tramites** (16 fields) - Transactions
-- ✅ **users** (existing) - System users
-- ✅ **ventas** (22 fields) - Sales
+- **agentes** (10 fields) - Real estate agents
+- **alquileres** (22 fields) - Rentals
+- **avaluos** (20 fields) - Property appraisals
+- **bitacora** (9 fields) - Activity log
+- **clientes** (39 fields) - Clients
+- **comisiones** (9 fields) - Commissions
+- **contratos** (3 fields) - Contracts
+- **documentos** (17 fields) - Documents
+- **fiadores** (15 fields) - Guarantors
+- **pagos_renta** (12 fields) - Rental payments
+- **pagos_ventas** (12 fields) - Sales payments
+- **propiedades** (40 fields) - Properties
+- **tramites** (16 fields) - Transactions
+- **users** (existing) - System users
+- **ventas** (22 fields) - Sales
 
 ---
 
@@ -116,20 +116,20 @@ Once the server is running, you can immediately access any entity:
 ## **Design:** What You Get Out of the Box
 
 ### Each Entity Has:
-- ✅ **Data Grid** - Sortable, searchable, paginated table with DataTables
-- ✅ **Add Form** - All fields with proper types (text, email, date, textarea, etc.)
-- ✅ **Edit Form** - Pre-populated with existing data
-- ✅ **Delete** - With confirmation
-- ✅ **CSV Export** - Download data as spreadsheet
-- ✅ **PDF Export** - Generate reports
-- ✅ **Excel Export** - Full data export
+- **Data Grid** - Sortable, searchable, paginated table with DataTables
+- **Add Form** - All fields with proper types (text, email, date, textarea, etc.)
+- **Edit Form** - Pre-populated with existing data
+- **Delete** - With confirmation
+- **CSV Export** - Download data as spreadsheet
+- **PDF Export** - Generate reports
+- **Excel Export** - Full data export
 
 ### Smart Field Detection:
-- 📧 Email fields → type `:email` with validation
-- 📞 Phone fields → type `:text` with proper labels
-- 📅 Date fields → type `:date` with date picker
-- 💰 Decimal fields → type `:decimal` for money
-- 🔢 Number fields → type `:number` for integers
+- Email fields → type `:email` with validation
+- Phone fields → type `:text` with proper labels
+- Date fields → type `:date` with date picker
+- Decimal fields → type `:decimal` for money
+- Number fields → type `:number` for integers
 - **Note:** Long text → type `:textarea` for descriptions
 - **Key:** Primary keys → type `:hidden` (auto-populated)
 
@@ -184,15 +184,15 @@ resources/entities/
 ```
 
 Each file contains:
-- ✅ All database fields detected
-- ✅ Proper field types assigned
-- ✅ Default queries (list-all, get-by-id, insert, update, delete)
-- ✅ TODO comments for customization
-- ✅ Labels humanized (first_name → "First Name")
+- All database fields detected
+- Proper field types assigned
+- Default queries (list-all, get-by-id, insert, update, delete)
+- TODO comments for customization
+- Labels humanized (first_name → "First Name")
 
 ---
 
-## 🔄 Hot Reload
+## Hot Reload
 
 The framework supports hot-reload in multiple ways!
 
@@ -203,10 +203,10 @@ lein with-profile dev run
 ```
 
 **What reloads automatically:**
-- ✅ **Clojure code** (`.clj` files) - Instant reload via `wrap-reload`
-- ✅ **Entity configs** (`.edn` files) - Reload on next page load
-- ✅ **Menu structure** - Regenerates automatically
-- ✅ **Routes** - Dynamic routes update instantly
+- **Clojure code** (`.clj` files) - Instant reload via `wrap-reload`
+- **Entity configs** (`.edn` files) - Reload on next page load
+- **Menu structure** - Regenerates automatically
+- **Routes** - Dynamic routes update instantly
 
 **No restart needed for:**
 - Editing entity configurations
@@ -226,7 +226,7 @@ lein run
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ### Test a Single Entity:
 ```bash
@@ -258,7 +258,7 @@ Full documentation available:
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Server won't start?
 ```bash
@@ -321,15 +321,15 @@ See **ADVANCED_EXAMPLES.md** for detailed tutorials.
 
 ---
 
-## ✅ Summary
+## Summary
 
 You now have:
-- ✅ 15 fully functional CRUD interfaces
-- ✅ All database tables scaffolded
-- ✅ Smart field type detection
-- ✅ Ready-to-use forms and grids
-- ✅ Export to CSV, PDF, Excel
-- ✅ Hot-reload for quick iterations
+- 15 fully functional CRUD interfaces
+- All database tables scaffolded
+- Smart field type detection
+- Ready-to-use forms and grids
+- Export to CSV, PDF, Excel
+- Hot-reload for quick iterations
 
 **Just run `lein run` and visit http://localhost:8080/admin/clientes to see it in action!**
 

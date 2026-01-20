@@ -15,7 +15,7 @@ This guide explains how junior and senior developers work together using the RS 
 
 ---
 
-## 👨‍**Development:** **Junior Developer Workflow**
+## **Development:** **Junior Developer Workflow**
 
 ### Phase 1: Database Setup (5 minutes)
 
@@ -42,10 +42,10 @@ lein scaffold products
 ```
 
 **What Gets Generated:**
-- ✅ `resources/entities/products.edn` - Entity configuration
-- ✅ `src/{{name}}/hooks/products.clj` - Hook stub file (for senior)
-- ✅ Auto-detected fields, foreign keys, subgrids
-- ✅ Working CRUD interface at `/admin/products`
+- `resources/entities/products.edn` - Entity configuration
+- `src/{{name}}/hooks/products.clj` - Hook stub file (for senior)
+- Auto-detected fields, foreign keys, subgrids
+- Working CRUD interface at `/admin/products`
 
 ### Phase 3: Customize Configuration (15 minutes)
 
@@ -66,20 +66,20 @@ Edit `resources/entities/products.edn`:
 ```
 
 **What Juniors Can Do:**
-- ✅ Change field labels (English/Spanish)
-- ✅ Mark required fields (`:required? true`)
-- ✅ Change field types (text, date, select, etc.)
-- ✅ Hide fields in grid (`:hidden-in-grid? true`)
-- ✅ Hide fields in forms (`:hidden-in-form? true`)
-- ✅ Add placeholders
-- ✅ Write simple SQL queries
-- ✅ Enable/disable actions (new, edit, delete)
+- Change field labels (English/Spanish)
+- Mark required fields (`:required? true`)
+- Change field types (text, date, select, etc.)
+- Hide fields in grid (`:hidden-in-grid? true`)
+- Hide fields in forms (`:hidden-in-form? true`)
+- Add placeholders
+- Write simple SQL queries
+- Enable/disable actions (new, edit, delete)
 
 **What Juniors CANNOT Do:**
-- ❌ Complex validation logic
-- ❌ Computed fields (calculations)
-- ❌ Business rules (workflows)
-- ❌ External integrations (email, APIs)
+- Complex validation logic
+- Computed fields (calculations)
+- Business rules (workflows)
+- External integrations (email, APIs)
 
 ### Phase 4: Test & Document (10 minutes)
 
@@ -102,7 +102,7 @@ Edit `resources/entities/products.edn`:
    ;;   - Update inventory on save
    ```
 
-### Junior Checklist ✅
+### Junior Checklist
 
 - [ ] Migration created and applied
 - [ ] Entity scaffolded
@@ -115,7 +115,7 @@ Edit `resources/entities/products.edn`:
 
 ---
 
-## 👔 **Senior Developer Workflow**
+## **Senior Developer Workflow**
 
 ### Phase 1: Review (5 minutes)
 
@@ -187,7 +187,7 @@ Edit `resources/entities/products.edn` - **Uncomment the hooks section**:
    - Save product with stock < 10 → Check if email sent
    - Verify logs show hook execution
 
-### Senior Checklist ✅
+### Senior Checklist
 
 - [ ] Reviewed junior's work
 - [ ] Understood business rules
@@ -200,7 +200,7 @@ Edit `resources/entities/products.edn` - **Uncomment the hooks section**:
 
 ---
 
-## 🔄 **Handoff Protocol**
+## **Handoff Protocol**
 
 ### When Junior is Done:
 
@@ -237,7 +237,7 @@ Edit `resources/entities/products.edn` - **Uncomment the hooks section**:
 
 ---
 
-## 📋 **File Organization**
+## **File Organization**
 
 ```
 resources/
@@ -357,7 +357,7 @@ src/
 
 ---
 
-## ✅ **Success Metrics**
+## **Success Metrics**
 
 **Good Junior Work:**
 - All fields properly labeled

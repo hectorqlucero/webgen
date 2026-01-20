@@ -6,12 +6,12 @@ A revolutionary Clojure framework for building enterprise business applications 
 
 ## **Quick Start:** **What Makes This Different?**
 
-### **Traditional Approach (Code Generation) ❌**
+### **Traditional Approach (Code Generation)**
 ```
 Generate Code → Customize → Regenerate → LOSE CHANGES → Spaghetti Code
 ```
 
-### **RS Framework (Parameter-Driven) ✅**
+### **RS Framework (Parameter-Driven)
 ```
 Edit EDN Config → Refresh Browser → Changes Applied → Professional Code
 ```
@@ -38,6 +38,9 @@ Built for **enterprise business solutions** (MRP, Accounting, Inventory, POS), n
 ```bash
 git clone <your-repo-url>
 cd {{name}}
+lein install  ;; to use locally
+or recommended: 
+lein new org.clojars.hector/webgen myapp  ;; template to create your project
 cp resources/private/config_example.clj resources/private/config.clj
 # Edit config.clj with your database settings
 ```
@@ -119,6 +122,7 @@ Create `resources/entities/products.edn`:
  :rights ["U" "A" "S"]                 ; User levels allowed (User/Admin/System)
  :mode :parameter-driven               ; :parameter-driven or :hybrid
  :audit? true                          ; Enable audit trail
+ :menu-category :Inventory             ; Provide menu-category you see Inventory in your menu - override auto generated menu-category
  
  ;; Field definitions
  :fields [{:id :company_name           ; Field ID (matches DB column)
@@ -220,7 +224,7 @@ WebGen supports comprehensive field types for building enterprise forms:
 
 ```clojure
 ;; Text inputs
-{:id :name :label "Name" :type :text :placeholder "Enter name..." :required true}
+{:id :name :label "Name" :type :text :placeholder "Enter name..." :required? true}
 {:id :notes :label "Notes" :type :textarea :rows 5}
 {:id :email :label "Email" :type :email :placeholder "user@example.com"}
 {:id :password :label "Password" :type :password}
@@ -248,6 +252,7 @@ WebGen supports comprehensive field types for building enterprise forms:
 ;; Special types
 {:id :imagen :label "Image" :type :file}
 {:id :property_id :label "Property" :type :fk :fk :property :fk-field [:titulo :estado :contacto]}
+{:id :categories_id :label "Category" :type :select :options :inv.models.lookups/get-categories}
 {:id :id :label "ID" :type :hidden}
 ```
 
@@ -316,7 +321,7 @@ Control where fields appear in your application:
 
 ---
 
-## 🔐 **Access Control**
+## **Access Control**
 
 ### **User Levels**
 - `"U"` - User (basic access)
@@ -338,7 +343,7 @@ Control where fields appear in your application:
 
 ---
 
-## 🪝 **Hooks & Business Logic**
+## **Hooks & Business Logic**
 
 Hooks allow custom business logic without modifying core code.
 
@@ -467,7 +472,7 @@ Execute:
 
 ---
 
-## 📊 **Dashboards & Reports**
+## **Dashboards & Reports**
 
 ### **Dashboard (Read-Only Grid)**
 
@@ -490,7 +495,7 @@ Access at: `/dashboard/sales-dashboard`
 
 ---
 
-## 🔗 **Subgrids (Parent-Child) - TabGrid System**
+## **Subgrids (Parent-Child) - TabGrid System**
 
 When an entity has subgrids defined, the system automatically uses the **TabGrid interface** instead of a simple grid.
 
@@ -526,11 +531,11 @@ When an entity has subgrids defined, the system automatically uses the **TabGrid
 ```
 ┌─────────────────────────────────────────┐
 │  Propiedad #6                           │
-│  [Seleccionar] [Editar] [Eliminar]     │
+│  [Seleccionar] [Editar] [Eliminar]      │
 ├─────────────────────────────────────────┤
 │  Título: Casa en Venta                  │
 │  Precio: $2,500,000                     │
-│  Dirección: Av. Principal 123          │
+│  Dirección: Av. Principal 123           │
 └─────────────────────────────────────────┘
 
 [Propiedad] [Alquileres] [Avalúos] [Documentos] [Ventas]
@@ -539,8 +544,8 @@ When an entity has subgrids defined, the system automatically uses the **TabGrid
 │  Alquileres for Propiedad #6     [Nuevo]│
 ├─────────────────────────────────────────┤
 │  ID  Inquilino    Monto    Fecha        │
-│  1   Juan Pérez   $5,000   2025-01-01  │
-│  2   Ana Gómez    $4,500   2025-02-01  │
+│  1   Juan Pérez   $5,000   2025-01-01   │
+│  2   Ana Gómez    $4,500   2025-02-01   │
 └─────────────────────────────────────────┘
 ```
 
@@ -651,7 +656,7 @@ Add hooks, custom queries, validators - all in EDN or separate namespace.
 
 ---
 
-## 🧪 **REPL Development**
+## **REPL Development**
 
 ```clojure
 ;; Load entity config
@@ -827,7 +832,7 @@ Multiply by 27 entities = **1,755 lines saved!**
 
 ---
 
-## 🐛 **Troubleshooting**
+## **Troubleshooting**
 
 ### **Entity Not Found**
 
@@ -915,7 +920,7 @@ Better than creating separate grids.
 
 ---
 
-## 📈 **Performance**
+## **Performance**
 
 ### **Caching**
 
@@ -942,7 +947,7 @@ FROM users;
 
 ---
 
-## 🎁 **Bonus Features**
+## **Bonus Features**
 
 ### **Audit Trail**
 
@@ -966,7 +971,7 @@ FROM users;
 
 ---
 
-## 🏆 **Success Stories**
+## **Success Stories**
 
 ### **Before RS Framework**
 
@@ -984,7 +989,7 @@ FROM users;
 
 ---
 
-## 📞 **Support & Contributing**
+## **Support & Contributing**
 
 - Issues: [GitHub Issues](#)
 - Discussions: [GitHub Discussions](#)

@@ -203,7 +203,7 @@ lein ancient
 
 ---
 
-## 📂 Key File Locations
+## Key File Locations
 
 ### Entity Configurations
 ```
@@ -264,7 +264,7 @@ resources/migrations/*.down.sql
 
 ---
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Clear Everything and Rebuild
 ```bash
@@ -381,6 +381,26 @@ WebGen supports these field types in entity configurations:
  :options [{:id "statusActive" :label "Active" :value "active"}
            {:id "statusInactive" :label "Inactive" :value "inactive"}]}
 
+;; FK fields - does not have to exist an fkey in the db
+{:id :property_id 
+ :label "Property"
+ :type :fk
+ :fk :property
+ :fk-field [:titulo :estado :contacto]}
+
+ ;; Dropdown with Database Values
+ ;; Create a query in model
+ (ns inv.models.lookups
+  (:require [inv.models.crud :as crud]))
+
+ (defn get-categories []
+   (crud/Query "SELECT id as value, name AS label FROM categories ORDER BY name" :conn :default)) ; :conn :default if not used defaults to default connection
+ ;; In entity config
+ {:id :category_id
+  :label "Category"
+  :type :select
+  :options :inv.models.lookups/get-categories}
+
 ;; Single checkbox
 {:id :featured :label "Featured" :type :checkbox :value "T"}
 ```
@@ -394,7 +414,7 @@ WebGen supports these field types in entity configurations:
 {:id :user_id :label "User ID" :type :hidden}
 
 ;; Computed/read-only (via hooks)
-{:id :total :label "Total" :type :computed}
+{:id :total :label "Total" :type :computed :compute-fn :inv.hooks.products/calculate-total}
 ```
 
 ### Common Field Options
@@ -477,4 +497,4 @@ lein uberjar
 
 ---
 
-**Keep this file handy for quick reference during development!** 📌
+**Keep this file handy for quick reference during development!**

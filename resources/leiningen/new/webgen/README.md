@@ -39,12 +39,12 @@ lein scaffold products
 
 ## Key Features
 
-- ✅ **No Code Generation** - Pure configuration-driven
-- ✅ **Hot Reload** - Change configs, refresh browser  
-- ✅ **Multi-Database** - MySQL, PostgreSQL, SQLite support
-- ✅ **Enterprise-Ready** - MRP, Accounting, Inventory, POS capable
-- ✅ **Beginner-Friendly** - Non-programmers can create entities
-- ✅ **Expert-Extensible** - Hooks, plugins, custom functions
+- **No Code Generation** - Pure configuration-driven
+- **Hot Reload** - Change configs, refresh browser  
+- **Multi-Database** - MySQL, PostgreSQL, SQLite support
+- **Enterprise-Ready** - MRP, Accounting, Inventory, POS capable
+- **Beginner-Friendly** - Non-programmers can create entities
+- **Expert-Extensible** - Hooks, plugins, custom functions
 
 ## Supported Field Types
 
@@ -74,20 +74,76 @@ WebGen supports a comprehensive set of field types for building complex forms:
 {:entity :products
  :title "Products"
  :table "products"
+ :connection :default
+ :rights ["U" "A" "S"]
+ :mode :parameter-driven
+ :menu-category :Inventory
  
  :fields [{:id :id :label "ID" :type :hidden}
-          {:id :code :label "SKU" :type :text :required true :placeholder "SKU-001"}
-          {:id :name :label "Name" :type :text :required true}
+          {:id :code :label "SKU" :type :text :required? true :placeholder "SKU-001"}
+          {:id :name :label "Name" :type :text :required? true}
           {:id :description :label "Description" :type :textarea :rows 5}
-          {:id :price :label "Price" :type :decimal :min 0 :step 0.01}
           {:id :stock :label "Stock" :type :number :min 0}
+          {:id :price :label "Price" :type :decimal :min 0 :step 0.01 :required? true :validation :inv.validators.products/positive-price?}
+          {:id :total :label "Total" :type :computed :compute-fn :inv.hooks.products/calculate-total}
+          {:id :active :label "Active" :type :radio :value "T" :options [{:id "activeT" :value "T" :label "Active"}
+                                                                         {:id "activeF" :value "F" :label "Inactive"}]}
+
+          ;; using fk
+          {:id :categories_id
+           :label "Category"
+           :type :fk         
+           :fk :categories   ; :categories is the table name
+           :fk-field [:name] ; you can have more than one ex. [:name :email :phone]
+           :required? true}
+           
+           ;; Create a query in model
+           ;; (ns inv.models.lookups
+               (:require [inv.models.crud :as crud]))
+           ;;
+           ;; (defn get-categories []
+           ;;  (crud/Query "SELECT id AS value, name AS label FROM categories ORDER BY name" :conn :default))
+           ;;
+           ;; more customizable write your own queries
+           {:id :categories_id
+            :label "Category"
+            :type :select
+            :options :inv.models.lookups/get-categories}
+
           {:id :category :label "Category" :type :select 
            :options [{:value "electronics" :label "Electronics"}
                      {:value "clothing" :label "Clothing"}]}
-          {:id :active :label "Status" :type :radio :value "T"
-           :options [{:id "activeT" :label "Active" :value "T"}
-                     {:id "activeF" :label "Inactive" :value "F"}]}
-          {:id :imagen :label "Image" :type :file}]}
+          {:id :imagen :label "Image" :type :file}]
+
+;; Auto-generated queries (customize as needed)
+:queries {:list "SELECT * FROM products ORDER BY id DESC"
+          :get "SELECT * FROM products WHERE id = ?"}
+
+;; Available actions
+:actions {:new true :edit true :delete true}
+
+;; Enable audit trail (tracks who created/modified and when)
+;; Uncomment to enable:
+;; :audit? true
+
+;; Lifecycle hooks for business logic
+;; Senior developer: Implement these in src/contactos/hooks/products.clj
+;; Uncomment and implement as needed:
+;; :hooks {:before-load :contactos.hooks.products/before-load
+;;         :after-load :contactos.hooks.products/after-load
+;;         :before-save :contactos.hooks.products/before-save
+;;         :after-save :contactos.hooks.products/after-save
+;;         :before-delete :contactos.hooks.products/before-delete
+;;         :after-delete :contactos.hooks.products/after-delete}
+
+;; Subgrids (parent-child relationships)
+;; Uncomment if this entity has child records:
+;; :subgrids [{:entity :related-table
+;;             :title "Related Records"
+;;             :foreign-key :parent_id
+;;             :icon "bi bi-list"
+;;             :label "Related Records"}]
+}
 ```
 
 ## Documentation
@@ -125,11 +181,11 @@ Visit `/admin/products` - **Full CRUD interface ready!**
 
 ## **Documentation:** **Documentation**
 
-- 📖 **[FRAMEWORK_GUIDE.md](FRAMEWORK_GUIDE.md)** - Complete framework documentation
+- **[FRAMEWORK_GUIDE.md](FRAMEWORK_GUIDE.md)** - Complete framework documentation
 - **Quick Start:** **[QUICKSTART.md](QUICKSTART.md)** - 5-minute setup guide
-- 🎣 **[HOOKS_GUIDE.md](HOOKS_GUIDE.md)** - Business logic hooks
-- 📋 **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Quick reference
-- 🏃 **[RUN_APP.md](RUN_APP.md)** - Deployment guide
+- **[HOOKS_GUIDE.md](HOOKS_GUIDE.md)** - Business logic hooks
+- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - Quick reference
+- **[RUN_APP.md](RUN_APP.md)** - Deployment guide
 
 ---
 
@@ -205,20 +261,20 @@ Visit `/admin/products` - **Full CRUD interface ready!**
 
 ---
 
-## 📊 **Use Cases**
+## **Use Cases**
 
 Built for real enterprise scenarios:
 
-- 💼 **MRP** - Material Requirements Planning
-- 💰 **Accounting** - Double-entry bookkeeping
+- **MRP** - Material Requirements Planning
+- **Accounting** - Double-entry bookkeeping
 - **Package:** **Inventory** - Stock management
-- 🛒 **Point of Sale** - Retail systems
-- 👥 **CRM** - Customer relationship management
-- 📋 **Order Management** - Complex workflows
+- **Point of Sale** - Retail systems
+- **CRM** - Customer relationship management
+- **Order Management** - Complex workflows
 
 ---
 
-## 🎓 **Learning Path**
+## **Learning Path**
 
 1. **Beginners** → Read [QUICKSTART.md](QUICKSTART.md)
 2. **Developers** → Read [FRAMEWORK_GUIDE.md](FRAMEWORK_GUIDE.md)
@@ -228,7 +284,7 @@ Built for real enterprise scenarios:
 
 ---
 
-## 🤝 **Contributing**
+## **Contributing**
 
 Contributions welcome! Please read our contributing guidelines.
 

@@ -28,14 +28,14 @@
 ### 1.1 Descripción del Sistema
 
 Sistema de gestión inmobiliaria que permite:
-- ✅ Gestión de propiedades (casas, departamentos, terrenos)
-- ✅ Registro de clientes (compradores, vendedores, arrendatarios)
-- ✅ Seguimiento de transacciones (ventas, rentas)
-- ✅ Administración de agentes inmobiliarios
-- ✅ Gestión de citas y visitas
-- ✅ Catálogo de documentos y contratos
-- ✅ Comisiones y pagos
-- ✅ Reportes y análisis
+- Gestión de propiedades (casas, departamentos, terrenos)
+- Registro de clientes (compradores, vendedores, arrendatarios)
+- Seguimiento de transacciones (ventas, rentas)
+- Administración de agentes inmobiliarios
+- Gestión de citas y visitas
+- Catálogo de documentos y contratos
+- Comisiones y pagos
+- Reportes y análisis
 
 ### 1.2 Módulos del Sistema
 
@@ -722,32 +722,36 @@ Archivo: `resources/entities/propiedades.edn`
    {:id :id :type :hidden}
    
    ;; Identificación
-   {:id :clave :label "Clave" :type :text :required true :maxlength 20}
-   {:id :titulo :label "Título" :type :text :required true :maxlength 200}
+   {:id :clave :label "Clave" :type :text :required? true :maxlength 20}
+   {:id :titulo :label "Título" :type :text :required? true :maxlength 200}
    {:id :descripcion :label "Descripción" :type :textarea :rows 5}
    
    {:id :tipo_id 
     :label "Tipo de Propiedad" 
-    :type :select 
-    :required true
-    :options []} ; Se llena dinámicamente
+    :type :fk
+    :fk :propiedades
+    :fk-field [:titulo]
+    :required? true}
    
    ;; Ubicación
    {:id :estado_id 
     :label "Estado" 
-    :type :select 
-    :required true
-    :options []}
+    :type :fk
+    :fk :estados
+    :fk-field [:nombre]
+    :required? true}
    
    {:id :municipio_id 
     :label "Municipio" 
-    :type :select 
-    :options []}
+    :type :fk
+    :fk :municipios
+    :fk-field [:nombre]}
    
    {:id :colonia_id 
     :label "Colonia" 
-    :type :select 
-    :options []}
+    :type :fk
+    :fk :colonias
+    :fk-field [:nombre :codigo_postal]}
    
    {:id :calle :label "Calle" :type :text :maxlength 200}
    {:id :numero_exterior :label "Núm. Exterior" :type :text :maxlength 10}
@@ -799,17 +803,20 @@ Archivo: `resources/entities/propiedades.edn`
    
    {:id :agente_id 
     :label "Agente Responsable" 
-    :type :select 
-    :required true
-    :options []}
+    :type :fk
+    :fk :agentes
+    :fk-field [:nombre :apellido_paterno :apellido_materno]
+    :required? true}
    
    {:id :cliente_propietario_id 
     :label "Propietario" 
-    :type :select 
-    :options []}
+    :type :fk
+    :fk :clientes
+    :fk-field [:nombre :apellido_paterno :apellido_materno]}
    
    {:id :destacada :label "Propiedad Destacada" :type :checkbox :value "F"}
-   {:id :activo :label "Activo" :type :checkbox :value "T"}
+   {:id :activo :label "Activo" :type :radio :value "T" :options [{:id "activoT" :value "T" :label "Activo"}
+                                                                  {:id "activoF" :value "F" :label "Inactivo"}]}
    
    ;; Campos de solo lectura
    {:id :visitas :label "Visitas" :type :number :hidden-in-form? true}
@@ -885,7 +892,7 @@ Archivo: `resources/entities/clientes.edn`
               {:value "Arrendatario" :label "Arrendatario"}
               {:value "Arrendador" :label "Arrendador"}]}
    
-   {:id :nombre :label "Nombre(s)" :type :text :required true :maxlength 100}
+   {:id :nombre :label "Nombre(s)" :type :text :required? true :maxlength 100}
    {:id :apellido_paterno :label "Apellido Paterno" :type :text :maxlength 50}
    {:id :apellido_materno :label "Apellido Materno" :type :text :maxlength 50}
    
@@ -912,11 +919,16 @@ Archivo: `resources/entities/clientes.edn`
    {:id :calle :label "Calle" :type :text :maxlength 200}
    {:id :numero_exterior :label "Núm. Exterior" :type :text :maxlength 10}
    {:id :numero_interior :label "Núm. Interior" :type :text :maxlength 10}
-   {:id :colonia_id :label "Colonia" :type :select :options []}
+   {:id :colonia_id 
+   :label "Colonia" 
+   :type :fk
+   :fk :colonias
+   :fk-field [:nombre :codigo_postal :activo]}
    {:id :codigo_postal :label "C.P." :type :text :maxlength 5}
    
    {:id :notas :label "Notas" :type :textarea :rows 4 :hidden-in-grid? true}
-   {:id :activo :label "Activo" :type :checkbox :value "T"}
+   {:id :activo :label "Activo" :type :radio :value "T" :options [{:id "activoT" :value "T" :label "Activo"}
+                                                                  {:id "activoF" :value "F" :label "Inactivo"}]}
    
    ;; Nombre completo computado
    {:id :nombre_completo :label "Nombre Completo" :type :text :grid-only? true}]
@@ -964,13 +976,13 @@ Archivo: `resources/entities/agentes.edn`
  :fields [
    {:id :id :type :hidden}
    
-   {:id :nombre :label "Nombre(s)" :type :text :required true :maxlength 100}
+   {:id :nombre :label "Nombre(s)" :type :text :required? true :maxlength 100}
    {:id :apellido_paterno :label "Apellido Paterno" :type :text :maxlength 50}
    {:id :apellido_materno :label "Apellido Materno" :type :text :maxlength 50}
    
-   {:id :email :label "Email" :type :email :required true :maxlength 100}
+   {:id :email :label "Email" :type :email :required? true :maxlength 100}
    {:id :telefono :label "Teléfono" :type :text :maxlength 15}
-   {:id :celular :label "Celular" :type :text :required true :maxlength 15}
+   {:id :celular :label "Celular" :type :text :required? true :maxlength 15}
    
    {:id :cedula_profesional :label "Cédula Profesional" :type :text :maxlength 20}
    {:id :licencia_inmobiliaria :label "Licencia Inmobiliaria" :type :text :maxlength 50}
@@ -978,7 +990,8 @@ Archivo: `resources/entities/agentes.edn`
    
    {:id :biografia :label "Biografía" :type :textarea :rows 5 :hidden-in-grid? true}
    {:id :foto_url :label "URL Foto" :type :text :maxlength 255 :hidden-in-grid? true}
-   {:id :activo :label "Activo" :type :checkbox :value "T"}
+   {:id :activo :label "Activo" :type :radio :value "T" :options [{:id "activoT" :value "T" :label "Activo"}
+                                                                  {:id "activoF" :value "F" :label "Inactivo"}]}
    
    {:id :nombre_completo :label "Nombre Completo" :type :text :grid-only? true}]
  
@@ -1022,9 +1035,10 @@ Archivo: `resources/entities/agentes.edn`
  
  :fields [
    {:id :id :type :hidden}
-   {:id :clave :label "Clave" :type :text :required true :maxlength 2}
-   {:id :nombre :label "Nombre" :type :text :required true :maxlength 100}
-   {:id :activo :label "Activo" :type :checkbox :value "T"}]
+   {:id :clave :label "Clave" :type :text :required? true :maxlength 2}
+   {:id :nombre :label "Nombre" :type :text :required? true :maxlength 100}
+   {:id :activo :label "Activo" :type :radio :value "T" :options [{:id "activoT" :value "T" :label "Activo"}
+                                                                  {:id "activoF" :value "F" :label "Inactivo"}]}
  
  :actions {:new true :edit true :delete false}
  
@@ -1047,9 +1061,10 @@ Archivo: `resources/entities/agentes.edn`
  
  :fields [
    {:id :id :type :hidden}
-   {:id :nombre :label "Nombre" :type :text :required true :maxlength 50}
+   {:id :nombre :label "Nombre" :type :text :required? true :maxlength 50}
    {:id :descripcion :label "Descripción" :type :textarea :rows 3}
-   {:id :activo :label "Activo" :type :checkbox :value "T"}]
+   {:id :activo :label "Activo" :type :radio :value "T" :options [{:id "activoT" :value "T" :label "Activo"}
+                                                                  {:id "activoF" :value "F" :label "Inactivo"}]}
  
  :actions {:new true :edit true :delete false}}
 ```
@@ -1587,4 +1602,4 @@ java -jar target/uberjar/bienes-raices-0.1.0-standalone.jar 8080
 
 ---
 
-**🎉 ¡Felicidades! Has creado un sistema completo de bienes raíces en México con WebGen/LST**
+¡Felicidades! Has creado un sistema completo de bienes raíces en México con WebGen/LST**

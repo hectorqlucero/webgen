@@ -4,6 +4,7 @@
  :connection :default
  :rights ["U" "A" "S"]  ;; User levels: U=User, A=Admin, S=System
  :mode :parameter-driven
+ :menu-category :Users
  
  ;; Fields auto-detected from database schema
  :fields [

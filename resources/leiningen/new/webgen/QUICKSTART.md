@@ -128,13 +128,13 @@ lein migrate
           {:id :code
            :label "Product Code"
            :type :text
-           :required true
+           :required? true
            :placeholder "SKU-001"}
           
           {:id :name
            :label "Product Name"
            :type :text
-           :required true
+           :required? true
            :placeholder "Enter product name..."}
           
           {:id :description
@@ -145,7 +145,7 @@ lein migrate
           {:id :price
            :label "Price"
            :type :decimal
-           :required true
+           :required? true
            :min 0
            :step 0.01
            :placeholder "0.00"}
@@ -436,9 +436,9 @@ java -jar rs.jar
 
 ## Need Help?
 
-- 📖 Full Documentation: `FRAMEWORK_GUIDE.md`
-- 🐛 Report Issues: GitHub Issues
-- 💬 Ask Questions: GitHub Discussions
-- 📧 Email: support@example.com
+- Full Documentation: `FRAMEWORK_GUIDE.md`
+- Report Issues: GitHub Issues
+- Ask Questions: GitHub Discussions
+- Email: hectorqlucero@gmail.com
 
 **Happy Building! **

@@ -49,11 +49,11 @@ The template includes:
 
 ## Template Features
 
-- ✅ JAR-compatible resource copying (works from installed JAR)
-- ✅ Mustache template rendering for project.clj and README.md
-- ✅ Copies all source files, migrations, entities, and documentation
-- ✅ Creates proper .gitignore for config files
-- ✅ Includes config.clj.example for easy setup
+- JAR-compatible resource copying (works from installed JAR)
+- Mustache template rendering for project.clj and README.md
+- Copies all source files, migrations, entities, and documentation
+- Creates proper .gitignore for config files
+- Includes config.clj.example for easy setup
 
 ## Technical Notes
 

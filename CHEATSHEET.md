@@ -170,6 +170,12 @@
  :type :fk
  :fk :property
  :fk-field [:titulo :estado :contacto]}
+
+;; Dropdown with Database Value
+{:id :category_id
+ :label "Category"
+ :type :select
+ :options :inv.models.lookups/get-categories}
 ```
 
 #### Radio Buttons
@@ -208,6 +214,7 @@
 ```clojure
 {:id :id :label "ID" :type :hidden}
 {:id :total :label "Total" :type :decimal :hidden-in-form? true}
+{:id :total :label "Total" :type :computed :computed-fn :inv.hooks.products/calculate-total}
 {:id :thumbnail :label "Image" :type :file}
 ```
 
