@@ -78,45 +78,67 @@
       {:success true :data (:data validation)}
       {:success false :errors (:errors validation)})))
 
+(defn- has-audit-fields?
+  "Checks if a table has audit fields (created_by, created_at, modified_by, modified_at)."
+  [table connection]
+  (try
+    (let [columns (crud/get-table-columns (name table) :conn connection)
+          column-names (set (map :name columns))]
+      (and (contains? column-names "created_by")
+           (contains? column-names "created_at")
+           (contains? column-names "modified_by")
+           (contains? column-names "modified_at")))
+    (catch Exception _
+      false)))
+
 (defn save-record
   "Saves a record (create or update based on presence of :id).
    
    Options:
    - :conn - Database connection key
    - :skip-hooks? - Skip before/after save hooks
-   - :skip-validation? - Skip field validation"
+   - :skip-validation? - Skip field validation
+   - :user-id - User ID for audit fields (automatically added if entity has audit fields)"
   [entity data & [opts]]
   (let [config (config/get-entity-config entity)
         hooks (:hooks config)
         connection (or (:conn opts) (:connection config) :default)
         table (:table config)
-
+        user-id (or (:user-id opts) :anonymous)  ; Default to :anonymous if not provided
         ;; Execute before-save hook
         data (if (and (not (:skip-hooks? opts))
                       (:before-save hooks))
                (execute-hook (:before-save hooks) data)
                data)
-
         ;; Validate and prepare data
         prepared (if (:skip-validation? opts)
                    {:success true :data data}
                    (prepare-data entity data))]
-
     (if (:success prepared)
       (let [clean-data (:data prepared)
+            is-new-record? (not (:id clean-data))
 
+            ;; Add audit fields if entity has them
+            enhanced-data (if (or (:audit? config)
+                                  (has-audit-fields? table connection))
+                            (-> clean-data
+                                ;; Add creation fields for new records
+                                (cond-> is-new-record?
+                                  (assoc :created_by user-id
+                                         :created_at (java.time.Instant/now)))
+                                ;; Always add modification fields
+                                (assoc :modified_by user-id
+                                       :modified_at (java.time.Instant/now)))
+                            clean-data)
             ;; Save to database
-            result (crud/build-form-save clean-data table :conn connection)
-
+            result (crud/build-form-save enhanced-data table :conn connection)
             ;; Execute after-save hook
             _ (when (and result
                          (not (:skip-hooks? opts))
                          (:after-save hooks))
-                (execute-hook (:after-save hooks) clean-data result))]
-
+                (execute-hook (:after-save hooks) enhanced-data result))]
         {:success result
-         :data clean-data})
-
+         :data enhanced-data})
       ;; Validation failed
       prepared)))
 
@@ -177,12 +199,14 @@
       (let [audit-data {:entity (name entity)
                         :operation (name operation)
                         :data (pr-str data)
-                        :user_id user-id
-                        :timestamp (java.time.Instant/now)}]
+                        :user_id (when (not= user-id :anonymous) user-id)
+                        :timestamp (java.time.Instant/now)}]  ; Consistent with audit fields
         ;; Insert into audit table (if exists)
-        (crud/Insert :audit_log audit-data :conn :default))
+        (crud/Insert :audit_log audit-data :conn :default)
+        true)  ; Return success indicator
       (catch Exception e
-        (println "[WARN] Failed to create audit entry:" (.getMessage e))))))
+        (println "[WARN] Failed to create audit entry:" (.getMessage e))
+        false))))  ; Return failure indicator
 
 (defn save-with-audit
   "Saves a record and creates an audit trail entry."

@@ -50,7 +50,7 @@
                 title (:title config)
                 ok (get-session-id request)
                 parent-id (get-in request [:params :id])]
-            
+
             ;; Always use TabGrid for consistency
             (let [content (tabgrid/render-tabgrid request entity parent-id)]
               (application request title ok nil content)))
@@ -100,8 +100,8 @@
               ;; Look for a hidden FK field (parent reference)
               row (when parent-id
                     (let [fk-field (first (filter #(and (= (:type %) :hidden)
-                                                         (not= (:id %) :id))
-                                                   (:fields config)))]
+                                                        (not= (:id %) :id))
+                                                  (:fields config)))]
                       (when fk-field
                         {(:id fk-field) parent-id})))]
           (html (render/render-form request entity row)))
@@ -141,12 +141,11 @@
         (let [params (or (:params request) (:form-params request))
               user-id (get-in request [:session :user_id])
               config (config/get-entity-config entity)
-              
-              ;; Save with or without audit
+
+              ;; Enhanced save with audit fields support
               result (if (:audit? config)
                        (crud/save-with-audit entity params user-id)
-                       (crud/save-record entity params))]
-          
+                       (crud/save-record entity params {:user-id user-id}))]
           (if (:success result)
             {:status 200
              :headers {"Content-Type" "application/json"}
@@ -179,12 +178,12 @@
               user-id (get-in request [:session :user_id])
               config (config/get-entity-config entity)
               entity-name (name entity)
-              
+
               ;; Delete with or without audit
               result (if (:audit? config)
                        (crud/delete-with-audit entity id user-id)
                        (crud/delete-record entity id))]
-          
+
           (if (:success result)
             {:status 302
              :headers {"Location" (str "/admin/" entity-name)}}
@@ -206,10 +205,10 @@
               parent-entity-str (get-in request [:params :parent_entity])
               config (config/get-entity-config entity)
               title (:title config)
-              
+
               ;; Get all rows first
               all-rows (query/list-records entity)
-              
+
               ;; Filter by parent FK if we have parent info
               ;; Try to find the FK field automatically
               rows (if parent-id
@@ -233,9 +232,9 @@
                            (println "[WARN] Could not determine FK field for subgrid filtering")
                            all-rows)))
                      all-rows)
-              
+
               content (render/render-subgrid request entity parent-id rows)]
-          
+
           {:status 200
            :headers {"Content-Type" "text/html"}
            :body (html content)})
@@ -257,39 +256,39 @@
   (context "/admin/:entity" [entity]
     (GET "/" request
       (handle-grid (assoc-in request [:params :entity] entity)))
-    
+
     (GET "/add-form" request
       (handle-add-form (assoc-in request [:params :entity] entity)))
-    
+
     (GET "/add-form/:parent_id" [parent_id :as request]
       (handle-add-form (-> request
                            (assoc-in [:params :entity] entity)
                            (assoc-in [:params :parent_id] parent_id))))
-    
+
     (GET "/edit-form/:id" [id :as request]
       (handle-edit-form (-> request
                             (assoc-in [:params :entity] entity)
                             (assoc-in [:params :id] id))))
-    
+
     (POST "/save" request
       (handle-save (assoc-in request [:params :entity] entity)))
-    
+
     (GET "/delete/:id" [id :as request]
       (handle-delete (-> request
                          (assoc-in [:params :entity] entity)
                          (assoc-in [:params :id] id))))
-    
+
     (GET "/subgrid" request
       (handle-subgrid (assoc-in request [:params :entity] entity))))
-  
+
   ;; Dashboard Routes
   (GET "/dashboard/:entity" [entity :as request]
     (handle-dashboard (assoc-in request [:params :entity] entity)))
-  
+
   ;; Report Routes (alias for dashboard)
   (GET "/reports/:entity" [entity :as request]
     (handle-dashboard (assoc-in request [:params :entity] entity)))
-  
+
   ;; Development/Admin Routes
   (GET "/admin/reload-config" request
     (try
