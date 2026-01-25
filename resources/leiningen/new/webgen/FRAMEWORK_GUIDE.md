@@ -68,8 +68,8 @@ Create `resources/entities/products.edn`:
  :rights ["U" "A" "S"]
  
  :fields [{:id :name :label "Product Name" :type :text :required? true}
-          {:id :price :label "Price" :type :decimal :required? true}
-          {:id :stock :label "Stock" :type :number}]
+          {:id :price :label "Price" :type :decimal :min 0 :step 0.01 :required? true}
+          {:id :stock :label "Stock" :type :number :min 0 :step 1}]
  
  :queries {:list "SELECT * FROM products ORDER BY name"
            :get "SELECT * FROM products WHERE id = ?"}
@@ -251,7 +251,13 @@ WebGen supports comprehensive field types for building enterprise forms:
 
 ;; Special types
 {:id :imagen :label "Image" :type :file}
-{:id :property_id :label "Property" :type :fk :fk :property :fk-field [:titulo :estado :contacto]}
+{:id :property_id 
+ :label "Property" 
+ :type :fk 
+ :fk :property 
+ :fk-field [:titulo :estado :contacto]
+ :fk-sort [:titulo :estado]
+ :fk-filter [:activo "T"]}
 {:id :categories_id :label "Category" :type :select :options :inv.models.lookups/get-categories}
 {:id :id :label "ID" :type :hidden}
 ```
@@ -683,7 +689,7 @@ Add hooks, custom queries, validators - all in EDN or separate namespace.
 
 ---
 
-## 🎓 **Tutorial: Building an Inventory System**
+## **Tutorial: Building an Inventory System**
 
 ### **Step 1: Database Schema**
 

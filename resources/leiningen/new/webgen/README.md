@@ -95,6 +95,8 @@ WebGen supports a comprehensive set of field types for building complex forms:
            :type :fk         
            :fk :categories   ; :categories is the table name
            :fk-field [:name] ; you can have more than one ex. [:name :email :phone]
+           :fk-sort [:name]
+           :fk-filter [:name "Albert"]
            :required? true}
            
            ;; Create a query in model

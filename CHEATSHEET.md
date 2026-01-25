@@ -169,7 +169,9 @@
  :label "Property"
  :type :fk
  :fk :property
- :fk-field [:titulo :estado :contacto]}
+ :fk-field [:titulo :estado :contacto]
+ :fk-sort [:clave :titulo]
+ :fk-filter [:activo "T"]}
 
 ;; Dropdown with Database Value
 {:id :category_id
@@ -1097,9 +1099,10 @@ java -jar target/uberjar/myapp-0.1.0-standalone.jar 8080
    {:id :id :type :hidden}
    {:id :name :label "Product Name" :type :text :required true}
    {:id :description :label "Description" :type :textarea :rows 4}
-   {:id :price :label "Price" :type :decimal :min 0 :required true}
-   {:id :stock :label "Stock" :type :number :min 0 :value 0}
-   {:id :active :label "Active" :type :checkbox :value "T"}]
+   {:id :price :label "Price" :type :decimal :min 0 :step 0.01 :required true}
+   {:id :stock :label "Stock" :type :number :min 0 :step 1 :value 0}
+   {:id :active :label "Active" :type :radio :value "T" :options [{:id "aT" :value "T" :label "Active"}
+                                                                  {:id "aF" :value "F" :label "Inactive"}]}]
  
  :queries {
    :list "SELECT * FROM products ORDER BY name"

@@ -9,37 +9,81 @@
    [clojure.string :as str]))
 
 (defn- load-fk-options
-  "Loads foreign key options from related table.
-   Supports :fk-field vector for multiple fields and optional separator."
-  [fk-entity fk-fields separator]
+  "Enhanced FK options with sorting, filtering, and parameter binding.
+   Completely replaces entity query system for FK fields."
+  [fk-entity fk-fields separator & {:keys [sort-by filter-field filter-value]}]
   (try
-    (let [rows (query/list-records fk-entity)
+    ;; Build WHERE clause with parameter binding
+    (let [where-clause (when (and filter-field filter-value)
+                         (str "WHERE " (name filter-field) " = ?"))
+
+          ;; Build ORDER BY clause for sorting
+          order-by (when sort-by
+                     (str "ORDER BY "
+                          (clojure.string/join ", "
+                                               (map name
+                                                    (if (sequential? sort-by) sort-by [sort-by])))))
+
+          ;; Complete SQL replacement
+          sql (str "SELECT id, "
+                   (clojure.string/join ", " (map name fk-fields))
+                   " FROM "
+                   (name fk-entity)
+                   " "
+                   where-clause
+                   " "
+                   order-by)
+
+          ;; Parameter binding for SQL injection protection
+          sql-params (if (and filter-field filter-value)
+                       [sql filter-value]
+                       [sql])
+
+          ;; Execute with raw CRUD Query
+          rows (crud/Query crud/db sql-params)
+
           separator (or separator " — ")
           label-fn (fn [row]
                      (->> fk-fields
                           (map #(str (get row % "")))
                           (str/join separator)))]
+
       (cons {:value "" :label "-- Select --"}
             (map (fn [row]
                    {:value (str (:id row))
                     :label (label-fn row)})
                  rows)))
     (catch Exception e
-      (println "[WARN] Could not load FK options for" fk-entity ":" (.getMessage e))
+      (println "[WARN] Could not load enhanced FK options for" fk-entity ":" (.getMessage e))
       [{:value "" :label "-- Select --"}])))
 
 (defn- populate-fk-options
-  "Populates foreign key options for select fields if empty."
+  "Enhanced population with optional sort/filter parameters.
+   Safely handles nil filter parameters."
   [field]
   (if (and (= :fk (:type field))
            (or (nil? (:options field))
                (and (coll? (:options field)) (empty? (:options field)))))
+
     (let [fk-entity (:fk field)
           fk-fields (:fk-field field)
-          separator (:fk-separator field)]
+          separator (:fk-separator field)
+          sort-by (:fk-sort field)
+          filter-pair (:fk-filter field)
+          ;; Safe parameter extraction with nil checks
+          filter-field (when (and filter-pair (sequential? filter-pair)) (first filter-pair))
+          filter-value (when (and filter-pair (sequential? filter-pair)) (second filter-pair))]
+
       (if fk-entity
-        (assoc field :options (load-fk-options fk-entity fk-fields separator))
+        (assoc field :options (load-fk-options
+                               fk-entity
+                               fk-fields
+                               separator
+                               :sort-by sort-by
+                               :filter-field filter-field
+                               :filter-value filter-value))
         field))
+
     field))
 
 (defn- resolve-options
@@ -189,14 +233,14 @@
                          (-> (second match)
                              (clojure.string/split #"\?")
                              first
-                             (clojure.string/replace (:path {{sanitized}}.models.crud/config) "")))
+                             (clojure.string/replace (:path crud/config) "")))
                        field-value)]
         [:div.mb-3
          [:label.form-label.fw-semibold {:for (name id)} label
           (when required? [:span.text-danger.ms-1 "*"])]
          (when (and filename (not (map? filename)) (not (empty? filename)))
            [:div.mb-2
-            [:img {:src (str (:path {{sanitized}}.models.crud/config) filename "?" (random-uuid))
+            [:img {:src (str (:path crud/config) filename "?" (random-uuid))
                    :alt filename
                    :style "width: 100%; max-width: 100%; height: auto; border: 1px solid #dee2e6; border-radius: 4px; padding: 4px; cursor: pointer;"
                    :onclick "window.open(this.src, '_blank')"}]

@@ -293,41 +293,41 @@ Return Success
 
 ## Complete Test Checklist
 
-### ✅ Test `before-load`
+### Test `before-load`
 - [ ] Navigate to Alquileres list
 - [ ] Check logs for: `[INFO] Loading alquileres with params:`
 
-### ✅ Test `after-load`
+### Test `after-load`
 - [ ] View Alquileres list
 - [ ] Check logs for: `[INFO] Loaded N alquileres`
 - [ ] Verify grid displays data correctly
 
-### ✅ Test `before-save` - Date Validation
+### Test `before-save` - Date Validation
 - [ ] Set fecha_inicio > fecha_fin
 - [ ] Try to save
 - [ ] See error: "End date must be after start date"
 
-### ✅ Test `before-save` - Amount Validation
+### Test `before-save` - Amount Validation
 - [ ] Set monto_mensual = 0
 - [ ] Try to save
 - [ ] See error: "Monthly amount must be positive"
 
-### ✅ Test `before-save` - Default Values
+### Test `before-save` - Default Values
 - [ ] Create new record without Estado
 - [ ] Save
 - [ ] Edit record
 - [ ] Estado should be "Activo"
 
-### ✅ Test `after-save`
+### Test `after-save`
 - [ ] Save any Alquiler
 - [ ] Check logs for: `[INFO] Alquiler X saved successfully`
 - [ ] Check logs for property, tenant, monthly amount
 
-### ✅ Test `before-delete`
+### Test `before-delete`
 - [ ] Click Delete on any row
 - [ ] Check logs for: `[INFO] Checking if alquiler X can be deleted...`
 
-### ✅ Test `after-delete`
+### Test `after-delete`
 - [ ] Confirm deletion
 - [ ] Check logs for: `[INFO] Alquiler X deleted successfully`
 
@@ -399,12 +399,12 @@ When moving to production, enhance hooks to:
 ## Current Status
 
 **Alquileres Entity:**
-- ✅ All 6 hooks implemented
-- ✅ Date validation (fecha_inicio < fecha_fin)
-- ✅ Amount validation (positive values)
-- ✅ Default estado = "Activo"
-- ✅ Computed fields (total_inicial, duracion_meses)
-- ✅ Logging for all operations
+- All 6 hooks implemented
+- Date validation (fecha_inicio < fecha_fin)
+- Amount validation (positive values)
+- Default estado = "Activo"
+- Computed fields (total_inicial, duracion_meses)
+- Logging for all operations
 
 **Other Entities:**
 - Hooks NOT implemented (just use framework defaults)

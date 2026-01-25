@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
+## (0.3.2) - 2026-01-25
+### Upgraded
+- Enhanced fk fields. Added sorting and filtering
+
 ## [0.1.5] - 2026-01-13
 ### Fixed
 - **CRITICAL:** Fixed hardcoded "rs" folder in hooks paths - hooks now created in correct project-specific directories (e.g., `src/my_project/hooks/` instead of `src/rs/hooks/`)

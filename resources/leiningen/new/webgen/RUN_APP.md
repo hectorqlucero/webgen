@@ -84,7 +84,7 @@ After login, you'll see the main navigation with dropdown menus for all entities
 
 ---
 
-## 📊 Access Your Admin Panels
+## Access Your Admin Panels
 
 Once the server is running, you can immediately access any entity:
 
