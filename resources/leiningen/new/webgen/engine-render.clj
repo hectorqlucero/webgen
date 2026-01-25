@@ -4,7 +4,7 @@
    [{{sanitized}}.engine.query :as query]
    [{{sanitized}}.models.grid :as grid]
    [{{sanitized}}.models.form :as form]
-   [{{sanitized}}.models.crud]
+   [{{sanitized}}.models.crud :as crud]
    [{{sanitized}}.i18n.core :as i18n]
    [clojure.string :as str]))
 
