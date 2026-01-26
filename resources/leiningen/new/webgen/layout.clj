@@ -89,7 +89,7 @@
     {:href "/home/logoff"
      :onclick "localStorage.removeItem('active-link')"}
     [:i.bi.bi-box-arrow-right.me-1]
-    (str "Logout " (user-name request))]])
+    (str (i18n/tr request :auth/logout) (user-name request))]])
 
 ;; THEME SWITCHER
 (def theme-options
@@ -117,9 +117,12 @@
    ["zephyr" "Zephyr"]
    ["default" "Default"]])
 
-(defn language-selector [request]
-  (let [current-locale (i18n/get-locale-from-session (:session request))
-        current-flag (i18n/get-locale-flag current-locale)]
+(defn language-selector
+  [request]
+  (let [current-locale (if-not (nil? request)
+                         (i18n/get-locale-from-session (:session request))
+                         (i18n/get-locale-from-session request))
+        current-flag (if current-locale (i18n/get-locale-flag current-locale) "")]
     [:li.nav-item.dropdown
      [:a.nav-link.dropdown-toggle.fw-semibold.px-3.py-2.rounded.transition
       {:href "#"
@@ -182,7 +185,6 @@
         (language-selector request)
         (logout-button request)]]]]))
 
-
 (defn menus-public []
   [:nav.navbar.navbar-expand-lg.navbar-dark.bg-primary.shadow.fixed-top
    [:div.container-fluid
@@ -199,11 +201,12 @@
      [:ul.navbar-nav.ms-auto.align-items-lg-center.gap-2
       (build-link {} "/" "Home")
       (theme-switcher)
+      (language-selector nil)
       [:li.nav-item.ms-3
        [:a.btn.btn-primary.btn-sm.px-3.rounded-pill.fw-semibold
         {:href "/home/login"}
         [:i.bi.bi-box-arrow-in-right.me-1 {:style "font-size: 0.9rem;"}]
-        "Login"]]]]]])
+        (i18n/tr nil :auth/login)]]]]]])
 
 (defn menus-none []
   [:nav.navbar.navbar-expand-lg.navbar-light.bg-white.shadow.fixed-top
@@ -276,18 +279,8 @@
    (i18n-js-vars request)
    [:script {:src "/vendor/app.js"}]
    [:script {:src "/js/tabgrid.js"}]
-   ;; Minimal fix: highlight menu instantly on click
-   [:script
-    "document.addEventListener('DOMContentLoaded',function(){
-      document.querySelectorAll('.nav-link').forEach(function(link){
-        link.addEventListener('mousedown',function(e){
-          document.querySelectorAll('.nav-link').forEach(function(el){
-            el.classList.remove('active','bg-gradient','text-primary-emphasis','shadow-sm');
-          });
-          this.classList.add('active','bg-gradient','text-primary-emphasis','shadow-sm');
-        });
-      });
-    });"]))
+   [:script (:src "/js/mhighlight.js")]
+   [:script (:src "/js/lang.js")]))
 
 ;; LAYOUT FUNCTIONS
 

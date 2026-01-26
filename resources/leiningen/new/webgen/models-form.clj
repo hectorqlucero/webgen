@@ -24,28 +24,28 @@
        (anti-forgery-field)
        [:div.mb-3
         [:label.form-label.fw-semibold {:for "email"}
-         [:i.bi.bi-envelope.me-2] "Email Address"]
+         [:i.bi.bi-envelope.me-2] (i18n/tr nil :form/email)]
         [:input.form-control.form-control-lg
          {:id "email"
           :name "email"
           :type "email"
-          :placeholder "Enter your email address..."
+          :placeholder (i18n/tr nil :form/email)
           :required true
           :autocomplete "username"}]]
        [:div.mb-4
         [:label.form-label.fw-semibold {:for "password"}
-         [:i.bi.bi-lock.me-2] "New Password"]
+         [:i.bi.bi-lock.me-2] (i18n/tr nil :form/password)]
         [:input.form-control.form-control-lg
          {:id "password"
           :name "password"
           :type "password"
-          :placeholder "Enter new password..."
+          :placeholder (i18n/tr nil :form/password)
           :required true
           :autocomplete "new-password"}]]
        [:div.d-flex.gap-2.justify-content-end.mt-4
         [:button.btn.btn-success.btn-lg.fw-semibold
          {:type "submit"}
-         [:i.bi.bi-key.me-2] "Change Password"]]]]]]))
+         [:i.bi.bi-key.me-2] (i18n/tr nil :auth/change-password)]]]]]]))
 
 (defn login-form
   "Renders a professional login form with Bootstrap 5 styling"
@@ -65,7 +65,7 @@
        (anti-forgery-field)
        [:div.mb-3
         [:label.form-label.fw-semibold {:for "username"}
-         [:i.bi.bi-person.me-2] "Email Address"]
+         [:i.bi.bi-person.me-2] (i18n/tr nil :form/email)]
         [:input.form-control.form-control-lg
          {:id "username"
           :name "username"
@@ -74,11 +74,11 @@
           :class "mandatory"
           :oninvalid "this.setCustomValidity('Email is required...')"
           :oninput "this.setCustomValidity('')"
-          :placeholder "Enter your email address..."
+          :placeholder (i18n/tr nil :form/email)
           :autocomplete "username"}]]
        [:div.mb-4
         [:label.form-label.fw-semibold {:for "password"}
-         [:i.bi.bi-lock.me-2] "Password"]
+         [:i.bi.bi-lock.me-2] (i18n/tr nil :form/password)]
         [:input.form-control.form-control-lg
          {:id "password"
           :name "password"
@@ -86,17 +86,17 @@
           :class "mandatory"
           :oninvalid "this.setCustomValidity('Password is required...')"
           :oninput "this.setCustomValidity('')"
-          :placeholder "Enter your password..."
+          :placeholder (i18n/tr nil :form/password)
           :type "password"
           :autocomplete "current-password"}]]
        [:div.d-flex.gap-2.justify-content-end.mt-4
         [:button.btn.btn-success.btn-lg.fw-semibold
          {:type "submit"}
-         [:i.bi.bi-box-arrow-in-right.me-2] "Sign In"]
+         [:i.bi.bi-box-arrow-in-right.me-2] (i18n/tr nil :auth/login)]
         [:a.btn.btn-outline-info.btn-lg.fw-semibold
          {:role "button"
           :href "/change/password"}
-         [:i.bi.bi-key.me-2] "Change Password"]]]]]]))
+         [:i.bi.bi-key.me-2] (i18n/tr nil :auth/change-password)]]]]]]))
 
 (defn build-image-field
   "Renders an image upload field with preview functionality"

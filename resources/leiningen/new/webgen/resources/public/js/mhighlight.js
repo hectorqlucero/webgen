@@ -1,0 +1,10 @@
+document.addEventListener('DOMContentLoaded',function(){
+  document.querySelectorAll('.nav-link').forEach(function(link){
+    link.addEventListener('mousedown',function(e){
+      document.querySelectorAll('.nav-link').forEach(function(el){
+        el.classList.remove('active','bg-gradient','text-primary-emphasis','shadow-sm');
+      });
+      this.classList.add('active','bg-gradient','text-primary-emphasis','shadow-sm');
+    });
+  });
+});

@@ -48,14 +48,14 @@
                           (map #(str (get row % "")))
                           (str/join separator)))]
 
-      (cons {:value "" :label "-- Select --"}
+      (cons {:value "" :label (str "-- " (i18n/tr nil :common/select " --"))}
             (map (fn [row]
                    {:value (str (:id row))
                     :label (label-fn row)})
                  rows)))
     (catch Exception e
       (println "[WARN] Could not load enhanced FK options for" fk-entity ":" (.getMessage e))
-      [{:value "" :label "-- Select --"}])))
+      [{:value "" :label (str "-- " (i18n/tr nil :common/select " --"))}])))
 
 (defn- populate-fk-options
   "Enhanced population with optional sort/filter parameters.
@@ -146,7 +146,7 @@
                          :id (name id)
                          :name (name id)
                          :required required?
-                         :placeholder (or placeholder "Enter password...")
+                         :placeholder (or placeholder (str label "..."))
                          :value field-value})
 
       :date
