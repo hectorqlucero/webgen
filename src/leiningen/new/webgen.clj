@@ -118,7 +118,6 @@
              ["src/{{sanitized}}/routes/routes.clj" (render "routes-routes.clj" data)]
              ["src/{{sanitized}}/routes/i18n.clj" (render "routes-i18n.clj" data)]
              ["src/{{sanitized}}/routes/tabgrid.clj" (render "routes-tabgrid.clj" data)]
-             ["src/{{sanitized}}/routes/test.clj" (render "routes-test.clj" data)]
 
              ;; I18n
              ["src/{{sanitized}}/i18n/core.clj" (render "i18n-core.clj" data)]
