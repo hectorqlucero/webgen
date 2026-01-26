@@ -1,7 +1,6 @@
 (ns {{sanitized}}.scaffold.enhancement
   "Auto-TabGrid enhancement for existing scaffold system"
-  (:require [br.engine.menu :as menu]
-            [clojure.edn :as edn]))
+  (:require [clojure.edn :as edn]))
 
 (defn should-use-tabgrid
   "Auto-detect if entity should use TabGrid UI"
