@@ -2,7 +2,7 @@
   (:require
    [buddy.hashers :as hashers]
    [clojure.string :as st]
-   [{{sanitized}}.i18n.core :as i8n]
+   [{{sanitized}}.i18n.core :as i18n]
    [{{sanitized}}.handlers.home.model :refer [get-user get-users update-password]]
    [{{sanitized}}.handlers.home.view :refer [change-password-view home-view
                                          main-view]]

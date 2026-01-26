@@ -201,7 +201,6 @@
      [:ul.navbar-nav.ms-auto.align-items-lg-center.gap-2
       (build-link {} "/" "Home")
       (theme-switcher)
-      (language-selector nil)
       [:li.nav-item.ms-3
        [:a.btn.btn-primary.btn-sm.px-3.rounded-pill.fw-semibold
         {:href "/home/login"}
