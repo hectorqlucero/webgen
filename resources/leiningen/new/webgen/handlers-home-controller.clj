@@ -17,24 +17,6 @@
         js nil
         content (if (> ok 0)
                   (home-view)
-                  [:h2.text-info.text-center "Welcome to the Home Page"])]
-    (application request title ok js content)))
-
-(defn login
-  [request]
-  (let [title "Login"
-        ok (get-session-id request)
-        js nil
-        content (main-view title)]
-    (application request title ok js content)))
-
-(defn main
-  [request]
-  (let [title "Home"
-        ok (get-session-id request)
-        js nil
-        content (if (> ok 0)
-                  (home-view)
                   [:h2.text-info.text-center (i18n/tr request :auth/welcome)])]
     (application request title ok js content)))
 
