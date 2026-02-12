@@ -70,14 +70,14 @@
     (main/info "")
 
     (->files data
-             ;; Config
-             ["src/{{sanitized}}/config/loader.clj" (render "loader.clj" data)]
-
              ;; Core App
              ["src/{{sanitized}}/core.clj" (render "core.clj" data)]
              ["src/{{sanitized}}/menu.clj" (render "menu.clj" data)]
              ["src/{{sanitized}}/layout.clj" (render "layout.clj" data)]
              ["src/{{sanitized}}/migrations.clj" (render "migrations.clj" data)]
+
+             ;; Config
+             ["src/{{sanitized}}/config/loader.clj" (render "loader.clj" data)]
 
              ;; Handlers
              ["src/{{sanitized}}/handlers/home/controller.clj" (render "handlers-home-controller.clj" data)]
@@ -173,23 +173,23 @@
              ["resources/entities/siblings.edn" (render "siblings-entity.edn" data)]
 
              ;; Config file (must be rendered to replace {{name}})
-             ["resources/config/app-config.edn" (render "config-app-config.edn")]
-             ["resources/config/messages.edn" (render "config-messages.edn")]
+             ["resources/config/app-config.edn" (render "config-app-config.edn") data]
+             ["resources/config/config-messages.edn" (render "messages.edn") data])
 
     ;; Copy static resources (migrations, i18n, public files - excluding private/config.clj which is rendered above)
-             (main/info "Copying resources...")
-             (copy-resources "leiningen/new/webgen/resources" (str name "/resources"))
+    (main/info "Copying resources...")
+    (copy-resources "leiningen/new/webgen/resources" (str name "/resources"))
 
-             (main/info "")
-             (main/info "Project created successfully!")
-             (main/info "")
-             (main/info "Next steps:")
-             (main/info "  cd" name)
-             (main/info "  # Edit resources/config/app-config.edn with your database credentials")
-             (main/info "  # (Default: SQLite - just update passwords for MySQL/PostgreSQL)")
-             (main/info "  lein migrate")
-             (main/info "  lein database")
-             (main/info "  lein with-profile dev run")
-             (main/info "")
-             (main/info "See QUICKSTART.md for more information.")
-             (main/info ""))))
+    (main/info "")
+    (main/info "✓ Project created successfully!")
+    (main/info "")
+    (main/info "Next steps:")
+    (main/info "  cd" name)
+    (main/info "  # Edit resources/private/config.clj with your database credentials")
+    (main/info "  # (Default: SQLite - just update passwords for MySQL/PostgreSQL)")
+    (main/info "  lein migrate")
+    (main/info "  lein database")
+    (main/info "  lein with-profile dev run")
+    (main/info "")
+    (main/info "See QUICKSTART.md for more information.")
+    (main/info "")))
