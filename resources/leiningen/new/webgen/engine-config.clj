@@ -72,10 +72,6 @@
    Map of entity-keyword -> config-map"
   (atom {}))
 
-(def ^:private config-watchers
-  "Atom holding file watchers for hot-reload"
-  (atom {}))
-
 (defn resolve-fn-ref
   "Resolves a function reference from a keyword and returns the Var (not the function)."
   [kw]
@@ -178,24 +174,33 @@
   (load-entity-config entity))
 
 (defn list-available-entities
-  "Lists all available entity configurations."
+  "Lists all available entity configurations. Works when resources are on filesystem or inside a JAR."
   []
-  (try
-    (let [entities-dir (io/resource "entities")]
-      (if entities-dir
-        (->> entities-dir
-             io/file
-             file-seq
+  (let [res (io/resource "entities")]
+    (when res
+      (case (.getProtocol res)
+        "file"
+        (->> (file-seq (io/file res))
              (filter #(and (.isFile %) (.endsWith (.getName %) ".edn")))
-             (map #(-> (.getName %)
-                       (str/replace #"\.edn$" "")
-                       keyword))
+             (map #(.getName %))
+             (map #(-> % (str/replace #"\.edn$" "") keyword))
              sort
              vec)
-        []))
-    (catch Exception e
-      (println "[WARN] Could not list entities:" (.getMessage e))
-      [])))
+
+        "jar"
+        (let [url-str (.toString res)
+              m (re-find #"jar:file:(.+?)!/" url-str)
+              jar-path (when m (second m))]
+          (when jar-path
+            (with-open [jf (java.util.jar.JarFile. jar-path)]
+              (->> (.entries jf)
+                   enumeration-seq
+                   (map #(.getName ^java.util.jar.JarEntry %))
+                   (filter #(and (str/starts-with? % "entities/") (str/ends-with? % ".edn")))
+                   (map #(-> % (subs (count "entities/")) (str/replace #"\.edn$" "") keyword))
+                   sort
+                   vec))))
+        []))))
 
 (defn clear-cache!
   "Clears the entire configuration cache."
@@ -262,10 +267,10 @@
                                            (some (fn [f]
                                                    (let [field-name (name (:id f))]
                                                      (or
-                                                       ;; Pattern: id_X → X_nombre/X_name
+                                                      ;; Pattern: id_X → X_nombre/X_name
                                                       (re-find (re-pattern (str fk-id "_(nombre|name)"))
                                                                field-name)
-                                                       ;; Pattern: id_X → X_nombre (removing id_ prefix)
+                                                      ;; Pattern: id_X → X_nombre (removing id_ prefix)
                                                       (and (clojure.string/starts-with? fk-id "id_")
                                                            (re-find (re-pattern (str (subs fk-id 3) "_(nombre|name)"))
                                                                     field-name)))))

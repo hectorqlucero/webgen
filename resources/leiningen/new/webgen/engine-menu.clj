@@ -5,16 +5,35 @@
    [clojure.string :as str]))
 
 (defn discover-entities
-  "Discovers all entity configuration files in resources/entities/"
+  "Discovers all entity configuration files in resources/entities/
+   Works when resources are on the filesystem or packaged inside a JAR."
   []
-  (let [entities-dir (io/resource "entities")]
-    (when entities-dir
-      (->> (file-seq (io/file entities-dir))
-           (filter #(.isFile %))
-           (filter #(str/ends-with? (.getName %) ".edn"))
-           (map #(.getName %))
-           (map #(str/replace % #"\.edn$" ""))
-           (sort)))))
+  (let [res (io/resource "entities")]
+    (when res
+      (case (.getProtocol res)
+        "file"
+        (->> (file-seq (io/file res))
+             (filter #(.isFile %))
+             (filter #(str/ends-with? (.getName %) ".edn"))
+             (map #(.getName %))
+             (map #(str/replace % #"\.edn$" ""))
+             (sort))
+
+        "jar"
+        (let [url-str (.toString res)
+              m (re-find #"jar:file:(.+?)!/" url-str)
+              jar-path (when m (second m))]
+          (when jar-path
+            (with-open [jf (java.util.jar.JarFile. jar-path)]
+              (->> (.entries jf)
+                   enumeration-seq
+                   (map #(.getName ^java.util.jar.JarEntry %))
+                   (filter #(and (str/starts-with? % "entities/") (str/ends-with? % ".edn")))
+                   (map #(-> % (subs (count "entities/")) (str/replace #"\.edn$" "")))
+                   sort))))
+
+        ;; fallback: return nil
+        nil))))
 
 (defn load-entity-config
   "Loads a single entity config file"
@@ -82,8 +101,8 @@
   [entity-info]
   (let [auto-category (categorize-entity (:entity entity-info))
         final-category (if (= (:category entity-info) :admin)
-                        auto-category
-                        (:category entity-info))]
+                         auto-category
+                         (:category entity-info))]
     (assoc entity-info :category final-category)))
 
 (defn generate-menu-items
@@ -122,16 +141,16 @@
   []
   (let [menu-items (generate-menu-items)
         sorted-categories (sort-by #(get-in default-categories [% :order] 999)
-                                  (keys menu-items))
+                                   (keys menu-items))
         dropdowns (into {}
-                       (map-indexed
-                        (fn [idx category]
-                          [category
-                           (generate-dropdown-config
-                            category
-                            (get menu-items category)
-                            idx)])
-                        sorted-categories))]
+                        (map-indexed
+                         (fn [idx category]
+                           [category
+                            (generate-dropdown-config
+                             category
+                             (get menu-items category)
+                             idx)])
+                         sorted-categories))]
     {:nav-links [["/" "Home"]]
      :dropdowns dropdowns}))
 
@@ -149,17 +168,17 @@
 (comment
   ;; Test entity discovery
   (discover-entities)
-  
+
   ;; Test single entity info
   (get-entity-info "clientes")
-  
+
   ;; Test categorization
   (categorize-entity :clientes)
   (categorize-entity :propiedades)
   (categorize-entity :pagos_renta)
-  
+
   ;; Generate full menu
   (clojure.pprint/pprint (generate-full-menu-config))
-  
+
   ;; Test menu items by category
   (generate-menu-items))
