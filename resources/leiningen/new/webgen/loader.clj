@@ -1,4 +1,4 @@
-(ns {{sanitize}}.config.loader
+(ns {{sanitized}}.config.loader
   "Centralized configuration loading and management"
   (:require [clojure.edn :as edn]
             [clojure.java.io :as io]))

@@ -1,11 +1,11 @@
-(ns {{sanitize}}.models.util
+(ns {{sanitized}}.models.util
   (:require
    [clojure.core :refer [random-uuid]]
    [clojure.data.json :as json]
    [clojure.string :as st]
    [clojure.walk :as walk]
-   [{{sanitize}}.models.crud :refer [config db Query]]
-   [{{sanitize}}.config.loader :as cfg]))
+   [{{sanitized}}.models.crud :refer [config db Query]]
+   [{{sanitized}}.config.loader :as cfg]))
 
 (defn shorten
   "Shortens a string to a maximum length, appending '...' if truncated."
@@ -76,7 +76,7 @@
    Example: (app-or-top-config [:ui :assets :thumbnail-width])"
   [path & [default]]
   (let [ks (if (sequential? path) path [path])
-        ;; Use the already-loaded `config` map from {{sanitize}}.models.crud to
+        ;; Use the already-loaded `config` map from {{sanitized}}.models.crud to
         ;; avoid depending on loader functions that may not be available
         ;; at compile-time in all environments.
         from-app (get-in config (into [:app] ks))

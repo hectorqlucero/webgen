@@ -74,7 +74,7 @@
                        :db-pwd    "change_me"}
                :sqlite {:db-type   "sqlite"
                         :db-class  "org.sqlite.JDBC"
-                        :db-name   "db/{{sanitize}}.sqlite"}
+                        :db-name   "db/{{sanitized}}.sqlite"}
                :postgres {:db-type   "postgresql"
                           :db-class  "org.postgresql.Driver"
                           :db-name   "//localhost:5432/contactos"
@@ -87,7 +87,7 @@
                :localdb :sqlite}    ; SQLite connection reference
 
  ;; --- Application Settings ---
- :uploads      "./uploads/{{sanitize}}/"
+ :uploads      "./uploads/{{sanitized}}/"
  :site-name    "change_me"
  :company-name "change_me"
  :port         3000

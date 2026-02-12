@@ -1,11 +1,11 @@
-(ns {{sanitize}}.engine.render
+(ns {{sanitized}}.engine.render
   (:require
-   [{{sanitize}}.engine.config :as config]
-   [{{sanitize}}.engine.query :as query]
-   [{{sanitize}}.models.grid :as grid]
-   [{{sanitize}}.models.form :as form]
-   [{{sanitize}}.models.crud :as crud]
-   [{{sanitize}}.i18n.core :as i18n]
+   [{{sanitized}}.engine.config :as config]
+   [{{sanitized}}.engine.query :as query]
+   [{{sanitized}}.models.grid :as grid]
+   [{{sanitized}}.models.form :as form]
+   [{{sanitized}}.models.crud :as crud]
+   [{{sanitized}}.i18n.core :as i18n]
    [clojure.string :as str]))
 
 (defn- load-fk-options

@@ -1,14 +1,14 @@
-(ns {{sanitize}}.core
+(ns {{sanitized}}.core
   (:require
    [compojure.core :refer [routes]]
    [compojure.route :as route]
-   [{{sanitize}}.models.crud :refer [config KEY]]
-   [{{sanitize}}.routes.proutes :refer [proutes]]
-   [{{sanitize}}.routes.routes :refer [open-routes]]
-   [{{sanitize}}.routes.i18n :refer [i18n-routes]]
-   [{{sanitize}}.routes.tabgrid :refer [tabgrid-routes]]
-   [{{sanitize}}.engine.router :as engine]
-   [{{sanitize}}.config.loader :as cfg]
+   [{{sanitized}}.models.crud :refer [config KEY]]
+   [{{sanitized}}.routes.proutes :refer [proutes]]
+   [{{sanitized}}.routes.routes :refer [open-routes]]
+   [{{sanitized}}.routes.i18n :refer [i18n-routes]]
+   [{{sanitized}}.routes.tabgrid :refer [tabgrid-routes]]
+   [{{sanitized}}.engine.router :as engine]
+   [{{sanitized}}.config.loader :as cfg]
    [clojure.string :as str]
    [clojure.java.io :as io]
    [clojure.data.json :as json]
