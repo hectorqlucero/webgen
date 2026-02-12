@@ -41,8 +41,8 @@ cd {{name}}
 lein install  ;; to use locally
 or recommended: 
 lein new org.clojars.hector/webgen myapp  ;; template to create your project
-cp resources/private/config_example.clj resources/private/config.clj
-# Edit config.clj with your database settings
+cp resources/config/app-config.edn resources/private/app-config.edn
+# Edit app-config.edn with your database settings
 ```
 
 ### **2. Run Migrations**
@@ -91,7 +91,7 @@ Create `resources/entities/products.edn`:
                           ↓
 ┌──────────────────────────────────────────────────────┐
 │   Engine Layer (src/{{name}}/engine/)                │
-│   ├── config.clj   - Configuration registry         │
+│   ├── app-config.edn - Configuration registry       │
 │   ├── query.clj    - Query execution                │
 │   ├── crud.clj     - CRUD operations                │
 │   ├── render.clj   - UI rendering                   │
@@ -571,7 +571,7 @@ lein scaffold avaluos
 
 ### **Configuration**
 
-**Location:** `resources/private/config.clj`
+**Location:** `resources/config/app-config.edn`
 
 ```clojure
 {:port 8080                    ; Server port (configurable)

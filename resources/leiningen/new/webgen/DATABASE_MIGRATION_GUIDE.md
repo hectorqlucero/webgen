@@ -275,8 +275,8 @@ lein convert-migrations mysql
 # 3. Review and refine generated migrations
 vim resources/migrations/003-propiedades.mysql.up.sql
 
-# 4. Configure target database in config.clj
-vim resources/private/config.clj
+# 4. Configure target database in app-config.edn
+vim resources/config/app-config.edn
 # Set: :main :mysql
 
 # 5. Run migrations on MySQL
@@ -305,7 +305,7 @@ lein migrate
 lein copy-data mysql
 
 # Switch config to MySQL
-vim resources/private/config.clj
+vim resources/config/app-config.edn
 ```
 
 ---
@@ -357,7 +357,7 @@ mysql -u root -p {{name}} < dump.sql
 
 ## Configuration Reference
 
-### Database Settings (config.clj)
+### Database Settings (app-config.edn)
 
 ```clojure
 {:connections
@@ -444,4 +444,4 @@ In `resources/entities/propiedades.edn`:
 - [Ragtime Documentation](https://github.com/weavejester/ragtime)
 - [QUICKSTART.md](QUICKSTART.md) - Initial setup guide
 - [FRAMEWORK_GUIDE.md](FRAMEWORK_GUIDE.md) - Complete framework reference
-- [config.clj](resources/private/config.clj) - Database configuration
+- [app-config.edn](resources/config/app-config.edn) - Database configuration

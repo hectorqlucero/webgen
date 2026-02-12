@@ -200,7 +200,7 @@
     --bs-body-color: #212529;
 }
 
-/* Add new theme names to config.clj :theme for selection. */
+/* Add new theme names to app-config.edn :ui :themes for selection. */
 
 /* -------------------------------------------------------
      Dark theme DataTables readability tweaks

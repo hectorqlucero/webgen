@@ -978,7 +978,7 @@ These fields are automatically managed by the framework.
 
 ### Configuration File
 
-**File:** `resources/private/config.clj`
+**File:** `resources/config/app-config.edn`
 
 ```clojure
 {:connections {
@@ -1314,7 +1314,7 @@ project-root/
 │   └── app/
 │       ├── core.clj              ; Main application entry
 │       ├── engine/
-│       │   ├── config.clj        ; Config loader
+│       │   ├── app-config.edn    ; Config loader
 │       │   ├── crud.clj          ; CRUD operations
 │       │   ├── query.clj         ; Query execution
 │       │   ├── render.clj        ; UI rendering

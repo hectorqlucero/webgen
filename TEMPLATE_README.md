@@ -53,7 +53,7 @@ The template includes:
 - Mustache template rendering for project.clj and README.md
 - Copies all source files, migrations, entities, and documentation
 - Creates proper .gitignore for config files
-- Includes config.clj.example for easy setup
+- Includes `config/app-config.edn` and optional `private/app-config.edn` examples for easy setup
 
 ## Technical Notes
 

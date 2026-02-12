@@ -10,12 +10,12 @@ cd my-project
 
 ### 2. Configure Database
 
-Edit `resources/private/config.clj` with your settings:
+Edit `resources/config/app-config.edn` with your settings (or create `resources/private/app-config.edn` to override locally):
 
 ```bash
-nano resources/private/config.clj
+nano resources/config/app-config.edn
 # or
-vim resources/private/config.clj
+vim resources/config/app-config.edn
 ```
 
 The file comes pre-configured with template values. Just update:
@@ -53,7 +53,7 @@ lein with-profile dev run
 
 Visit http://localhost:8080 (or your configured port)
 
-**Note:** Port and database settings are configured in `resources/private/config.clj`
+**Note:** Port and database settings are configured in `resources/config/app-config.edn`
 
 **Default Login:**
 - Username: `system@system.com`
@@ -317,7 +317,7 @@ my-project/
 │   │   ├── 001-users.sqlite.up.sql
 │   │   └── 002-products.sqlite.up.sql
 │   └── private/
-│       └── config.clj               # Database config
+│       └── app-config.edn           # Optional private overrides (resources/private/app-config.edn)
 ├── src/{{name}}/
 │   ├── engine/                      # Framework core (DON'T MODIFY)
 │   │   ├── config.clj
@@ -407,8 +407,8 @@ lein convert-migrations mysql
 # 2. Review and refine generated files
 vim resources/migrations/*.mysql.up.sql
 
-# 3. Update config.clj to use MySQL
-vim resources/private/config.clj
+# 3. Update app-config.edn to use MySQL
+vim resources/config/app-config.edn
 
 # 4. Run migrations on production database
 lein migrate
@@ -420,7 +420,7 @@ lein copy-data mysql
 See [DATABASE_MIGRATION_GUIDE.md](DATABASE_MIGRATION_GUIDE.md) for complete details.
 
 ### Environment Variables
-Set via config.clj or environment:
+Set via app-config.edn or environment:
 ```bash
 export DB_HOST=production-db.example.com
 export DB_USER=appuser

@@ -2,7 +2,7 @@
 /classes
 /uploads
 /checkouts
-config.clj
+resources/private/app-config.edn
 profiles.clj
 pom.xml
 pom.xml.asc

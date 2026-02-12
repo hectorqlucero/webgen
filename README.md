@@ -27,9 +27,9 @@ cd myapp
 
 ```bash
 # 1. Configure database
-# Edit config.clj with your database credentials
+# Edit `resources/config/app-config.edn` with your database credentials
 # Default uses SQLite - just update passwords for MySQL/PostgreSQL if needed
-nano resources/private/config.clj
+nano resources/config/app-config.edn
 
 # 2. Run migrations
 lein migrate
@@ -341,7 +341,7 @@ Switch databases without code changes - just update config!
 
 ### Configuration
 
-Edit `resources/private/config.clj`:
+Edit `resources/config/app-config.edn`:
 
 ```clojure
 {:connections

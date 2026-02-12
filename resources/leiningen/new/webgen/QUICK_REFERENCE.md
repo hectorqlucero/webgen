@@ -2,7 +2,7 @@
 
 ## **Quick Start:** Running the App
 
-**Note:** Port and database are configured in `resources/private/config.clj`
+**Note:** Port and database are configured in `resources/config/app-config.edn`
 
 ### Development (Auto-Reload) - RECOMMENDED 
 ```bash
@@ -30,7 +30,7 @@ java -jar target/uberjar/rs.jar
 
 ## **Configuration:** Configuration
 
-**Location:** `resources/private/config.clj`
+**Location:** `resources/config/app-config.edn`
 
 The config file is included with your project and uses your project name automatically.
 Just update passwords and connection settings as needed.

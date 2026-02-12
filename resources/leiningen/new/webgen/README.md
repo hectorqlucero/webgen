@@ -8,12 +8,12 @@ See [QUICKSTART.md](QUICKSTART.md) for detailed setup instructions.
 
 ### 1. Configure Database
 
-Edit `resources/private/config.clj` with your database settings:
+Edit `resources/config/app-config.edn` with your database settings (or create `resources/private/app-config.edn` to override):
 
 ```bash
 cd {{name}}
-# Edit config.clj - update passwords and database names as needed
-nano resources/private/config.clj
+# Edit app-config.edn - update passwords and database names as needed
+nano resources/config/app-config.edn
 ```
 
 The file comes with sensible defaults using SQLite and your project name.
@@ -160,7 +160,7 @@ WebGen supports a comprehensive set of field types for building complex forms:
 ## License
 
 MIT License - see LICENSE file for details.
-# Port configurable in resources/private/config.clj
+# Port configurable in resources/config/app-config.edn
 ```
 
 ### **4. Create Your First Entity**
@@ -203,7 +203,7 @@ Visit `/admin/products` - **Full CRUD interface ready!**
               ↓
 ┌─────────────────────────────────────┐
 │  Engine (src/{{name}}/engine/)      │
-│  → config.clj   - Load configs      │
+│  → app-config.edn - Load configs    │
 │  → query.clj    - Execute queries   │
 │  → crud.clj     - CRUD operations   │
 │  → render.clj   - UI rendering      │

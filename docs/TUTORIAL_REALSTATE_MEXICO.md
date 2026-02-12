@@ -87,7 +87,7 @@ bienes-raices/
 │   ├── entities/
 │   ├── migrations/
 │   ├── private/
-│   │   └── config.clj
+│   │   └── app-config.edn
 │   ├── public/
 │   └── i18n/
 ├── project.clj
@@ -96,7 +96,7 @@ bienes-raices/
 
 ### 2.2 Configurar Base de Datos
 
-Editar `resources/private/config.clj`:
+Editar `resources/config/app-config.edn`:
 
 ```clojure
 {:connections {
@@ -1447,7 +1447,7 @@ Archivo: `resources/i18n/es.edn`
 
 ### 9.2 Configurar Locale
 
-En `resources/private/config.clj`:
+En `resources/config/app-config.edn`:
 
 ```clojure
 {:locale "es-MX"

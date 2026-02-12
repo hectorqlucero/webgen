@@ -173,8 +173,8 @@
              ["resources/entities/siblings.edn" (render "siblings-entity.edn" data)]
 
              ;; Config file (must be rendered to replace {{name}})
-             ["resources/config/app-config.edn" (render "config-app-config.edn") data]
-             ["resources/config/config-messages.edn" (render "messages.edn") data])
+             ["resources/config/app-config.edn" (render "config-app-config.edn" data)]
+             ["resources/config/messages.edn" (render "config-messages.edn" data)])
 
     ;; Copy static resources (migrations, i18n, public files - excluding private/config.clj which is rendered above)
     (main/info "Copying resources...")
