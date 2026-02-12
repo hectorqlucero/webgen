@@ -1,9 +1,11 @@
-(ns {{sanitized}}.models.crud
+(ns {{sanitize}}.models.crud
   (:require
    [clojure.java.io :as io]
    [clojure.java.jdbc :as j]
    [clojure.string :as st]
-   [{{sanitized}}.models.db :as db]))
+   [clojure.edn :as edn]
+   [{{sanitize}}.models.db :as db]
+   [{{sanitize}}.config.loader :as cfg]))
 
 ;; Reusable regex patterns (private constants)
 (def ^:private true-re  #"(?i)^(true|on|1)$")
@@ -11,18 +13,37 @@
 (def ^:private int-re   #"^-?\d+$")
 (def ^:private float-re #"^-?\d+(\.\d+)?$")
 
+(defn- safe-long [v]
+  "Safely coerce various config values to a long.
+   Returns 0 on nil, non-number, or parse failure."
+  (cond
+    (nil? v) 0
+    (number? v) (long v)
+    (string? v) (try (Long/parseLong (st/trim v)) (catch Exception _ 0))
+    :else 0))
+
 ;; Try to load optional drivers eagerly (safe if absent)
 (try (Class/forName "org.sqlite.JDBC") (catch Throwable _))
 (try (Class/forName "org.postgresql.Driver") (catch Throwable _))
 
 ;; --- configuration and connection management ---
+(defn- read-edn-resource [path]
+  "Read an EDN resource from classpath safely; returns nil on failure."
+  (when-let [r (io/resource path)]
+    (try
+      (binding [*read-eval* false]
+        (edn/read-string (slurp r)))
+      (catch Throwable e
+        (println "[WARN] Failed to read EDN resource" path ":" (.getMessage e))
+        nil))))
+
 (defn get-config []
-  (try
-    (binding [*read-eval* false]
-      (some-> (io/resource "private/config.clj") slurp read-string))
-    (catch Throwable e
-      (println "[WARN] Failed to load config:" (.getMessage e))
-      nil)))
+  "Load configuration from `config/app-config.edn` and optionally
+   merge values from `private/config.clj` if present. Returns an empty
+   map when no config is found or parsed."
+  (let [base (read-edn-resource "config/app-config.edn")
+        private (read-edn-resource "private/config.clj")]
+    (or (merge (or base {}) (or private {})) {})))
 
 (def config (or (get-config) {}))
 
@@ -56,31 +77,34 @@
   (let [dbtype (or (:db-type cfg) (:db-protocol cfg))
         base   {:user (:db-user cfg) :password (:db-pwd cfg)}]
     (letfn [(mysql-spec []
-              (merge base
-                     {:classname    (or (:db-class cfg) "com.mysql.cj.jdbc.Driver")
-                      :subprotocol  "mysql"
-                      :subname      (:db-name cfg)
-                      :useSSL                          false
-                      :useTimezone                     true
-                      :useLegacyDatetimeCode           false
-                      :serverTimezone                  "UTC"
-                      :noTimezoneConversionForTimeType true
-                      :dumpQueriesOnException          true
-                      :autoDeserialize                 true
-                      :useDirectRowUnpack              false
-                      :cachePrepStmts                  true
-                      :cacheCallableStmts              true
-                      :cacheServerConfiguration        true
-                      :useLocalSessionState            true
-                      :elideSetAutoCommits             true
-                      :alwaysSendSetIsolation          false
-                      :enableQueryTimeouts             false
-                      :zeroDateTimeBehavior            "CONVERT_TO_NULL"}))
+              (let [db-params (cfg/get-db-connection-params :mysql)]
+                (merge base
+                       {:classname    (or (:db-class cfg) "com.mysql.cj.jdbc.Driver")
+                        :subprotocol  "mysql"
+                        :subname      (:db-name cfg)
+                        :useSSL                          (:use-ssl db-params false)
+                        :useTimezone                     true
+                        :useLegacyDatetimeCode           false
+                        :serverTimezone                  (:server-timezone db-params "UTC")
+                        :noTimezoneConversionForTimeType true
+                        :dumpQueriesOnException          true
+                        :autoDeserialize                 true
+                        :useDirectRowUnpack              false
+                        :cachePrepStmts                  true
+                        :cacheCallableStmts              true
+                        :cacheServerConfiguration        true
+                        :useLocalSessionState            true
+                        :elideSetAutoCommits             true
+                        :alwaysSendSetIsolation          false
+                        :enableQueryTimeouts             false
+                        :zeroDateTimeBehavior            (:zero-date-time-behavior db-params "CONVERT_TO_NULL")})))
             (postgres-spec []
-              (merge base
-                     {:classname   (or (:db-class cfg) "org.postgresql.Driver")
-                      :subprotocol "postgresql"
-                      :subname     (:db-name cfg)}))
+              (let [db-params (cfg/get-db-connection-params :postgres)]
+                (merge base
+                       {:classname   (or (:db-class cfg) "org.postgresql.Driver")
+                        :subprotocol "postgresql"
+                        :subname     (:db-name cfg)
+                        :sslmode     (:sslmode db-params "disable")})))
             (sqlite-spec []
               (merge base
                      {:classname   (or (:db-class cfg) "org.sqlite.JDBC")
@@ -121,14 +145,24 @@
       val)))
 
 (def dbs
-  (if (and (:connections config) (map? (:connections config)))
+  (let [conn-cands (cond
+                     (and (:connections config) (map? (:connections config)))
+                     (:connections config)
+
+                     ;; If the merged config itself contains DB keys, treat it
+                     ;; as a single connection map under :default.
+                     (and (map? config) (or (:db-type config) (:db-protocol config) (:db-name config)))
+                     {:default config}
+
+                     ;; Fallback to a sensible local SQLite file for development
+                     :else
+                     {:default {:db-type "sqlite" :db-name "db/{{sanitize}}.sqlite"}})]
     (into {}
           (keep (fn [[k v]]
-                  (let [resolved (resolve-conn (:connections config) v)]
+                  (let [resolved (resolve-conn conn-cands v)]
                     (when (map? resolved)
                       [k (build-db-spec resolved)])))
-                (:connections config)))
-    {:default (build-db-spec config)}))
+                conn-cands))))
 
 (def db (or (get dbs :default) (first (vals dbs))))
 (doseq [[k v] dbs]
@@ -624,7 +658,7 @@
 (defn crud-upload-image [table file id path]
   (let [cfg-exts (set (map st/lower-case (or (:allowed-image-exts config) ["jpg" "jpeg" "png" "gif" "bmp" "webp"])))
         valid-exts cfg-exts
-        max-mb (long (or (:max-upload-mb config) 0))
+        max-mb (safe-long (or (:max-file-size-mb config) (:max-upload-mb config) 0))
         tempfile   (:tempfile file)
         size       (:size file)
         orig-name  (:filename file)

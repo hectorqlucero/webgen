@@ -1,13 +1,14 @@
-(ns {{sanitized}}.core
+(ns {{sanitize}}.core
   (:require
    [compojure.core :refer [routes]]
    [compojure.route :as route]
-   [{{sanitized}}.models.crud :refer [config KEY]]
-   [{{sanitized}}.routes.proutes :refer [proutes]]
-   [{{sanitized}}.routes.routes :refer [open-routes]]
-   [{{sanitized}}.routes.i18n :refer [i18n-routes]]
-   [{{sanitized}}.routes.tabgrid :refer [tabgrid-routes]]
-   [{{sanitized}}.engine.router :as engine]
+   [{{sanitize}}.models.crud :refer [config KEY]]
+   [{{sanitize}}.routes.proutes :refer [proutes]]
+   [{{sanitize}}.routes.routes :refer [open-routes]]
+   [{{sanitize}}.routes.i18n :refer [i18n-routes]]
+   [{{sanitize}}.routes.tabgrid :refer [tabgrid-routes]]
+   [{{sanitize}}.engine.router :as engine]
+   [{{sanitize}}.config.loader :as cfg]
    [clojure.string :as str]
    [clojure.java.io :as io]
    [clojure.data.json :as json]
@@ -60,33 +61,36 @@
               (.getErrorCode ^java.sql.SQLException t)))
           (msg-has? [^String msg re]
             (boolean (re-find re (or msg ""))))
-          ;; Best-effort cross-DB classification
+          ;; Configurable cross-DB classification
           (classify-sql [^Throwable rc ^String msg]
             (let [state (sql-state rc)
-                  code  (sql-code rc)]
+                  code  (sql-code rc)
+                  mysql-codes (cfg/get-db-error-codes :mysql)
+                  postgres-codes (cfg/get-db-error-codes :postgres)
+                  sqlite-codes (cfg/get-db-error-codes :sqlite)]
               (cond
                 ;; Unique violations
-                (= state "23505") :unique          ; Postgres
-                (= code 1062)      :unique          ; MySQL duplicate entry
-                (msg-has? msg #"(?i)UNIQUE constraint failed") :unique ; SQLite
+                (= state (:unique postgres-codes)) :unique
+                (= code (:unique mysql-codes)) :unique
+                (msg-has? msg (re-pattern (:unique sqlite-codes))) :unique
 
                 ;; Foreign key
-                (= state "23503") :fk             ; Postgres FK
-                (or (= code 1451) (= code 1452)) :fk ; MySQL FK
-                (msg-has? msg #"(?i)foreign key constraint failed") :fk ; SQLite
+                (= state (:fk postgres-codes)) :fk
+                (or (= code (:fk mysql-codes)) (= code 1452)) :fk
+                (msg-has? msg (re-pattern (:fk sqlite-codes))) :fk
 
                 ;; Not null
-                (= state "23502") :not-null       ; Postgres NOT NULL
-                (= code 1048)      :not-null       ; MySQL column cannot be null
-                (msg-has? msg #"(?i)NOT NULL constraint failed") :not-null
+                (= state (:not-null postgres-codes)) :not-null
+                (= code (:not-null mysql-codes)) :not-null
+                (msg-has? msg (re-pattern (:not-null sqlite-codes))) :not-null
 
                 ;; Check constraint
-                (= state "23514") :check          ; Postgres CHECK
+                (= state (:check postgres-codes)) :check
 
                 ;; Data too long / truncation
-                (= state "22001") :too-long       ; Postgres string data right truncation
-                (= code 1406)      :too-long       ; MySQL Data too long
-                (msg-has? msg #"(?i)string or blob too big|too long") :too-long
+                (= state (:too-long postgres-codes)) :too-long
+                (= code (:too-long mysql-codes)) :too-long
+                (msg-has? msg (re-pattern (:too-long sqlite-codes))) :too-long
 
                 :else :other-sql)))]
     (fn [request]
@@ -100,16 +104,18 @@
                 msg (.getMessage rc)
                 kind (when sql? (classify-sql rc msg))
                 dd (when (= kind :unique) (dup-details msg))
-                ;; Decide status and friendly message
-                [status plain] (cond
-                                 csrf? [403 "Invalid or missing CSRF token"]
-                                 (= kind :unique) [409 (if-let [f (:field dd)] (str "Duplicate value for " f) "Duplicate value")]
-                                 (= kind :fk)     [409 "Foreign key constraint violation"]
-                                 (= kind :not-null) [422 "Required field is missing"]
-                                 (= kind :check)  [422 "Value violates a check constraint"]
-                                 (= kind :too-long) [422 "Value too long"]
-                                 sql? [400 "Invalid data"]
-                                 :else [400 "Invalid data"])
+;; Decide status and friendly message (with localization support)
+                 [status plain] (cond
+                                  csrf? [403 (cfg/get-error-message :security :csrf :es)]
+                                  (= kind :unique) [409 (if-let [f (:field dd)] 
+                                                          (str (cfg/get-error-message :database :unique :es) " " f)
+                                                          (cfg/get-error-message :database :unique :es))]
+                                  (= kind :fk)     [409 (cfg/get-error-message :database :foreign-key :es)]
+                                  (= kind :not-null) [422 (cfg/get-error-message :database :not-null :es)]
+                                  (= kind :check)  [422 (cfg/get-error-message :database :check :es)]
+                                  (= kind :too-long) [422 (cfg/get-error-message :database :too-long :es)]
+                                  sql? [400 (cfg/get-error-message :database :general :es)]
+                                  :else [400 (cfg/get-error-message :database :general :es)])
                 body-json (let [base {:ok false :error plain}
                                 base (if dd (merge base dd) base)]
                             (json/write-str base))]
@@ -159,7 +165,7 @@
 ;; The order of middleware matters: defaults/multipart first, exception handling outermost.
 (defn create-app
   []
-  (-> (app-routes)
+(-> (app-routes)
       (wrap-multipart-params)
       (wrap-defaults (-> site-defaults
                          (assoc-in [:security :anti-forgery] true)

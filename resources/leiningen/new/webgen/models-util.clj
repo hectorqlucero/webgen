@@ -1,10 +1,11 @@
-(ns {{sanitized}}.models.util
+(ns {{sanitize}}.models.util
   (:require
    [clojure.core :refer [random-uuid]]
    [clojure.data.json :as json]
    [clojure.string :as st]
    [clojure.walk :as walk]
-   [{{sanitized}}.models.crud :refer [config db Query]]))
+   [{{sanitize}}.models.crud :refer [config db Query]]
+   [{{sanitize}}.config.loader :as cfg]))
 
 (defn shorten
   "Shortens a string to a maximum length, appending '...' if truncated."
@@ -67,15 +68,32 @@
         n (mod n 60)
         seconds (int n)
         seconds-desc (if (= seconds 1) " second " " seconds ")
-        minutes-desc (str day day-desc hour hour-desc minutes minutes-desc)
-        seconds-desc (str day day-desc hour hour-desc minutes minutes-desc seconds seconds-desc)]
-    seconds-desc))
+        time-desc (str day day-desc hour hour-desc minutes minutes-desc seconds seconds-desc)]
+    time-desc))
+
+(defn app-or-top-config
+  "Return a config value, first trying under `:app` then falling back to the top-level key.
+   Example: (app-or-top-config [:ui :assets :thumbnail-width])"
+  [path & [default]]
+  (let [ks (if (sequential? path) path [path])
+        ;; Use the already-loaded `config` map from {{sanitize}}.models.crud to
+        ;; avoid depending on loader functions that may not be available
+        ;; at compile-time in all environments.
+        from-app (get-in config (into [:app] ks))
+        from-top (get-in config ks)]
+    (cond
+      (not (nil? from-app)) from-app
+      (not (nil? from-top)) from-top
+      :else default)))
 
 (defn image-link
   [image-name]
   (let [path (str (:path config) image-name "?" (random-uuid))
-        style "margin-right:wpx;cursor:pointer;"
-        img-link (str "<img src='" path "' alt='" image-name "' width=42 height=32 style='" style "'>")]
+        ;; Read thumbnail dimensions from app-config.edn (fall back to defaults)
+        width (or (cfg/app-config [:ui :assets :thumbnail-width]) 42)
+        height (or (cfg/app-config [:ui :assets :thumbnail-height]) 32)
+        style (str "margin-right:" width "px;cursor:pointer;")
+        img-link (str "<img src='" path "' alt='" image-name "' width=" width " height=" height " style='" style "'>")]
     img-link))
 
 (defn year-options

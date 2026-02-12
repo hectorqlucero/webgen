@@ -1,0 +1,46 @@
+{:errors {:database
+           {:unique {:en "Duplicate value for field"
+                     :es "Valor duplicado para el campo"}
+            :foreign-key {:en "Foreign key constraint violation"
+                         :es "Violación de restricción de clave foránea"}
+            :not-null {:en "Required field is missing"
+                       :es "Campo requerido está ausente"}
+            :check {:en "Value violates a check constraint"
+                    :es "El valor viola una restricción de verificación"}
+            :too-long {:en "Value too long"
+                       :es "Valor demasiado largo"}
+            :general {:en "Invalid data"
+                      :es "Datos inválidos"}}
+           
+           :security
+           {:csrf {:en "Invalid or missing CSRF token"
+                   :es "Token CSRF inválido o faltante"}
+            :unauthorized {:en "Access denied"
+                          :es "Acceso denegado"}
+            :session-expired {:en "Session has expired"
+                             :es "La sesión ha expirado"}}
+           
+           :validation
+           {:required {:en "This field is required"
+                      :es "Este campo es requerido"}
+            :invalid-email {:en "Invalid email address"
+                            :es "Dirección de correo inválida"}
+            :invalid-number {:en "Invalid number"
+                            :es "Número inválido"}
+            :invalid-date {:en "Invalid date format"
+                          :es "Formato de fecha inválido"}}}
+
+ :success {:database
+           {:saved {:en "Record saved successfully"
+                    :es "Registro guardado exitosamente"}
+            :deleted {:en "Record deleted successfully"
+                      :es "Registro eliminado exitosamente"}
+            :updated {:en "Record updated successfully"
+                     :es "Registro actualizado exitosamente"}}}
+
+ :messages {:welcome {:en "Welcome to the system"
+                      :es "Bienvenido al sistema"}
+            :login-required {:en "Please login to continue"
+                            :es "Por favor inicie sesión para continuar"}
+            :logout-success {:en "You have been logged out successfully"
+                            :es "Ha cerrado sesión exitosamente"}}}

@@ -68,8 +68,11 @@
     (main/info (format "║  Creating LST/WebGen Project: %-12s║" name))
     (main/info "╚════════════════════════════════════════════╝")
     (main/info "")
-    
+
     (->files data
+             ;; Config
+             ["src/{{sanitized}}/config/loader.clj" (render "loader.clj" data)]
+
              ;; Core App
              ["src/{{sanitized}}/core.clj" (render "core.clj" data)]
              ["src/{{sanitized}}/menu.clj" (render "menu.clj" data)]
@@ -153,7 +156,7 @@
              ["project.clj" (render "project.clj" data)]
              ["README.md" (render "README.md" data)]
              [".gitignore" (render "gitignore" data)]
-             
+
              ;; Documentation
              ["QUICKSTART.md" (render "QUICKSTART.md" data)]
              ["HOOKS_GUIDE.md" (render "HOOKS_GUIDE.md" data)]
@@ -162,26 +165,27 @@
              ["COLLABORATION_GUIDE.md" (render "COLLABORATION_GUIDE.md" data)]
              ["QUICK_REFERENCE.md" (render "QUICK_REFERENCE.md" data)]
              ["RUN_APP.md" (render "RUN_APP.md" data)]
-             
+
              ;; Entity configurations (must be rendered to replace {{sanitized}})
              ["resources/entities/users.edn" (render "users-entity.edn" data)]
              ["resources/entities/contactos.edn" (render "contactos-entity.edn" data)]
              ["resources/entities/cars.edn" (render "cars-entity.edn" data)]
              ["resources/entities/siblings.edn" (render "siblings-entity.edn" data)]
-             
+
              ;; Config file (must be rendered to replace {{name}})
-             ["resources/private/config.clj" (render "private-config.clj" data)])
+             ["resources/config/app-config.edn" (render "config-app-config.edn")]
+             ["resources/config/messages.edn" (render "config-messages.edn")]
 
     ;; Copy static resources (migrations, i18n, public files - excluding private/config.clj which is rendered above)
     (main/info "Copying resources...")
     (copy-resources "leiningen/new/webgen/resources" (str name "/resources"))
-    
+
     (main/info "")
-    (main/info "✓ Project created successfully!")
+    (main/info "Project created successfully!")
     (main/info "")
     (main/info "Next steps:")
     (main/info "  cd" name)
-    (main/info "  # Edit resources/private/config.clj with your database credentials")
+    (main/info "  # Edit resources/config/app-config.edn with your database credentials")
     (main/info "  # (Default: SQLite - just update passwords for MySQL/PostgreSQL)")
     (main/info "  lein migrate")
     (main/info "  lein database")

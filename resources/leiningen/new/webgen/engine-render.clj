@@ -1,11 +1,11 @@
-(ns {{sanitized}}.engine.render
+(ns {{sanitize}}.engine.render
   (:require
-   [{{sanitized}}.engine.config :as config]
-   [{{sanitized}}.engine.query :as query]
-   [{{sanitized}}.models.grid :as grid]
-   [{{sanitized}}.models.form :as form]
-   [{{sanitized}}.models.crud :as crud]
-   [{{sanitized}}.i18n.core :as i18n]
+   [{{sanitize}}.engine.config :as config]
+   [{{sanitize}}.engine.query :as query]
+   [{{sanitize}}.models.grid :as grid]
+   [{{sanitize}}.models.form :as form]
+   [{{sanitize}}.models.crud :as crud]
+   [{{sanitize}}.i18n.core :as i18n]
    [clojure.string :as str]))
 
 (defn- load-fk-options
@@ -228,13 +228,28 @@
 
       :file
       ;; File input with preview
-      (let [filename (if (and (string? field-value) (re-find #"^<img" field-value))
+      (let [filename (cond
+                       ;; Hiccup img vector case: extract src
+                       (and (vector? field-value)
+                            (keyword? (first field-value))
+                            (= (first field-value) :img))
+                       (when-let [attrs (second field-value)]
+                         (when-let [src (:src attrs)]
+                           (-> src
+                               (clojure.string/split #"\?")
+                               first
+                               (clojure.string/replace (:path crud/config) ""))))
+
+                       ;; Old HTML string case: parse src from img tag
+                       (and (string? field-value) (re-find #"^<img" field-value))
                        (when-let [match (re-find #"src='([^']+)'" field-value)]
                          (-> (second match)
                              (clojure.string/split #"\?")
                              first
                              (clojure.string/replace (:path crud/config) "")))
-                       field-value)]
+
+                       ;; Plain filename string
+                       :else field-value)]
         [:div.mb-3
          [:label.form-label.fw-semibold {:for (name id)} label
           (when required? [:span.text-danger.ms-1 "*"])]
