@@ -326,21 +326,20 @@
 
 (defn render-dashboard
   "Renders a read-only dashboard for an entity."
-  [entity rows]
+  [request title entity rows]
   (let [config (config/get-entity-config entity)
         entity-name (name entity)
-        title (:title config)
         table-id (str entity-name "_dashboard")
         fields (build-fields-map entity)
         custom-dashboard-fn (get-in config [:ui :dashboard-fn])]
     (if custom-dashboard-fn
       (custom-dashboard-fn entity rows)
-      (grid/build-dashboard title rows table-id fields))))
+      (grid/build-dashboard request title rows table-id fields))))
 
 (defn render-report
   "Renders a report view (alias for dashboard)."
-  [entity rows]
-  (render-dashboard entity rows))
+  [request title entity rows]
+  (render-dashboard request title entity rows))
 
 (defn render-subgrid
   "Renders a subgrid for a parent-child relationship."

@@ -146,10 +146,10 @@
      (wrap-routes i18n-routes)
      ;; TabGrid AJAX routes
      (wrap-login (wrap-routes tabgrid-routes))
-     ;; Parameter-driven engine routes (NEW)
-     (wrap-login (wrap-routes (engine/get-routes)))
      ;; Legacy generated routes (for backward compatibility)
      (wrap-login (wrap-routes proutes))
+     ;; Parameter-driven engine routes (NEW)
+     (wrap-login (wrap-routes (engine/get-routes)))
      (route/not-found "Not Found"))))
 
 ;; Ensure the uploads directory (and parents) exist, based on config
