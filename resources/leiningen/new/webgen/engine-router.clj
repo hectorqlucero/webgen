@@ -75,7 +75,7 @@
               title (:title config)
               ok (get-session-id request)
               rows (query/list-with-hooks entity)
-              content (render/render-dashboard entity rows)]
+              content (render/render-dashboard request title entity rows)]
           (application request title ok nil content))
         (catch Exception e
           (println "[ERROR] Dashboard handler failed:" (.getMessage e))
