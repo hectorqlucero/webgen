@@ -89,7 +89,7 @@
     {:href "/home/logoff"
      :onclick "localStorage.removeItem('active-link')"}
     [:i.bi.bi-box-arrow-right.me-1]
-    (str (i18n/tr request :auth/logout) (user-name request))]])
+    (str (i18n/tr request :auth/logout) " " (user-name request))]])
 
 ;; THEME SWITCHER
 (def theme-options
