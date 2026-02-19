@@ -55,6 +55,17 @@
                    (:name (first (Query db ["select CONCAT(firstname,' ',lastname) as name from users where id = ?" id]))))]
     username))
 
+(defn user-auth
+  "Example: (user-auth request [\"A\" \"S\"]"
+  [request rights]
+  (let [user-role (user-level request)]
+    (cond
+      (nil? rights) true
+      (string? rights) (= user-role rights)
+      (keyword? rights) (= user-role (name rights))
+      (vector? rights) (boolean (some #(= user-role %) rights))
+      :else false)))
+
 (defn seconds->string [seconds]
   (let [n seconds
         day (int (/ n (* 24 3600)))
