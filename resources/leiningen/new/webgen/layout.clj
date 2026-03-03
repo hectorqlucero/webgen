@@ -279,7 +279,10 @@
    [:script {:src "/vendor/app.js"}]
    [:script {:src "/js/tabgrid.js"}]
    [:script (:src "/js/mhighlight.js")]
-   [:script (:src "/js/lang.js")]))
+   [:script (:src "/js/lang.js")]
+   ;; fk-dependent.js contains the logic for dependent selects & create modal
+   ;; bump version when editing so browsers reload the file
+   [:script {:src "/js/fk-dependent.js?v=6"}]))
 
 ;; LAYOUT FUNCTIONS
 

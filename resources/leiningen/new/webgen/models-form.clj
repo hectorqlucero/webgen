@@ -166,31 +166,58 @@
                      (select-keys args [:autocomplete :form :dirname :tabindex :aria-label :aria-describedby]))]
 
       (= type "select")
-      [:div.mb-3
-       label-el
-       [:select.form-select.form-select-lg
-        (merge
-         {:id (:id args)
-          :name (:name args)
-          :required (:required args)
-          :class (str "form-select form-select-lg" (when (= (:required args) true) " mandatory"))
-          :oninvalid (str "this.setCustomValidity('" (:error args) "')")
-          :oninput "this.setCustomValidity('')"
-          :multiple (:multiple args)
-          :disabled (:disabled args)
-          :readonly (:readonly args)
-          :autofocus (:autofocus args)
-          :size (:size args)
-          :tabindex (:tabindex args)
-          :aria-label (:aria-label args)
-          :aria-describedby (:aria-describedby args)}
-         (when (:value args) {:defaultValue (:value args)}))
-        (for [option (:options args)]
-          [:option (merge
-                    {:value (:value option)
-                     :selected (if (= (str (:value args)) (str (:value option))) true false)}
-                    (select-keys option [:disabled :label]))
-           (:label option)])]]
+      (let [fk-parent (:fk-parent args)
+            fk-can-create (:fk-can-create args)
+            fk-entity (:fk-entity args)
+            fk-form-fields (:fk-form-fields args)
+            select-id (name (:id args))
+            ;; Data attributes for fk selects (only if fk-entity is present)
+            data-attrs (when fk-entity
+                         (let [base {:data-fk-entity (name fk-entity)
+                                     :data-fk-current-value (str (:value args))}]
+                           (if fk-parent
+                             (assoc base :data-fk-parent (name fk-parent))
+                             base)))
+            ;; Build select element
+            select-el [:select.form-select.form-select-lg
+                       (merge
+                        {:id (:id args)
+                         :name (:name args)
+                         :required (:required args)
+                         :class (str "form-select form-select-lg" (when (= (:required args) true) " mandatory"))
+                         :oninvalid (str "this.setCustomValidity('" (:error args) "')")
+                         :oninput "this.setCustomValidity('')"
+                         :multiple (:multiple args)
+                         :disabled (:disabled args)
+                         :readonly (:readonly args)
+                         :autofocus (:autofocus args)
+                         :size (:size args)
+                         :tabindex (:tabindex args)
+                         :aria-label (:aria-label args)
+                         :aria-describedby (:aria-describedby args)}
+                        data-attrs
+                        (when (:value args) {:defaultValue (:value args)}))
+                       (for [option (:options args)]
+                         [:option (merge
+                                   {:value (:value option)
+                                    :selected (if (= (str (:value args)) (str (:value option))) true false)}
+                                   (select-keys option [:disabled :label]))
+                          (:label option)])]]
+        (if fk-can-create
+          ;; With add button
+          [:div.mb-3
+           label-el
+           [:div.input-group
+            select-el
+            [:button.btn.btn-outline-success.btn-lg {:type "button"
+                                                     :title "Agregar nuevo"
+                                                     :onclick (format "showFkCreateModal('%s', '%s', '%s', this)" (name fk-entity) select-id (name (or fk-parent "")))
+                                                     :data-fk-form-fields (str/join "," (map name (or fk-form-fields [:nombre])))}
+             [:i.bi.bi-plus-circle]]]]
+          ;; Standard select
+          [:div.mb-3
+           label-el
+           select-el]))
 
       (or (= type "radio") (= type "checkbox"))
       [:div.mb-3

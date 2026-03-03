@@ -37,7 +37,7 @@ Built for **enterprise business solutions** (MRP, Accounting, Inventory, POS), n
 ### **1. Clone and Setup**
 ```bash
 git clone <your-repo-url>
-cd {{name}}
+cd br
 lein install  ;; to use locally
 or recommended: 
 lein new org.clojars.hector/webgen myapp  ;; template to create your project
@@ -62,19 +62,210 @@ lein with-profile dev run
 Create `resources/entities/products.edn`:
 
 ```clojure
-{:entity :products
- :title "Products"
- :table "products"
+{:entity :propiedades
+ :title "Propiedades"
+ :table "propiedades"
+ :connection :default
  :rights ["U" "A" "S"]
- 
- :fields [{:id :name :label "Product Name" :type :text :required? true}
-          {:id :price :label "Price" :type :decimal :min 0 :step 0.01 :required? true}
-          {:id :stock :label "Stock" :type :number :min 0 :step 1}]
- 
- :queries {:list "SELECT * FROM products ORDER BY name"
-           :get "SELECT * FROM products WHERE id = ?"}
- 
- :actions {:new true :edit true :delete true}}
+ :mode :parameter-driven
+
+ :menu-category :properties
+ :menu-order 1
+ :menu-icon "bi bi-house-door"
+ :audit? true
+
+ :fields [{:id :id :type :hidden}
+
+          ;; Identificación
+          {:id :clave :label "Clave" :type :text :required? true :maxlength 20}
+          {:id :titulo :label "Título" :type :text :required? true :maxlength 200}
+          {:id :descripcion :label "Descripción" :type :textarea :rows 5}
+
+          {:id :tipo_id
+           :label "Tipo de Propiedad"
+           :type :fk
+           :fk :tipos_propiedad
+           :fk-field [:nombre :activo]
+           :required? true
+           :hidden-in-grid? true}
+          {:id :tipo_nombre :label "Tipo de Propiedad" :grid-only? true}
+
+          ;; Ubicación
+          {:id :estado_id
+           :label "Estado"
+           :type :fk
+           :fk :estados
+           :fk-field [:nombre]
+           :fk-can-create? true
+           :required? true
+           :hidden-in-grid? true}
+          {:id :estado_nombre :label "Estado" :grid-only? true}
+
+          {:id :municipio_id
+           :label "Municipio"
+           :type :fk
+           :fk :municipios
+           :fk-field [:nombre]
+           :fk-parent :estado_id
+           :fk-can-create? true
+           :hidden-in-grid? true}
+          {:id :municipio_nombre :label "Municipio" :grid-only? true}
+
+          {:id :colonia_id
+           :label "Colonia"
+           :type :fk
+           :fk :colonias
+           :fk-field [:nombre :codigo_postal]
+           :fk-parent :municipio_id
+           :fk-can-create? true
+           :hidden-in-grid? true}
+          {:id :agente_nombre :label "Agente" :grid-only? true}
+
+          {:id :calle :label "Calle" :type :text :maxlength 200}
+          {:id :numero_exterior :label "Núm. Exterior" :type :text :maxlength 10}
+          {:id :numero_interior :label "Núm. Interior" :type :text :maxlength 10}
+          {:id :codigo_postal
+           :label "C.P."
+           :type :text
+           :maxlength 5
+           :validation :br.validators.common/codigo-postal-valido?}
+
+          ;; Características
+          {:id :terreno_m2 :label "Terreno (m²)" :type :decimal :min 0}
+          {:id :construccion_m2 :label "Construcción (m²)" :type :decimal :min 0}
+          {:id :recamaras :label "Recámaras" :type :number :min 0}
+          {:id :banos_completos :label "Baños Completos" :type :number :min 0}
+          {:id :medios_banos :label "Medios Baños" :type :number :min 0}
+          {:id :estacionamientos :label "Estacionamientos" :type :number :min 0}
+          {:id :niveles :label "Niveles" :type :number :min 1 :value 1}
+          {:id :antiguedad_anos :label "Antigüedad (años)" :type :number :min 0}
+
+          ;; Amenidades
+          {:id :alberca :label "Alberca" :type :radio :value "F" :options [{:id "albercaF" :value "F" :label "No"}
+                                                                           {:id "albercaT" :value "T" :label "Si"}]}
+          {:id :jardin :label "Jardín" :type :radio :value "F" :options [{:id "jardinF" :value "F" :label "no"}
+                                                                         {:id "jardinT" :value "T" :label "Si"}]}
+          {:id :roof_garden :label "Roof Garden" :type :radio :value "F" :options [{:id "roof_gardenF" :value "F" :label "No"}
+                                                                                   {:id "roof_gardenT" :value "T" :label "Si"}]}
+          {:id :terraza :label "Terraza" :type :radio :value "F" :options [{:id "terrazaF" :value "F" :label "No"}
+                                                                           {:id "terrazaT" :value "T" :label "Si"}]}
+          {:id :gym :label "Gimnasio" :type :radio :value "F" :options [{:id "gymF" :value "F" :label "No"}
+                                                                        {:id "gymT" :value "T" :label "Si"}]}
+          {:id :seguridad_24h :label "Seguridad 24h" :type :radio :value "F" :options [{:id "s24F" :value "F" :label "No"}
+                                                                                       {:id "s24T" :value "T" :label "Si"}]}
+          {:id :balcon :label "Balcón" :type :radio :value "F" :options [{:id "balconF" :value "F" :label "No"}
+                                                                         {:id "balconT" :value "T" :label "Si"}]}
+          {:id :cuarto_servicio :label "Cuarto de Servicio" :type :radio :value "F" :options [{:id "csF" :value "F" :label "No"}
+                                                                                              {:id "csT" :value "T" :label "Si"}]}
+          {:id :area_juegos :label "Área de Juegos" :type :radio :value "F" :options [{:id "ajF" :value "F" :label "No"}
+                                                                                      {:id "ajT" :value "T" :label "Si"}]}
+          {:id :salon_eventos :label "Salón de Eventos" :type :radio :value "F" :options [{:id "seF" :value "F" :label "No"}
+                                                                                          {:id "seT" :value "T" :label "Si"}]}
+
+           ;; Comercial
+          {:id :operacion
+           :label "Operación"
+           :type :select
+           :required true
+           :value "Venta"
+           :options [{:value "Venta" :label "Venta"}
+                     {:value "Renta" :label "Renta"}
+                     {:value "Ambos" :label "Venta y Renta"}]}
+
+          {:id :precio_venta
+           :label "Precio de Venta"
+           :type :decimal
+           :min 0
+           :validation :br.validators.common/precio-razonable?}
+          {:id :precio_renta :label "Precio de Renta Mensual" :type :decimal :min 0}
+          {:id :moneda :label "Moneda" :type :select :value "MXN"
+           :options [{:value "MXN" :label "MXN - Peso Mexicano"}
+                     {:value "USD" :label "USD - Dólar"}]}
+
+          {:id :status
+           :label "Estatus"
+           :type :select
+           :value "Disponible"
+           :options [{:value "Disponible" :label "Disponible"}
+                     {:value "Reservada" :label "Reservada"}
+                     {:value "Vendida" :label "Vendida"}
+                     {:value "Rentada" :label "Rentada"}]}
+
+          {:id :agente_id
+           :label "Agente Responsable"
+           :type :fk
+           :fk :agentes
+           :fk-field [:nombre :apellido_paterno :apellido_materno]
+           :required? true
+           :hidden-in-grid? true}
+
+          {:id :cliente_propietario_id
+           :label "Propietario"
+           :type :fk
+           :fk :clientes
+           :fk-field [:nombre :apellido_paterno :apellido_materno]}
+
+          {:id :destacada :label "Propiedad Destacada" :type :radio :value "F" :options [{:id "destacadaF" :value "F" :label "No"}
+                                                                                         {:id "destacadaT" :value "T" :label "Si"}]}
+          {:id :activo :label "Activo" :type :radio :value "T" :options [{:id "activoT" :value "T" :label "Activo"}
+                                                                         {:id "activoF" :value "F" :label "Inactivo"}]}
+
+          ;; Campos de solo lectura
+          {:id :visitas :label "Visitas" :type :number :hidden-in-form? true}
+          {:id :fecha_registro :label "Fecha Registro" :type :date :hidden-in-form? true}
+
+          ;; Audit columns
+          {:id :created_by :label "Created By" :type :hidden}
+          {:id :created_at :label "Created At" :type :hidden}
+          {:id :modified_by :label "Modified By" :type :hidden}
+          {:id :modified_at :label "Modified At" :type :hidden}]
+
+ :queries {:list "SELECT p.*, 
+                 tp.nombre as tipo_nombre,
+                 e.nombre as estado_nombre,
+                 m.nombre as municipio_nombre,
+                 concat(a.nombre,' ',a.apellido_paterno) as agente_nombre
+          FROM propiedades p
+          LEFT JOIN tipos_propiedad tp ON p.tipo_id = tp.id
+          LEFT JOIN estados e ON p.estado_id = e.id
+          LEFT JOIN municipios m ON p.municipio_id = m.id
+          LEFT JOIN agentes a ON p.agente_id = a.id
+          WHERE p.activo = 'T'
+          ORDER BY p.fecha_registro DESC"
+
+           :get "SELECT p.*,
+                tp.nombre as tipo_nombre,
+                e.nombre as estado_nombre,
+                m.nombre as municipio_nombre,
+                concat(a.nombre,' ',a.apellido_paterno) as agente_nombre
+                FROM propiedades p
+                LEFT JOIN tipos_propiedad tp ON p.tipo_id = tp.id
+                LEFT JOIN estados e on p.estado_id = e.id
+                LEFT JOIN municipios m ON p.municipio_id = m.id
+                LEFT JOIN agentes a ON p.agente_id = a.id
+                WHERE p.id = ?"}
+
+ :actions {:new true :edit true :delete false}
+
+ :hooks {:before-load :br.hooks.propiedades/cargar-opciones
+         :before-save :br.hooks.propiedades/validar-propiedad
+         :after-save :br.hooks.propiedades/generar-clave
+         :before-delete :br.hooks.propiedades/verificar-transacciones}
+
+ :subgrids [{:entity :fotos_propiedad
+             :foreign-key :propiedad_id
+             :title "Fotos"
+             :icon "bi bi-images"}
+
+            {:entity :avaluos
+             :foreign-key :propiedad_id
+             :title "Avalúos"
+             :icon "bi bi-graph-up"}
+
+            {:entity :citas
+             :foreign-key :propiedad_id
+             :title "Citas/Visitas"
+             :icon "bi bi-calendar-event"}]}
 ```
 
 **That's it!** Visit `/admin/products` - Full CRUD interface is live.
@@ -90,7 +281,7 @@ Create `resources/entities/products.edn`:
 └──────────────────────────────────────────────────────┘
                           ↓
 ┌──────────────────────────────────────────────────────┐
-│   Engine Layer (src/{{name}}/engine/)                │
+│   Engine Layer (src/br/engine/)                │
 │   ├── app-config.edn - Configuration registry       │
 │   ├── query.clj    - Query execution                │
 │   ├── crud.clj     - CRUD operations                │
@@ -260,6 +451,38 @@ WebGen supports comprehensive field types for building enterprise forms:
  :fk-filter [:activo "T"]}
 {:id :categories_id :label "Category" :type :select :options :inv.models.lookups/get-categories}
 {:id :id :label "ID" :type :hidden}
+
+;; Dependent select fields
+;; Ubicación
+{:id :estado_id
+    :label "Estado"
+        :type :fk
+        :fk :estados
+        :fk-field [:nombre]
+        :fk-can-create? true ;; this flag allows enterin estados via a modal popup
+        :required? true
+        :hidden-in-grid? true}
+{:id :estado_nombre :label "Estado" :grid-only? true}
+
+{:id :municipio_id
+    :label "Municipio"
+        :type :fk
+        :fk :municipios
+        :fk-field [:nombre]
+        :fk-parent :estado_id
+        :fk-can-create? true ;; this flag allows entering municipios via a modal popup
+        :hidden-in-grid? true}
+{:id :municipio_nombre :label "Municipio" :grid-only? true}
+
+{:id :colonia_id
+    :label "Colonia"
+        :type :fk
+        :fk :colonias
+        :fk-field [:nombre :codigo_postal]
+        :fk-parent :municipio_id
+        :fk-can-create? true ;; this flag allows entering colonias via a modal popup.
+        :hidden-in-grid? true}
+{:id :agente_nombre :label "Agente" :grid-only? true}
 ```
 
 ---
@@ -368,10 +591,10 @@ Hooks allow custom business logic without modifying core code.
 
 ### **Example: Password Hashing**
 
-Create `src/{{name}}/hooks/users.clj`:
+Create `src/br/hooks/users.clj`:
 
 ```clojure
-(ns {{name}}.hooks.users
+(ns br.hooks.users
   (:require [buddy.hashers :as hashers]))
 
 (defn hash-password
@@ -396,8 +619,8 @@ Reference in config:
 
 ```clojure
 {:entity :users
- :hooks {:before-save :{{name}}.hooks.users/hash-password
-         :after-save :{{name}}.hooks.users/send-welcome-email}}
+ :hooks {:before-save :br.hooks.users/hash-password
+         :after-save :br.hooks.users/send-welcome-email}}
 ```
 
 ---
@@ -411,9 +634,9 @@ Reference in config:
 
 ### **Function-Based Queries**
 ```clojure
-;; In src/{{name}}/queries/products.clj
-(ns {{name}}.queries.products
-  (:require [{{name}}.models.crud :as crud]))
+;; In src/br/queries/products.clj
+(ns br.queries.products
+  (:require [br.models.crud :as crud]))
 
 (defn low-stock [params conn]
   (let [threshold (or (:threshold params) 10)]
@@ -421,12 +644,12 @@ Reference in config:
                 :conn conn)))
 
 ;; In config
-:queries {:low-stock :{{name}}.queries.products/low-stock}
+:queries {:low-stock :br.queries.products/low-stock}
 ```
 
 Execute:
 ```clojure
-(require '[{{name}}.engine.query :as query])
+(require '[br.engine.query :as query])
 (query/custom-query :products :low-stock {:threshold 5})
 ```
 
@@ -579,7 +802,7 @@ lein scaffold avaluos
  :connections
  {:sqlite {:db-type "sqlite"
            :db-class "org.sqlite.JDBC"
-           :db-name "db/{{name}}.sqlite"}
+           :db-name "db/br.sqlite"}
    
   :mysql {:db-type "mysql"
           :db-host "localhost"
@@ -600,7 +823,7 @@ lein scaffold avaluos
   :localdb :sqlite}             ; Alias for local development
  
  :theme "sketchy"               ; Bootstrap theme
- :uploads "./uploads/{{name}}/" ; Upload directory
+ :uploads "./uploads/br/" ; Upload directory
  :max-upload-mb 5}              ; Max file size (MB)
 ```
 
@@ -666,19 +889,19 @@ Add hooks, custom queries, validators - all in EDN or separate namespace.
 
 ```clojure
 ;; Load entity config
-(require '[{{name}}.engine.config :as config])
+(require '[br.engine.config :as config])
 (config/load-entity-config :users)
 
 ;; List all entities
 (config/list-available-entities)
 
 ;; Query data
-(require '[{{name}}.engine.query :as query])
+(require '[br.engine.query :as query])
 (query/list-records :users)
 (query/get-record :users 1)
 
 ;; CRUD operations
-(require '[{{name}}.engine.crud :as crud])
+(require '[br.engine.crud :as crud])
 (crud/save-record :users {:lastname "Doe" :firstname "John"})
 (crud/delete-record :users 5)
 
@@ -753,11 +976,11 @@ Run: `lein migrate`
 
 ### **Step 4: Business Logic**
 
-`src/{{name}}/hooks/inventory.clj`:
+`src/br/hooks/inventory.clj`:
 
 ```clojure
-(ns {{name}}.hooks.inventory
-  (:require [{{name}}.models.crud :as crud]))
+(ns br.hooks.inventory
+  (:require [br.models.crud :as crud]))
 
 (defn update-stock
   "Updates product stock after movement"
@@ -788,7 +1011,7 @@ Run: `lein migrate`
 ### **Before (Generated)**
 
 ```
-src/{{name}}/handlers/admin/users/
+src/br/handlers/admin/users/
 ├── controller.clj    (50 lines)
 ├── model.clj        (45 lines)
 └── view.clj         (130 lines)
@@ -808,7 +1031,7 @@ Multiply by 27 entities = **1,755 lines saved!**
 
 ## **Documentation:** **API Reference**
 
-### **Configuration (`{{name}}.engine.config`)**
+### **Configuration (`br.engine.config`)**
 
 ```clojure
 (load-entity-config :users)           ; Load config
@@ -818,7 +1041,7 @@ Multiply by 27 entities = **1,755 lines saved!**
 (get-display-fields :users)           ; Get grid fields
 ```
 
-### **Queries (`{{name}}.engine.query`)**
+### **Queries (`br.engine.query`)**
 
 ```clojure
 (list-records :users)                 ; List all
@@ -827,7 +1050,7 @@ Multiply by 27 entities = **1,755 lines saved!**
 (list-with-hooks :users)              ; With hooks
 ```
 
-### **CRUD (`{{name}}.engine.crud`)**
+### **CRUD (`br.engine.crud`)**
 
 ```clojure
 (save-record :users {...})            ; Create/update
@@ -868,7 +1091,7 @@ ERROR: relation "products" does not exist
 
 ```clojure
 ;; Force reload
-(require '[{{name}}.engine.config :as config])
+(require '[br.engine.config :as config])
 (config/reload-all!)
 ```
 
@@ -901,10 +1124,10 @@ Define schema in migrations, reference in entities:
 ### **3. Separate Business Logic**
 
 ```
-src/{{name}}/hooks/          - Business logic hooks
-src/{{name}}/queries/        - Complex queries
-src/{{name}}/validators/     - Custom validators
-src/{{name}}/views/          - Custom UI renderers
+src/br/hooks/          - Business logic hooks
+src/br/queries/        - Complex queries
+src/br/validators/     - Custom validators
+src/br/views/          - Custom UI renderers
 ```
 
 ### **4. Leverage Subgrids**

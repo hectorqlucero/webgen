@@ -203,14 +203,18 @@
                          :options resolved-options})
 
       :fk
-      ;; Foreign key select
+      ;; Foreign key select with dependent select and create support
       (form/build-field {:label label
                          :type "select"
                          :id (name id)
                          :name (name id)
                          :required required?
                          :value (str field-value)
-                         :options resolved-options})
+                         :options resolved-options
+                         :fk-parent (:fk-parent field)
+                         :fk-entity (:fk field)
+                         :fk-can-create (:fk-can-create? field)
+                         :fk-form-fields (:fk-form-fields field)})
 
       :radio
       (form/build-field {:label label

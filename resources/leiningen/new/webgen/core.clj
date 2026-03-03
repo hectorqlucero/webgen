@@ -7,6 +7,7 @@
    [{{sanitized}}.routes.routes :refer [open-routes]]
    [{{sanitized}}.routes.i18n :refer [i18n-routes]]
    [{{sanitized}}.routes.tabgrid :refer [tabgrid-routes]]
+   [{{sanitized}}.routes.fk-api :refer [fk-api-routes]]
    [{{sanitized}}.engine.router :as engine]
    [{{sanitized}}.config.loader :as cfg]
    [clojure.string :as str]
@@ -105,17 +106,17 @@
                 kind (when sql? (classify-sql rc msg))
                 dd (when (= kind :unique) (dup-details msg))
 ;; Decide status and friendly message (with localization support)
-                 [status plain] (cond
-                                  csrf? [403 (cfg/get-error-message :security :csrf :es)]
-                                  (= kind :unique) [409 (if-let [f (:field dd)] 
-                                                          (str (cfg/get-error-message :database :unique :es) " " f)
-                                                          (cfg/get-error-message :database :unique :es))]
-                                  (= kind :fk)     [409 (cfg/get-error-message :database :foreign-key :es)]
-                                  (= kind :not-null) [422 (cfg/get-error-message :database :not-null :es)]
-                                  (= kind :check)  [422 (cfg/get-error-message :database :check :es)]
-                                  (= kind :too-long) [422 (cfg/get-error-message :database :too-long :es)]
-                                  sql? [400 (cfg/get-error-message :database :general :es)]
-                                  :else [400 (cfg/get-error-message :database :general :es)])
+                [status plain] (cond
+                                 csrf? [403 (cfg/get-error-message :security :csrf :es)]
+                                 (= kind :unique) [409 (if-let [f (:field dd)]
+                                                         (str (cfg/get-error-message :database :unique :es) " " f)
+                                                         (cfg/get-error-message :database :unique :es))]
+                                 (= kind :fk)     [409 (cfg/get-error-message :database :foreign-key :es)]
+                                 (= kind :not-null) [422 (cfg/get-error-message :database :not-null :es)]
+                                 (= kind :check)  [422 (cfg/get-error-message :database :check :es)]
+                                 (= kind :too-long) [422 (cfg/get-error-message :database :too-long :es)]
+                                 sql? [400 (cfg/get-error-message :database :general :es)]
+                                 :else [400 (cfg/get-error-message :database :general :es)])
                 body-json (let [base {:ok false :error plain}
                                 base (if dd (merge base dd) base)]
                             (json/write-str base))]
@@ -144,8 +145,10 @@
      (wrap-routes open-routes)
      ;; I18n language switching routes
      (wrap-routes i18n-routes)
-     ;; TabGrid AJAX routes
-     (wrap-login (wrap-routes tabgrid-routes))
+      ;; FK API routes (for dependent selects and create modal)
+     (wrap-routes fk-api-routes)
+      ;; TabGrid AJAX routes
+     (wrap-routes tabgrid-routes)
      ;; Legacy generated routes (for backward compatibility)
      (wrap-login (wrap-routes proutes))
      ;; Parameter-driven engine routes (NEW)
@@ -165,7 +168,7 @@
 ;; The order of middleware matters: defaults/multipart first, exception handling outermost.
 (defn create-app
   []
-(-> (app-routes)
+  (-> (app-routes)
       (wrap-multipart-params)
       (wrap-defaults (-> site-defaults
                          (assoc-in [:security :anti-forgery] true)

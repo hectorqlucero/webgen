@@ -117,6 +117,7 @@
              ["src/{{sanitized}}/models/db/postgres.clj" (render "models-db-postgres.clj" data)]
 
              ;; Routes
+             ["src/{{sanitized}}/routes/fk_api.clj" (render "routes-fk_api.clj" data)]
              ["src/{{sanitized}}/routes/proutes.clj" (render "routes-proutes.clj" data)]
              ["src/{{sanitized}}/routes/routes.clj" (render "routes-routes.clj" data)]
              ["src/{{sanitized}}/routes/i18n.clj" (render "routes-i18n.clj" data)]

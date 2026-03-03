@@ -178,6 +178,38 @@
  :label "Category"
  :type :select
  :options :inv.models.lookups/get-categories}
+
+;; Dependent select fields
+;; Ubicación
+{:id :estado_id
+    :label "Estado"
+        :type :fk
+        :fk :estados
+        :fk-field [:nombre]
+        :fk-can-create? true ;; this flag allows enterin estados via a modal popup
+        :required? true
+        :hidden-in-grid? true}
+{:id :estado_nombre :label "Estado" :grid-only? true}
+
+{:id :municipio_id
+    :label "Municipio"
+        :type :fk
+        :fk :municipios
+        :fk-field [:nombre]
+        :fk-parent :estado_id
+        :fk-can-create? true ;; this flag allows entering municipios via a modal popup
+        :hidden-in-grid? true}
+{:id :municipio_nombre :label "Municipio" :grid-only? true}
+
+{:id :colonia_id
+    :label "Colonia"
+        :type :fk
+        :fk :colonias
+        :fk-field [:nombre :codigo_postal]
+        :fk-parent :municipio_id
+        :fk-can-create? true ;; this flag allows entering colonias via a modal popup.
+        :hidden-in-grid? true}
+{:id :agente_nombre :label "Agente" :grid-only? true}
 ```
 
 #### Radio Buttons
