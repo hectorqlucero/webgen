@@ -331,7 +331,7 @@
             var parentField = selectEl.getAttribute('data-fk-parent');
             var fkFormFields = selectEl.getAttribute('data-fk-form-fields');
             var parentValue = '';
-            
+
             // If not on select, look in the input-group sibling button
             if (!fkFormFields) {
               var nextButton = selectEl.nextElementSibling;
@@ -339,16 +339,16 @@
                 fkFormFields = nextButton.getAttribute('data-fk-form-fields');
               }
             }
-            
+
             console.log('[FK] Refreshing select:', { entity: entity, parentField: parentField, fkFormFields: fkFormFields });
-            
+
             if (parentField) {
               var parentSelect = document.querySelector('[name="' + parentField + '"]');
               if (parentSelect) {
                 parentValue = parentSelect.value;
               }
             }
-            
+
             // Build the URL to fetch options
             var url = '/api/fk-options?entity=' + encodeURIComponent(entity);
             if (parentField && parentValue) {
@@ -358,13 +358,19 @@
               url += '&fk-fields=' + encodeURIComponent(fkFormFields);
               console.log('[FK] Using fk-form-fields:', fkFormFields);
             }
-            
-              fetch(url)
-              .then(function(resp) { return resp.json(); })
-              .then(function(data) {
+
+            console.log('[FK] Refreshing with URL:', url);
+
+            fetch(url)
+              .then(function (resp) {
+                console.log('[FK] Refresh response status:', resp.status);
+                return resp.json();
+              })
+              .then(function (data) {
+                console.log('[FK] Refresh response data:', data);
                 if (data.ok && data.options) {
                   selectEl.innerHTML = '';
-                  data.options.forEach(function(opt) {
+                  data.options.forEach(function (opt) {
                     var option = document.createElement('option');
                     option.value = opt.value;
                     option.textContent = opt.label;
@@ -374,7 +380,13 @@
                   if (selectEl.options.length > 0) {
                     selectEl.selectedIndex = selectEl.options.length - 1;
                   }
+                  console.log('[FK] Select refreshed successfully, selected index:', selectEl.selectedIndex);
+                } else {
+                  console.warn('[FK] Refresh failed - no options returned:', data.error);
                 }
+              })
+              .catch(function (err) {
+                console.error('[FK] Refresh fetch error:', err);
               });
           }
 
