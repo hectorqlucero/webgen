@@ -5,6 +5,7 @@
    [{{sanitized}}.engine.crud :as crud]
    [{{sanitized}}.models.crud :as model-crud]
    [{{sanitized}}.models.util :refer [json-response]]
+   [{{sanitized}}.i18n.core :as i18n]
    [clojure.string :as str]
    [clojure.data.json :as json]
    [{{sanitized}}.engine.render :as render]
@@ -16,6 +17,12 @@
   [params]
   (when-let [entity-str (or (get params "entity") (get params :entity))]
     (keyword entity-str)))
+
+(defn- parse-lang-param
+  "Parse language parameter from request, default to :es"
+  [params]
+  (let [lang-str (or (get params "lang") (get params :lang) "es")]
+    (keyword lang-str)))
 
 (defn- parse-parent-param
   "Parse parent field and value parameters; support string or keyword keys."
@@ -34,67 +41,48 @@
       data-json)))
 
 (defn- parse-fk-fields-param
-  "Parse fk-fields parameter - can be comma/space separated list or array.
-   Returns a vector of keywords."
+  "Parse fk-fields parameter from request. Returns a vector of keywords."
   [params]
-  (when-let [fk-fields (or (get params "fk-fields") (get params :fk-fields))]
-    (cond
-      (string? fk-fields)
-      ;; Parse comma/space-separated string into keywords
-      (let [trimmed (.trim fk-fields)]
-        (if (empty? trimmed)
-          nil
-          (mapv keyword (clojure.string/split trimmed #"[,\s]+"))))
-      (vector? fk-fields)
-      ;; Already a vector, ensure keywords
-      (mapv (fn [f] (if (keyword? f) f (keyword f))) fk-fields)
-      (coll? fk-fields)
-      ;; Other collection type, convert to vector of keywords
-      (mapv (fn [f] (if (keyword? f) f (keyword f))) fk-fields)
-      :else nil)))
+  (when-let [fk-fields-str (or (get params "fk-fields") (get params :fk-fields))]
+    (if (string? fk-fields-str)
+      (mapv keyword (str/split fk-fields-str #","))
+      (if (sequential? fk-fields-str)
+        (mapv keyword fk-fields-str)
+        [(keyword fk-fields-str)]))))
 
 (defn- build-fk-sql
-  "Build SQL query for FK options.
-   Handles both parent-field filtering (dependent selects) and :fk-filter (config-based filtering).
-   fk-fields-to-select parameter allows overriding the fields from request params."
-  [entity parent-field fk-fields-to-select fk-config]
-  (let [fk-fields (or fk-fields-to-select
-                      (:fk-field fk-config)
-                      [:nombre])
-        sort-by (or (:fk-sort fk-config) [:nombre])
-        separator (or (:fk-separator fk-config) " — ")
+  "Build SQL query for FK options. If parent-field is nil, returns all records.
+   If sort-by is not provided, defaults to sorting by the first fk-field."
+  [entity parent-field fk-fields sort-by]
+  (when-not fk-fields
+    (throw (Exception. (str "fk-fields is required for entity " (name entity)))))
+  (let [fk-fields fk-fields
+        sort-by (or sort-by (when (seq fk-fields) [(first fk-fields)]))
         fields-str (str/join ", " (map name fk-fields))
-        order-str (str/join ", " (map name (if (sequential? sort-by) sort-by [sort-by])))
-
-        ;; Build WHERE clauses for both parent-field and :fk-filter
-        ;; Order matters: parent-field first, then fk-filter
-        parent-where (when parent-field
-                       (str (name (keyword parent-field)) " = ?"))
-        fk-filter (:fk-filter fk-config)
-        filter-where (when fk-filter
-                       (str (name (first fk-filter)) " = ?"))
-
-        ;; Combine WHERE clauses with AND; preserve order
-        where-parts (cond-> []
-                      parent-where (conj parent-where)
-                      filter-where (conj filter-where))
-        where-clause (when (seq where-parts)
-                       (str " WHERE " (str/join " AND " where-parts)))]
-
-    (str "SELECT id, " fields-str
-         " FROM " (name entity)
-         where-clause
-         " ORDER BY " order-str)))
+        order-str (when sort-by (str/join ", " (map name (if (sequential? sort-by) sort-by [sort-by]))))]
+    (if parent-field
+      (let [parent-field-kw (keyword parent-field)]
+        (str "SELECT id, " fields-str
+             " FROM " (name entity)
+             " WHERE " (name parent-field-kw) " = ?"
+             (when order-str (str " ORDER BY " order-str))))
+      ;; No parent field - return all records
+      (str "SELECT id, " fields-str
+           " FROM " (name entity)
+           (when order-str (str " ORDER BY " order-str))))))
 
 (defn- format-fk-options
-  "Format FK options with labels. If fk-fields is nil or empty, default to [:nombre]."
-  [rows fk-fields separator]
-  (let [fk-fields (or (and (seq fk-fields) fk-fields) [:nombre])
+  "Format FK options with labels."
+  [rows fk-fields separator locale]
+  (when-not fk-fields
+    (throw (Exception. "fk-fields is required for formatting options")))
+  (let [fk-fields fk-fields
         label-fn (fn [row]
                    (->> fk-fields
                         (map #(str (get row % "")))
-                        (str/join separator)))]
-    (cons {:value "" :label "-- Seleccionar --"}
+                        (str/join separator)))
+        select-label (i18n/tr locale :common/select)]
+    (cons {:value "" :label (str "-- " select-label " --")}
           (map (fn [row]
                  {:value (str (:id row))
                   :label (label-fn row)})
@@ -102,40 +90,29 @@
 
 ;; === Main Functions ===
 (defn get-fk-options
-  "Returns FK options.
-   - If parent-field and parent-value provided: returns filtered options (dependent select)
-   - If parent-field/value missing: returns all records from FK entity (direct FK field)
-   - Always applies :fk-filter if configured in the entity
-   - Uses fk-fields from request param if provided, otherwise falls back to entity config"
+  "Returns FK options based on parent field value (if present) or all options.
+   Respects fk-fields parameter from client if provided, otherwise uses config."
   [request]
   (let [params (:params request)
         entity (parse-entity-param params)
-        [parent-field parent-value] (parse-parent-param params)]
+        [parent-field parent-value] (parse-parent-param params)
+        request-fk-fields (parse-fk-fields-param params)
+        lang (parse-lang-param params)]
 
     (if entity
       (try
         (let [fk-config (config/get-entity-config entity)
-              ;; Priority: request param > entity config > default
-              fk-fields (or (parse-fk-fields-param params)
-                            (:fk-field fk-config)
-                            [:nombre])
+              fk-fields (or request-fk-fields (:fk-field fk-config))
               separator (or (:fk-separator fk-config) " — ")
-              sql (build-fk-sql entity parent-field fk-fields fk-config)
-
-              ;; Build query params in same order as WHERE clause: parent-value first, then fk-filter value
-              fk-filter (:fk-filter fk-config)
-              param-values (cond-> []
-                             (and parent-field parent-value)
-                             (conj (Integer/parseInt parent-value))
-                             fk-filter
-                             (conj (second fk-filter)))
-
-              query-params (if (seq param-values)
-                             (into [sql] param-values)
-                             [sql])
-              rows (model-crud/Query model-crud/db query-params)]
-          (if rows
-            (json-response {:ok true :options (format-fk-options rows fk-fields separator)})
+              sort-by (:fk-sort fk-config)
+              sql (build-fk-sql entity parent-field fk-fields sort-by)
+              query-params (if (and parent-field parent-value)
+                             [(Integer/parseInt parent-value)]
+                             [])]
+          (if-let [rows (if (seq query-params)
+                          (model-crud/Query model-crud/db (into [sql] query-params))
+                          (model-crud/Query model-crud/db [sql]))]
+            (json-response {:ok true :options (format-fk-options rows fk-fields separator lang)})
             (json-response {:ok false :error "Database query failed" :options []})))
         (catch Exception e
           (println "[ERROR] get-fk-options:" (.getMessage e))
@@ -174,8 +151,7 @@
     ;; success map; determine new-id from known places
     (let [new-id (or (when (number? (:success result)) (:success result))
                      (get-in result [:data :id]))
-          new-label (get data-kw
-                         (first (or (:fk-field entity-config) [:nombre])))]
+          new-label (get data-kw (first (:fk-field entity-config)))]
       (json-response {:ok true :new-id new-id :new-label new-label}))
 
     (map? result)
@@ -185,7 +161,7 @@
     :else
     ;; result is not a map; fall back to previous logic
     (let [new-id (if (number? result) result (first result))
-          new-label (get data-kw (first (or (:fk-field entity-config) [:nombre])))]
+          new-label (get data-kw (first (:fk-field entity-config)))]
       (json-response {:ok true :new-id new-id :new-label new-label}))))
 
 (defn create-fk-record
@@ -216,8 +192,7 @@
    Includes both a lightweight `form-fields` vector (id,label,type,required?,placeholder)
    and a rendered HTML string (`form-html`) so the client can choose how to build the
    modal.  Using server‑side rendering keeps input types, options, and FK selects
-   in sync with the normal form logic.
-   Excludes fields marked as :grid-only? or :hidden-in-form?"
+   in sync with the normal form logic."
   [request]
   (let [params (:params request)
         entity (parse-entity-param params)]
@@ -225,14 +200,9 @@
     (if entity
       (try
         (let [entity-config (config/get-entity-config entity)
-              ;; Exclude grid-only and hidden-in-form fields
-              ;; Include all FK fields (dependent selects will filter by parent on client)
-              fields (remove (fn [f]
-                               (or
-                                ;; Exclude grid-only fields
-                                (:grid-only? f)
-                                ;; Exclude hidden-in-form fields
-                                (:hidden-in-form? f)))
+              ;; exclude grid-only fields and computed fk? fields (except parent fields)
+              fields (remove (fn [f] (or (and (:fk? f) (not= (:id f) (:fk-parent params)))
+                                         (:grid-only? f)))
                              (:fields entity-config))
               form-fields (map #(select-keys % [:id :label :type :required? :placeholder
                                                 :options :fk :fk-field :fk-parent])

@@ -3,44 +3,40 @@
 (function () {
   'use strict';
 
-  // debug switch - flip to true while troubleshooting
-  var FK_DEBUG = false;
-  function fkLog() {
-    if (FK_DEBUG) console.log.apply(console, arguments);
+  // Detect current language from HTML lang attribute or default to 'es'
+  function getCurrentLanguage() {
+    var htmlLang = document.documentElement.getAttribute('lang');
+    return htmlLang ? htmlLang.split('-')[0] : 'es';
   }
+
+  var currentLang = getCurrentLanguage();
+
+  // Make currentLang globally accessible for onclick handlers
+  window.currentLang = currentLang;
 
   // Initialize on DOM ready
   document.addEventListener('DOMContentLoaded', function () {
-    fkLog('[FK] DOM loaded, initializing...');
     initDependentSelects();
   });
 
   // Initialize dependent select change handlers
   function initDependentSelects() {
-    fkLog('[FK] initDependentSelects called');
     var dependentSelects = document.querySelectorAll('select[data-fk-parent]');
-    fkLog('[FK] Found dependent selects:', dependentSelects.length);
 
     dependentSelects.forEach(function (select) {
       var parentField = select.getAttribute('data-fk-parent');
       var fkEntity = select.getAttribute('data-fk-entity');
-      fkLog('[FK] Setting up:', { childId: select.id, parentField: parentField, fkEntity: fkEntity });
 
       var parentSelect = document.querySelector('[name="' + parentField + '"]');
-      fkLog('[FK] Parent select found:', parentSelect ? parentSelect.id : 'NOT FOUND');
 
       if (parentSelect) {
         parentSelect.addEventListener('change', function () {
-          fkLog('[FK] Change event fired on parent:', parentSelect.value);
           handleParentChange(select, parentSelect.value);
         });
 
         if (parentSelect.value) {
-          fkLog('[FK] Parent already has value, loading options');
           handleParentChange(select, parentSelect.value);
         }
-      } else {
-        console.warn('[FK] WARNING: Parent select not found for field:', parentField);
       }
     });
   }
@@ -49,8 +45,7 @@
   function handleParentChange(childSelect, parentValue) {
     var entity = childSelect.getAttribute('data-fk-entity');
     var parentField = childSelect.getAttribute('data-fk-parent');
-
-    fkLog('[FK] handleParentChange called:', { entity: entity, parentField: parentField, parentValue: parentValue, childId: childSelect.id });
+    var fkFormFields = childSelect.getAttribute('data-fk-form-fields');
 
     if (!parentValue) {
       childSelect.innerHTML = '<option value="">-- Seleccionar --</option>';
@@ -63,17 +58,18 @@
 
     var url = '/api/fk-options?entity=' + encodeURIComponent(entity) +
       '&parent-field=' + encodeURIComponent(parentField) +
-      '&parent-value=' + encodeURIComponent(parentValue);
+      '&parent-value=' + encodeURIComponent(parentValue) +
+      '&lang=' + encodeURIComponent(window.currentLang || 'es');
 
-    fkLog('[FK] Fetching URL:', url);
+    if (fkFormFields) {
+      url += '&fk-fields=' + encodeURIComponent(fkFormFields);
+    }
 
     fetch(url)
       .then(function (response) {
-        fkLog('[FK] Response status:', response.status);
         return response.json();
       })
       .then(function (data) {
-        fkLog('[FK] Response data:', data);
         if (data.ok && data.options) {
           childSelect.innerHTML = data.options.map(function (opt) {
             var selected = opt.value === childSelect.getAttribute('data-fk-current-value') ? ' selected' : '';
@@ -81,12 +77,10 @@
           }).join('');
         } else {
           childSelect.innerHTML = '<option value="">-- Error --</option>';
-          console.error('FK options error:', data.error);
         }
         childSelect.disabled = false;
       })
       .catch(function (error) {
-        console.error('[FK] Fetch error:', error);
         childSelect.innerHTML = '<option value="">-- Error --</option>';
         childSelect.disabled = false;
       });
@@ -94,7 +88,7 @@
 
   // Create modal HTML
   function createFkModalHtml(entity, fieldId, parentField, parentValue, fkFormFields) {
-    var fields = fkFormFields ? fkFormFields.split(',') : ['nombre'];
+    var fields = fkFormFields ? fkFormFields.split(',') : [];
 
     return '<div class="modal fade" id="fkCreateModal" tabindex="-1">' +
       '<div class="modal-dialog modal-lg">' +
@@ -126,7 +120,6 @@
     if (selectEl && selectEl.dataset.fkEntity) {
       entity = selectEl.dataset.fkEntity;
     }
-    fkLog('[FK] showFkCreateModal called:', { entity: entity, fieldId: fieldId, parentField: parentField });
 
     var parentValue = '';
     if (parentField) {
@@ -139,7 +132,7 @@
     var fkFormFields = selectEl ? selectEl.getAttribute('data-fk-form-fields') : '';
 
     // Get entity configuration
-    fetch('/api/fk-modal-config?entity=' + encodeURIComponent(entity))
+    fetch('/api/fk-modal-config?entity=' + encodeURIComponent(entity) + '&lang=' + encodeURIComponent(window.currentLang || 'es'))
       .then(function (response) { return response.json(); })
       .then(function (config) {
         if (config.ok) {
@@ -172,11 +165,9 @@
             return;
           }
         }
-        console.error('Failed to load entity config:', config.error);
         createSimpleModal(entity, fieldId, parentField, parentValue);
       })
       .catch(function (error) {
-        console.error('Error loading entity config:', error);
         createSimpleModal(entity, fieldId, parentField, parentValue);
       });
   };
@@ -340,8 +331,6 @@
               }
             }
 
-            console.log('[FK] Refreshing select:', { entity: entity, parentField: parentField, fkFormFields: fkFormFields });
-
             if (parentField) {
               var parentSelect = document.querySelector('[name="' + parentField + '"]');
               if (parentSelect) {
@@ -350,24 +339,20 @@
             }
 
             // Build the URL to fetch options
-            var url = '/api/fk-options?entity=' + encodeURIComponent(entity);
+            var url = '/api/fk-options?entity=' + encodeURIComponent(entity) +
+              '&lang=' + encodeURIComponent(window.currentLang || 'es');
             if (parentField && parentValue) {
               url += '&parent-field=' + encodeURIComponent(parentField) + '&parent-value=' + encodeURIComponent(parentValue);
             }
             if (fkFormFields) {
               url += '&fk-fields=' + encodeURIComponent(fkFormFields);
-              console.log('[FK] Using fk-form-fields:', fkFormFields);
             }
-
-            console.log('[FK] Refreshing with URL:', url);
 
             fetch(url)
               .then(function (resp) {
-                console.log('[FK] Refresh response status:', resp.status);
                 return resp.json();
               })
               .then(function (data) {
-                console.log('[FK] Refresh response data:', data);
                 if (data.ok && data.options) {
                   selectEl.innerHTML = '';
                   data.options.forEach(function (opt) {
@@ -380,13 +365,9 @@
                   if (selectEl.options.length > 0) {
                     selectEl.selectedIndex = selectEl.options.length - 1;
                   }
-                  console.log('[FK] Select refreshed successfully, selected index:', selectEl.selectedIndex);
-                } else {
-                  console.warn('[FK] Refresh failed - no options returned:', data.error);
                 }
               })
               .catch(function (err) {
-                console.error('[FK] Refresh fetch error:', err);
               });
           }
 
@@ -417,7 +398,8 @@
     };
 
     var params = 'entity=' + encodeURIComponent(formData.entity) +
-      '&data=' + encodeURIComponent(JSON.stringify(formData));
+      '&data=' + encodeURIComponent(JSON.stringify(formData)) +
+      '&lang=' + encodeURIComponent(window.currentLang || 'es');
 
     // attach CSRF token as top-level form parameter if we found one
     if (tokenEl && tokenEl.name && tokenEl.value) {
@@ -436,23 +418,19 @@
   }
 
   // Set up MutationObserver to handle dynamically loaded forms (like in modals)
-  fkLog('[FK] Setting up MutationObserver...');
   if (typeof MutationObserver !== 'undefined') {
     var observer = new MutationObserver(function (mutations) {
-      fkLog('[FK] MutationObserver triggered, mutations:', mutations.length);
       mutations.forEach(function (mutation) {
         if (mutation.addedNodes.length === 0) return;
         mutation.addedNodes.forEach(function (node) {
           if (node.nodeType === 1) { // Element node
             var dependentSelects = node.querySelectorAll ? node.querySelectorAll('select[data-fk-parent]') : [];
             if (dependentSelects.length > 0) {
-              fkLog('[FK] Found dependent selects in dynamically added content:', dependentSelects.length);
               dependentSelects.forEach(function (select) {
                 if (!select.dataset.fkInitialized) {
                   select.dataset.fkInitialized = 'true';
                   var parentField = select.getAttribute('data-fk-parent');
                   var parentSelect = document.querySelector('[name="' + parentField + '"]');
-                  fkLog('[FK] Setting up dependent select:', select.id, 'parent:', parentField, 'parent found:', !!parentSelect);
                   if (parentSelect) {
                     parentSelect.addEventListener('change', function () {
                       handleParentChange(select, parentSelect.value);
@@ -470,7 +448,6 @@
     });
 
     observer.observe(document.body, { childList: true, subtree: true });
-    fkLog('[FK] MutationObserver started');
   }
 
 })();

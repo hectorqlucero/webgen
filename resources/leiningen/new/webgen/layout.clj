@@ -289,6 +289,7 @@
 ;; Add theme class to <body> using (:theme config)
 (defn application [request title ok js & content]
   (html5
+   {:lang "es"}  ;; Set default language to Spanish
    [:head
     [:style ".preload { visibility: hidden; }"]
     [:script

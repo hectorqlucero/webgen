@@ -173,8 +173,10 @@
             select-id (name (:id args))
             ;; Data attributes for fk selects (only if fk-entity is present)
             data-attrs (when fk-entity
-                         (let [base {:data-fk-entity (name fk-entity)
-                                     :data-fk-current-value (str (:value args))}]
+                         (let [base (merge {:data-fk-entity (name fk-entity)
+                                            :data-fk-current-value (str (:value args))}
+                                           (when fk-form-fields
+                                             {:data-fk-form-fields (str/join "," (map name fk-form-fields))}))]
                            (if fk-parent
                              (assoc base :data-fk-parent (name fk-parent))
                              base)))
@@ -209,10 +211,11 @@
            label-el
            [:div.input-group
             select-el
-            [:button.btn.btn-outline-success.btn-lg {:type "button"
-                                                     :title "Agregar nuevo"
-                                                     :onclick (format "showFkCreateModal('%s', '%s', '%s', this)" (name fk-entity) select-id (name (or fk-parent "")))
-                                                     :data-fk-form-fields (str/join "," (map name (or fk-form-fields [:nombre])))}
+            [:button.btn.btn-outline-success.btn-lg (merge {:type "button"
+                                                            :title "Agregar nuevo"
+                                                            :onclick (format "showFkCreateModal('%s', '%s', '%s', this)" (name fk-entity) select-id (name (or fk-parent "")))}
+                                                           (when fk-form-fields
+                                                             {:data-fk-form-fields (str/join "," (map name fk-form-fields))}))
              [:i.bi.bi-plus-circle]]]]
           ;; Standard select
           [:div.mb-3
