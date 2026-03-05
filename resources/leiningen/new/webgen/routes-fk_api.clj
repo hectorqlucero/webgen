@@ -62,26 +62,48 @@
                rows))))
 
 ;; === Main Functions ===
+(defn- parse-fk-fields-param
+  "Parse fk-fields parameter from request"
+  [params]
+  (when-let [fields-str (or (get params "fk-fields") (get params :fk-fields))]
+    (if (string? fields-str)
+      (map keyword (str/split fields-str #","))
+      fields-str)))
+
 (defn get-fk-options
-  "Returns filtered FK options based on parent field value."
+  "Returns filtered FK options based on parent field value.
+   If parent-field and parent-value are provided, filters by parent.
+   Otherwise returns all options for the entity.
+   Accepts fk-fields parameter to specify which fields to display (from calling field config)."
   [request]
   (let [params (:params request)
         entity (parse-entity-param params)
-        [parent-field parent-value] (parse-parent-param params)]
+        [parent-field parent-value] (parse-parent-param params)
+        fk-fields-param (parse-fk-fields-param params)]
 
-    (if (and entity parent-field parent-value)
+    (if entity
       (try
         (let [fk-config (config/get-entity-config entity)
-              fk-fields (or (:fk-field fk-config) [:nombre])
-              separator (or (:fk-separator fk-config) " — ")
-              sql (build-fk-sql entity parent-field fk-config)]
-          (if-let [rows (model-crud/Query model-crud/db [sql (Integer/parseInt parent-value)])]
-            (json-response {:ok true :options (format-fk-options rows fk-fields separator)})
-            (json-response {:ok false :error "Database query failed" :options []})))
+              ;; Use provided fk-fields if available, otherwise fall back to entity config
+              fk-fields (or fk-fields-param
+                            (:fk-field fk-config)
+                            [:nombre])
+              separator (:fk-separator fk-config)]
+          (if (and parent-field parent-value)
+            ;; Filtered by parent (dependent select)
+            (let [sql (build-fk-sql entity parent-field fk-config)]
+              (if-let [rows (model-crud/Query model-crud/db [sql (Integer/parseInt parent-value)])]
+                (json-response {:ok true :options (format-fk-options rows fk-fields separator)})
+                (json-response {:ok false :error "Database query failed" :options []})))
+            ;; No parent - return all options
+            (let [order-str (str/join ", " (map name fk-fields))
+                  sql (str "SELECT id, " (str/join ", " (map name fk-fields)) " FROM " (name entity) " ORDER BY " order-str)
+                  rows (model-crud/Query model-crud/db [sql])]
+              (json-response {:ok true :options (format-fk-options rows fk-fields (or separator " — "))}))))
         (catch Exception e
           (println "[ERROR] get-fk-options:" (.getMessage e))
           (json-response {:ok false :error (.getMessage e) :options []})))
-      (json-response {:ok false :error "Missing required params" :options []}))))
+      (json-response {:ok false :error "Missing entity parameter" :options []}))))
 
 (defn validate-fk-data
   "Validates FK data against entity configuration."
@@ -109,12 +131,19 @@
   [result entity-config data-kw]
   (cond
     (and (map? result) (:errors result))
-    (json-response {:ok false :errors (:errors result)})
+    (let [errors (if (map? (:errors result))
+                   (:errors result)
+                   (into {} (map (fn [e] [(:field e) (:message e)]) (:errors result))))]
+      (json-response {:ok false :errors errors}))
 
     (and (map? result) (:success result))
     ;; success map; determine new-id from known places
-    (let [new-id (or (when (number? (:success result)) (:success result))
-                     (get-in result [:data :id]))
+    (let [success-val (:success result)
+          data-id (get-in result [:data :id])
+          new-id (cond
+                   (number? success-val) success-val
+                   (and data-id (not (empty? data-id))) data-id
+                   :else nil)
           new-label (get data-kw
                          (first (or (:fk-field entity-config) [:nombre])))]
       (json-response {:ok true :new-id new-id :new-label new-label}))
@@ -134,18 +163,17 @@
   [request]
   (let [params (:params request)
         entity (parse-entity-param params)
-        data (parse-data-param params)]
+        data (parse-data-param params)
+        user-id (get-in request [:session :user_id] :anonymous)]
 
     (if (and entity data)
       (try
         (let [data-kw (into {} (map (fn [[k v]] [k v]) data))
               entity-config (config/get-entity-config entity)
-              errors (validate-fk-data data-kw entity-config)]
-
-          (if (seq errors)
-            (json-response {:ok false :errors errors})
-            (let [result (crud/save-record entity data-kw {})]
-              (handle-fk-save-result result entity-config data-kw))))
+              result (if (:audit? entity-config)
+                       (crud/save-with-audit entity data-kw user-id)
+                       (crud/save-record entity data-kw {:user-id user-id}))]
+          (handle-fk-save-result result entity-config data-kw))
         (catch Exception e
           (println "[ERROR] create-fk-record:" (.getMessage e))
           (.printStackTrace e)
@@ -166,14 +194,18 @@
       (try
         (let [entity-config (config/get-entity-config entity)
               ;; exclude fk? fields? we still include them so modal can render parent select
-              fields (remove (fn [f] (and (:fk? f) (not= (:id f) (:fk-parent params))))
+              ;; also exclude fields that should not appear in forms (same as get-form-fields)
+              fields (remove (fn [f] (or (and (:fk? f) (not= (:id f) (:fk-parent params)))
+                                         (:grid-only? f)
+                                         (:hidden-in-form? f)
+                                         (= (:type f) :computed)))
                              (:fields entity-config))
               form-fields (map #(select-keys % [:id :label :type :required? :placeholder
                                                 :options :fk :fk-field :fk-parent])
                                fields)
               ;; render the fields using the same server-side helper; pass empty row
               ;; we reference the private var via var literal to avoid visibility errors
-              rendered (let [render-fn #'{{sanitized}}.engine.render/render-field]
+              rendered (let [render-fn #'{{sanitize}}.engine.render/render-field]
                          (->> fields
                               (map #(render-fn % {}))
                               (html)))]
@@ -184,9 +216,7 @@
                           :form-html rendered}))
         (catch Exception e
           (println "[ERROR] get-fk-modal-config:" (.getMessage e))
-          (json-response {:ok false :error (.getMessage e)}))
-        (finally
-          (println "[DEBUG] get-fk-modal-config completed")))
+          (json-response {:ok false :error (.getMessage e)})))
       (json-response {:ok false :error "Missing entity parameter"}))))
 
 (defroutes fk-api-routes

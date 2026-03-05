@@ -54,10 +54,10 @@
      (t :missing-key) => \"missing-key\" (returns key if not found)"
   ([key]
    (t key default-locale))
-  
+
   ([key locale]
    (t key locale {}))
-  
+
   ([key locale params]
    (ensure-translations-loaded locale)
    (let [translations (get @translations-cache locale {})
@@ -66,12 +66,12 @@
        ;; Translation found - interpolate params
        (string? translation)
        (reduce (fn [result [k v]]
-                 (clojure.string/replace result 
-                                        (str "{" (name k) "}")
-                                        (str v)))
+                 (clojure.string/replace result
+                                         (str "{" (name k) "}")
+                                         (str v)))
                translation
                params)
-       
+
        ;; Translation not found - return key as string
        :else
        (name key)))))
@@ -112,7 +112,7 @@
   ([request key]
    (let [locale (get-locale-from-session (:session request))]
      (t key locale)))
-  
+
   ([request key params]
    (let [locale (get-locale-from-session (:session request))]
      (t key locale params))))
@@ -120,11 +120,7 @@
 (defn init!
   "Initializes the i18n system by loading all translations"
   []
-  (println "[i18n] Initializing internationalization system...")
-  (println "[i18n] Default locale:" default-locale)
-  (println "[i18n] Supported locales:" (keys supported-locales))
-  (reload-translations!)
-  (println "[i18n] Loaded translations for:" (keys @translations-cache)))
+  (reload-translations!))
 
 ;; Auto-initialize on namespace load
 (init!)

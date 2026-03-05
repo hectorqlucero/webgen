@@ -214,7 +214,7 @@
                          :fk-parent (:fk-parent field)
                          :fk-entity (:fk field)
                          :fk-can-create (:fk-can-create? field)
-                         :fk-form-fields (:fk-form-fields field)})
+                         :fk-form-fields (or (:fk-form-fields field) (:fk-field field))})
 
       :radio
       (form/build-field {:label label

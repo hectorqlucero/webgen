@@ -63,6 +63,26 @@
      data
      fields-to-compute)))
 
+(defn- apply-defaults
+  "Applies default values from field config to data if not present."
+  [entity data]
+  (let [config (config/get-entity-config entity)
+        fields (:fields config)
+        result (reduce
+                (fn [acc field]
+                  (let [field-id (:id field)
+                        default-value (:value field)
+                        current-value (get acc field-id)
+                        should-apply (and default-value
+                                          (or (nil? current-value)
+                                              (and (string? current-value) (empty? current-value))))]
+                    (if should-apply
+                      (assoc acc field-id default-value)
+                      acc)))
+                data
+                fields)]
+    result))
+
 (defn- prepare-data
   "Prepares data for save - computes fields, runs validation."
   [entity data]
@@ -73,6 +93,7 @@
         data (if has-visible-computed?
                (compute-fields entity data)
                data)
+        data (apply-defaults entity data)
         validation (validate-fields entity data)]
     (if (:valid? validation)
       {:success true :data (:data validation)}

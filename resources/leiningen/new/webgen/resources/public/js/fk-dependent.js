@@ -286,8 +286,15 @@
     var formElements = form.elements;
     for (var i = 0; i < formElements.length; i++) {
       var el = formElements[i];
-      if (el.name && el.value) {
-        formData[el.name] = el.value;
+      if (el.name) {
+        // For radio buttons, only include checked ones
+        if (el.type === 'radio') {
+          if (el.checked) {
+            formData[el.name] = el.value;
+          }
+        } else {
+          formData[el.name] = el.value;
+        }
       }
     }
     // include anti-forgery token if present on page
@@ -319,28 +326,56 @@
         if (response.ok) {
           var selectEl = document.getElementById(fieldId);
           if (selectEl) {
-            if (response.new_id) {
-              var newOption = document.createElement('option');
-              newOption.value = response.new_id;
-              newOption.textContent = response.new_label;
-              newOption.selected = true;
-              selectEl.appendChild(newOption);
-            } else {
-              // if server didn't supply an id (map-based save), simply reload
-              // the options from the parent value so the new record appears.
-              var pfield = selectEl.getAttribute('data-fk-parent');
-              var psel = document.querySelector('[name="' + pfield + '"]');
-              if (psel) {
-                // hide modal first then refresh
-                var modalEl2 = document.getElementById('fkCreateModal');
-                var bsModal2 = bootstrap.Modal.getInstance(modalEl2);
-                bsModal2.hide();
-                setTimeout(function () {
-                  handleParentChange(selectEl, psel.value);
-                }, 0);
-                return; // done
+            // Always refresh the select options from the database
+            var entity = selectEl.getAttribute('data-fk-entity');
+            var parentField = selectEl.getAttribute('data-fk-parent');
+            var fkFormFields = selectEl.getAttribute('data-fk-form-fields');
+            var parentValue = '';
+            
+            // If not on select, look in the input-group sibling button
+            if (!fkFormFields) {
+              var nextButton = selectEl.nextElementSibling;
+              if (nextButton && nextButton.tagName === 'BUTTON') {
+                fkFormFields = nextButton.getAttribute('data-fk-form-fields');
               }
             }
+            
+            console.log('[FK] Refreshing select:', { entity: entity, parentField: parentField, fkFormFields: fkFormFields });
+            
+            if (parentField) {
+              var parentSelect = document.querySelector('[name="' + parentField + '"]');
+              if (parentSelect) {
+                parentValue = parentSelect.value;
+              }
+            }
+            
+            // Build the URL to fetch options
+            var url = '/api/fk-options?entity=' + encodeURIComponent(entity);
+            if (parentField && parentValue) {
+              url += '&parent-field=' + encodeURIComponent(parentField) + '&parent-value=' + encodeURIComponent(parentValue);
+            }
+            if (fkFormFields) {
+              url += '&fk-fields=' + encodeURIComponent(fkFormFields);
+              console.log('[FK] Using fk-form-fields:', fkFormFields);
+            }
+            
+              fetch(url)
+              .then(function(resp) { return resp.json(); })
+              .then(function(data) {
+                if (data.ok && data.options) {
+                  selectEl.innerHTML = '';
+                  data.options.forEach(function(opt) {
+                    var option = document.createElement('option');
+                    option.value = opt.value;
+                    option.textContent = opt.label;
+                    selectEl.appendChild(option);
+                  });
+                  // Select the last option (most recently created)
+                  if (selectEl.options.length > 0) {
+                    selectEl.selectedIndex = selectEl.options.length - 1;
+                  }
+                }
+              });
           }
 
           var modalEl = document.getElementById('fkCreateModal');
