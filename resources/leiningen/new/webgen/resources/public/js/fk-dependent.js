@@ -87,14 +87,14 @@
   }
 
   // Create modal HTML
-  function createFkModalHtml(entity, fieldId, parentField, parentValue, fkFormFields) {
+  function createFkModalHtml(entity, fieldId, parentField, parentValue, fkFormFields, title) {
     var fields = fkFormFields ? fkFormFields.split(',') : [];
 
     return '<div class="modal fade" id="fkCreateModal" tabindex="-1">' +
       '<div class="modal-dialog modal-lg">' +
       '<div class="modal-content">' +
       '<div class="modal-header bg-primary text-white">' +
-      '<h5 class="modal-title">Agregar Nuevo</h5>' +
+      '<h5 class="modal-title">' + (title || 'Agregar Nuevo') + '</h5>' +
       '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>' +
       '</div>' +
       '<div class="modal-body">' +
@@ -137,10 +137,11 @@
       .then(function (config) {
         if (config.ok) {
           var modalHtml;
+          var modalTitle = config.title ? ('Nuevo ' + config.title) : 'Agregar Nuevo';
           if (config['form-html']) {
-            modalHtml = createFkModalHtmlWithServerContent(entity, fieldId, parentField, parentValue, config['form-html']);
+            modalHtml = createFkModalHtmlWithServerContent(entity, fieldId, parentField, parentValue, config['form-html'], modalTitle);
           } else if (config['form-fields']) {
-            modalHtml = createFkModalHtmlWithConfig(entity, fieldId, parentField, parentValue, config['form-fields']);
+            modalHtml = createFkModalHtmlWithConfig(entity, fieldId, parentField, parentValue, config['form-fields'], modalTitle);
           }
           if (modalHtml) {
             var modalContainer = document.createElement('div');
@@ -159,8 +160,11 @@
             });
 
             modalEl.addEventListener('hidden.bs.modal', function () {
-              // remove the modal element itself, not its parent
               document.body.removeChild(modalEl);
+              // Restore body.modal-open if parent modal is still visible (stacked modals fix)
+              if (document.querySelector('.modal.show')) {
+                document.body.classList.add('modal-open');
+              }
             });
             return;
           }
@@ -192,18 +196,25 @@
     });
 
     modalEl.addEventListener('hidden.bs.modal', function () {
-      document.body.removeChild(document.getElementById('fkCreateModal').parentElement);
+      var fkModal = document.getElementById('fkCreateModal');
+      if (fkModal && fkModal.parentNode) {
+        fkModal.parentNode.removeChild(fkModal);
+      }
+      // Restore body.modal-open if parent modal is still visible (stacked modals fix)
+      if (document.querySelector('.modal.show')) {
+        document.body.classList.add('modal-open');
+      }
     });
   }
 
   // Create modal HTML from server-provided form markup
-  function createFkModalHtmlWithServerContent(entity, fieldId, parentField, parentValue, contentHtml) {
+  function createFkModalHtmlWithServerContent(entity, fieldId, parentField, parentValue, contentHtml, title) {
     var hiddenParentHtml = parentField ? '<input type="hidden" name="' + parentField + '" value="' + parentValue + '">' : '';
     return '<div class="modal fade" id="fkCreateModal" tabindex="-1">' +
       '<div class="modal-dialog modal-lg">' +
       '<div class="modal-content">' +
       '<div class="modal-header bg-primary text-white">' +
-      '<h5 class="modal-title">Agregar Nuevo</h5>' +
+      '<h5 class="modal-title">' + (title || 'Agregar Nuevo') + '</h5>' +
       '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>' +
       '</div>' +
       '<div class="modal-body">' +
@@ -224,7 +235,7 @@
   }
 
   // Create modal HTML with entity configuration
-  function createFkModalHtmlWithConfig(entity, fieldId, parentField, parentValue, fieldsConfig) {
+  function createFkModalHtmlWithConfig(entity, fieldId, parentField, parentValue, fieldsConfig, title) {
     var formFieldsHtml = fieldsConfig.map(function (field) {
       var label = field.label || field.id.charAt(0).toUpperCase() + field.id.slice(1).replace(/_/g, ' ');
       var type = field.type || 'text';
@@ -245,7 +256,7 @@
       '<div class="modal-dialog modal-lg">' +
       '<div class="modal-content">' +
       '<div class="modal-header bg-primary text-white">' +
-      '<h5 class="modal-title">Agregar Nuevo</h5>' +
+      '<h5 class="modal-title">' + (title || 'Agregar Nuevo') + '</h5>' +
       '<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>' +
       '</div>' +
       '<div class="modal-body">' +
@@ -348,8 +359,9 @@
               url += '&fk-fields=' + encodeURIComponent(fkFormFields);
             }
 
-            fetch(url)
+            fetch(url, { cache: 'no-store' })
               .then(function (resp) {
+                if (!resp.ok) { throw new Error('HTTP ' + resp.status); }
                 return resp.json();
               })
               .then(function (data) {
@@ -364,10 +376,14 @@
                   // Select the last option (most recently created)
                   if (selectEl.options.length > 0) {
                     selectEl.selectedIndex = selectEl.options.length - 1;
+                    selectEl.dispatchEvent(new Event('change', { bubbles: true }));
                   }
+                } else {
+                  console.warn('[FK] Options refresh failed:', data.error || 'unknown');
                 }
               })
               .catch(function (err) {
+                console.error('[FK] Error refreshing select options:', err);
               });
           }
 

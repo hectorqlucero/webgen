@@ -10,6 +10,39 @@ window.TabGrid = (function () {
   let currentEntity = null;
 
   /**
+   * Get a human-readable entity title for the modal header.
+   * Tries the page heading first, falls back to extracting from URL.
+   */
+  function getEntityTitle(url) {
+    // Try the main page heading rendered by tabgrid
+    var heading = document.querySelector('.tabgrid-container h3, .card-body h4');
+    if (heading) {
+      // Strip badge text (e.g. "12 Items") by taking only the first text node
+      var text = heading.childNodes[0] ? heading.childNodes[0].textContent : '';
+      // Heading may contain icon text; get the clean part
+      if (!text || text.trim().length === 0) {
+        for (var i = 0; i < heading.childNodes.length; i++) {
+          var node = heading.childNodes[i];
+          if (node.nodeType === 3 && node.textContent.trim().length > 0) {
+            text = node.textContent;
+            break;
+          }
+        }
+      }
+      if (text && text.trim().length > 0) return text.trim();
+    }
+    // Fallback: extract entity name from URL like /admin/propiedades/add-form
+    if (url) {
+      var match = url.match(/\/admin\/([^\/]+)\//);
+      if (match) {
+        var name = match[1].replace(/_/g, ' ');
+        return name.charAt(0).toUpperCase() + name.slice(1);
+      }
+    }
+    return '';
+  }
+
+  /**
    * Initialize TabGrid on page load
    */
   function init() {
@@ -56,6 +89,10 @@ window.TabGrid = (function () {
       localStorage.setItem('activeTab', activeTab);
 
       if (url) {
+        // Set modal title for edit
+        var entityTitle = getEntityTitle();
+        $('#exampleModalLabel').text(entityTitle ? 'Editar ' + entityTitle : 'Editar');
+
         $.ajax({
           url: url,
           success: function (html) {
@@ -92,6 +129,10 @@ window.TabGrid = (function () {
       const url = $(this).attr('href');
 
       if (url) {
+        // Set modal title for new record
+        var entityTitle = getEntityTitle(url);
+        $('#exampleModalLabel').text(entityTitle ? 'Nuevo ' + entityTitle : 'Nuevo');
+
         $.ajax({
           url: url,
           success: function (html) {
@@ -111,6 +152,10 @@ window.TabGrid = (function () {
       const subgridEntity = $(this).data('subgrid-entity');
       const parentId = $(this).data('parent-id');
       const url = '/admin/' + subgridEntity + '/add-form/' + parentId;
+
+      // Set modal title for new subgrid record
+      var subgridTitle = $(this).closest('.tab-pane').find('.card-header h6, .fw-bold').first().text() || subgridEntity;
+      $('#exampleModalLabel').text('Nuevo ' + subgridTitle.trim());
 
       const activeTab = $('.nav-tabs .nav-link.active').data('bs-target');
       sessionStorage.setItem('activeTab', activeTab);

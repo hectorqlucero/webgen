@@ -198,7 +198,27 @@ $(document).ready(function () {
     e.preventDefault();
     var url = $(this).data('url');
     var modal = $('#exampleModal');
-    modal.find('.modal-title').text($(this).hasClass('new-record-btn') ? 'New Record' : 'Edit Record');
+    // Extract entity title from page heading or URL
+    var entityTitle = '';
+    var heading = document.querySelector('.tabgrid-container h3, .card-body h4');
+    if (heading) {
+      for (var i = 0; i < heading.childNodes.length; i++) {
+        var node = heading.childNodes[i];
+        if (node.nodeType === 3 && node.textContent.trim().length > 0) {
+          entityTitle = node.textContent.trim();
+          break;
+        }
+      }
+    }
+    if (!entityTitle && url) {
+      var match = url.match(/\/admin\/([^\/]+)\//);
+      if (match) {
+        entityTitle = match[1].replace(/_/g, ' ');
+        entityTitle = entityTitle.charAt(0).toUpperCase() + entityTitle.slice(1);
+      }
+    }
+    var isNew = $(this).hasClass('new-record-btn');
+    modal.find('.modal-title').text(isNew ? 'Nuevo ' + entityTitle : 'Editar ' + entityTitle);
     modal.find('.modal-body').html('<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div></div>');
     $.get(url, function (data) {
       modal.find('.modal-body').html(data);

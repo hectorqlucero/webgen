@@ -328,7 +328,7 @@
      [:div.modal-dialog
       [:div.modal-content
        [:div.modal-header.bg-primary.text-white
-        [:h5#exampleModalLabel.modal-title "Modal"]
+        [:h5#exampleModalLabel.modal-title ""]
         [:button.btn-close {:type "button" :data-bs-dismiss "modal" :aria-label "Close"}]]
        [:div.modal-body]]]]
     (app-js request)
