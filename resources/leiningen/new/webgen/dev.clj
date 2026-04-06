@@ -9,17 +9,13 @@
 
 (def ^:private reload-state
   (atom {:last-check 0
-         :hooks {}
-         :validators {}
-         :models {}
+         :src {}
          :entities-last-mod 0}))
 
 (defn- get-base-ns []
   (-> (str *ns*) (str/split #"\.") first))
 
-(defn- hooks-path []      (str "src/" (get-base-ns) "/hooks"))
-(defn- validators-path [] (str "src/" (get-base-ns) "/validators"))
-(defn- models-path []     (str "src/" (get-base-ns) "/models"))
+(defn- src-path []     (str "src/" (get-base-ns) "/"))
 
 (defn- reload-ns! [ns-sym label]
   (try
@@ -58,26 +54,22 @@
             true))))))
 
 (defn wrap-auto-reload
-  "Development middleware for hooks, validators, models, and entities."
+  "Development middleware for src files and entities."
   [handler]
   (fn [request]
     (let [now (System/currentTimeMillis)
           last-check (:last-check @reload-state)]
       (when (> (- now last-check) 2000)
         (try
-          ;; Reload hooks
-          (doseq [n (check-directory-changes (hooks-path) :hooks "hook")]
-            (reload-ns! (symbol (str (get-base-ns) ".hooks." (str/replace n #"\.clj$" ""))) "hook"))
+           ;; Reload all namespaces under src/
+          (doseq [rel-path (check-directory-changes (src-path) :src "source file")]
+            (let [ns-sym (-> rel-path
+                             (str/replace #"\.clj$" "")
+                             (str/replace #"/" ".")
+                             (symbol (str (get-base-ns) ".")))]
+              (reload-ns! ns-sym "source file")))
 
-          ;; Reload validators
-          (doseq [n (check-directory-changes (validators-path) :validators "validator")]
-            (reload-ns! (symbol (str (get-base-ns) ".validators." (str/replace n #"\.clj$" ""))) "validator"))
-
-          ;; Reload models
-          (doseq [n (check-directory-changes (models-path) :models "model")]
-            (reload-ns! (symbol (str (get-base-ns) ".models." (str/replace n #"\.clj$" ""))) "model"))
-
-          ;; Reload entities if EDN files changed
+           ;; Reload entities if EDN files changed
           (when (entities-changed?)
             (println "[DEV] Entity configs changed, reloading...")
             (entity-config/reload-all!)
