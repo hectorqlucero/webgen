@@ -181,7 +181,7 @@
                                fields)
               ;; render the fields using the same server-side helper; pass empty row
               ;; we reference the private var via var literal to avoid visibility errors
-              rendered (let [render-fn #'{{sanitize}}.engine.render/render-field]
+              rendered (let [render-fn #'{{sanitized}}.engine.render/render-field]
                          (->> fields
                               (map #(render-fn % {}))
                               (html)))]
