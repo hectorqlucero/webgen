@@ -118,7 +118,8 @@
             (:title subgrid)]
            [:button.btn.btn-sm.btn-primary.add-subgrid-btn
             {:data-subgrid-entity (name (:entity subgrid))
-             :data-parent-id (str selected-parent-id)}
+             :data-parent-id (str selected-parent-id)
+             :data-parent-entity entity-name}
             [:i.bi.bi-plus-circle.me-1]
             (i18n/tr request :common/new)]]
           (render-subgrid-table request entity-name sg-name (:title subgrid) (:fields subgrid))]]]))])

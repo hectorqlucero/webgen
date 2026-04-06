@@ -288,14 +288,16 @@
       (take 8 visible-fields))))
 
 (defn get-form-fields
-  "Gets fields that should be displayed in forms."
-  [entity]
-  (let [config (get-entity-config entity)]
-    ;; Exclude grid-only fields and fields hidden in forms
-    (remove #(or (:grid-only? %)
-                 (:hidden-in-form? %)
-                 (= (:type %) :computed))
-            (:fields config))))
+  "Gets fields that should be displayed in forms.
+   Optional exclude-fk-id: FK field to exclude when in subgrid context."
+  ([entity] (get-form-fields entity nil))
+  ([entity exclude-fk-id]
+   (let [config (get-entity-config entity)]
+     (remove #(or (:grid-only? %)
+                  (:hidden-in-form? %)
+                  (= (:type %) :computed)
+                  (and exclude-fk-id (= (:id %) exclude-fk-id)))
+             (:fields config)))))
 
 (defn has-permission?
   "Checks if a user level has permission to access an entity."

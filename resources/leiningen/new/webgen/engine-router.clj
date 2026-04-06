@@ -96,15 +96,18 @@
         (let [config (config/get-entity-config entity)
               title (str "New " (:title config))
               parent-id (get-in request [:params :parent_id])
-              ;; For subgrids, we need to find which FK field to populate
-              ;; Look for a hidden FK field (parent reference)
-              row (when parent-id
-                    (let [fk-field (first (filter #(and (= (:type %) :hidden)
-                                                        (not= (:id %) :id))
-                                                  (:fields config)))]
-                      (when fk-field
-                        {(:id fk-field) parent-id})))]
-          (html (render/render-form request entity row)))
+              parent-entity-str (get-in request [:params :parent_entity])
+              ;; For subgrids, find the FK field from parent's subgrid config
+              subgrid-fk (when (and parent-id parent-entity-str)
+                           (let [parent-entity (keyword parent-entity-str)
+                                 parent-config (try (config/get-entity-config parent-entity)
+                                                    (catch Exception _ nil))
+                                 matching-sg (first (filter #(= (:entity %) entity)
+                                                            (:subgrids parent-config)))]
+                             (:foreign-key matching-sg)))
+              row (when (and parent-id subgrid-fk)
+                    {subgrid-fk parent-id})]
+          (html (render/render-form request entity row subgrid-fk)))
         (catch Exception e
           (println "[ERROR] Add form handler failed:" (.getMessage e))
           (.printStackTrace e)

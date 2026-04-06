@@ -151,7 +151,8 @@ window.TabGrid = (function () {
       e.preventDefault();
       const subgridEntity = $(this).data('subgrid-entity');
       const parentId = $(this).data('parent-id');
-      const url = '/admin/' + subgridEntity + '/add-form/' + parentId;
+      const parentEntity = $(this).data('parent-entity');
+      const url = '/admin/' + subgridEntity + '/add-form/' + parentId + '?parent_entity=' + encodeURIComponent(parentEntity);
 
       // Set modal title for new subgrid record
       var subgridTitle = $(this).closest('.tab-pane').find('.card-header h6, .fw-bold').first().text() || subgridEntity;

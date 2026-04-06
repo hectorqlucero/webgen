@@ -174,15 +174,14 @@
     (if entity
       (try
         (let [entity-config (config/get-entity-config entity)
-              ;; exclude fk? fields? we still include them so modal can render parent select
-              fields (remove (fn [f] (and (:fk? f) (not= (:id f) (:fk-parent params))))
-                             (:fields entity-config))
+              ;; Use get-form-fields to properly exclude grid-only, hidden-in-form, computed
+              fields (config/get-form-fields entity)
               form-fields (map #(select-keys % [:id :label :type :required? :placeholder
                                                 :options :fk :fk-field :fk-parent])
                                fields)
               ;; render the fields using the same server-side helper; pass empty row
               ;; we reference the private var via var literal to avoid visibility errors
-              rendered (let [render-fn #'{{sanitized}}.engine.render/render-field]
+              rendered (let [render-fn #'{{sanitize}}.engine.render/render-field]
                          (->> fields
                               (map #(render-fn % {}))
                               (html)))]
