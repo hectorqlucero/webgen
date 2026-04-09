@@ -179,7 +179,7 @@
       [:div#mainNavbar.collapse.navbar-collapse
        [:ul.navbar-nav.ms-auto.align-items-lg-center.gap-2
         (create-nav-links request nav-links)
-        (doall (for [[category dropdown] dropdowns]
+        (doall (for [[_category dropdown] dropdowns]
                  (create-dropdown request dropdown)))
         (theme-switcher)
         (language-selector request)
