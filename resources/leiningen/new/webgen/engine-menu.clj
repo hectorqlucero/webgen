@@ -134,6 +134,7 @@
     {:id (str "navdrop" idx)
      :data-id (name category-key)
      :label label
+     :order (apply min (map :order items))
      :items (map format-menu-item items)}))
 
 (defn generate-full-menu-config
