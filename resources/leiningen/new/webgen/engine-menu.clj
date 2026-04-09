@@ -151,7 +151,7 @@
                              (get menu-items category)
                              idx)])
                          sorted-categories))]
-    {:nav-links [["/" "Home"]]
+    {:nav-links []
      :dropdowns dropdowns}))
 
 (defn get-menu-config
