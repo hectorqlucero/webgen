@@ -60,7 +60,11 @@
             ;; Copy data from SQLite to MySQL/PostgreSQL
             ;;   lein copy-data mysql    ; copy from SQLite to MySQL
             ;;   lein copy-data postgresql
-            "copy-data" ["run" "-m" "{{sanitized}}.db.migrator" "--"]}
+            "copy-data" ["run" "-m" "{{sanitized}}.db.migrator" "--"]
+            ;; Generate/remove handler skeleton (controller, model, view)
+            ;;   lein gen-handler reports          ; create
+            ;;   lein gen-handler reports remove   ; remove
+            "gen-handler" ["run" "-m" "{{sanitized}}.gen.handler" "--"]}
   :profiles {:uberjar {:aot :all
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}
              :dev {:source-paths ["src" "dev"]

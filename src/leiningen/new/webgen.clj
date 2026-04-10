@@ -139,6 +139,9 @@
              ;; Scaffold enhancement
              ["src/{{sanitized}}/scaffold/enhancement.clj" (render "scaffold-enhancement.clj" data)]
 
+             ;; gen-handler
+             ["src/{{sanitized}}/gen/handler.clj" (render "gen-handler.clj" data)]
+
              ;; Test
              ["test/{{sanitized}}/core_test.clj" (render "core_test.clj" data)]
              ["test/{{sanitized}}/db_test.clj" (render "db_test.clj" data)]
