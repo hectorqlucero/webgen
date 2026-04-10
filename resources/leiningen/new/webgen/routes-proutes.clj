@@ -1,6 +1,6 @@
 (ns {{sanitized}}.routes.proutes
   (:require
-   [compojure.core :refer [defroutes]]))
+   [compojure.core :refer [defroutes GET]]))
 
 ;; All CRUD routes now handled by parameter-driven engine
 ;; Add custom non-CRUD routes here if needed
