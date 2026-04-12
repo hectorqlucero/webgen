@@ -1,4 +1,9 @@
-{;; Common UI Elements
+{;; ─────────────────────────────────────────────────────────────────────────
+ ;; [GENERIC] keys son reutilizables en cualquier proyecto — consérvelas.
+ ;; [DEMO]    keys son específicos del demo inmobiliario — reemplácelos.
+ ;; ─────────────────────────────────────────────────────────────────────────
+
+ ;; [GENERIC] Common UI Elements
  :common/save "Guardar"
  :common/cancel "Cancelar"
  :common/submit "Enviar"
@@ -22,8 +27,8 @@
  :common/confirm "Confirmar"
  :common/select "Seleccionar"
  :common/required "Requerido"
- 
- ;; Menu Categories
+
+ ;; [DEMO] Menu Categories — reemplazar con la estructura de navegación propia
  :menu/clients "Clientes"
  :menu/properties "Propiedades"
  :menu/transactions "Transacciones"
@@ -34,8 +39,8 @@
  :menu/logout "Cerrar Sesión"
  :menu/profile "Perfil"
  :menu/settings "Configuración"
- 
- ;; Entities
+
+ ;; [DEMO] Entities — reemplazar con los nombres de entidades del proyecto
  :entity/alquileres "Alquileres"
  :entity/ventas "Ventas"
  :entity/propiedades "Propiedades"
@@ -51,8 +56,8 @@
  :entity/tramites "Trámites"
  :entity/bitacora "Bitácora"
  :entity/users "Usuarios"
- 
- ;; Form Labels
+
+ ;; [GENERIC] Form Labels
  :form/email "Correo Electrónico"
  :form/password "Contraseña"
  :form/username "Usuario"
@@ -65,8 +70,8 @@
  :form/status "Estado"
  :form/notes "Notas"
  :form/file "Archivo"
- 
- ;; Validation Messages
+
+ ;; [GENERIC] Validation Messages
  :validation/required "{field} es requerido"
  :validation/invalid-email "Correo electrónico inválido"
  :validation/invalid-date "Fecha inválida"
@@ -76,8 +81,8 @@
  :validation/negative "{field} no puede ser negativo"
  :validation/date-range "La fecha final debe ser posterior a la fecha inicial"
  :validation/unique "{field} ya existe"
- 
- ;; Error Messages
+
+ ;; [GENERIC] Error Messages
  :error/general "Ocurrió un error. Por favor intente nuevamente"
  :error/not-found "Registro no encontrado"
  :error/unauthorized "No tiene permisos para realizar esta acción"
@@ -88,28 +93,28 @@
  :error/invalid-data "Datos inválidos"
  :error/database "Error de base de datos"
  :error/file-upload "Error al subir archivo"
- 
- ;; Success Messages
+
+ ;; [GENERIC] Success Messages
  :success/saved "Guardado exitosamente"
  :success/deleted "Eliminado exitosamente"
  :success/created "Creado exitosamente"
  :success/updated "Actualizado exitosamente"
  :success/uploaded "Archivo subido exitosamente"
  :success/sent "Enviado exitosamente"
- 
- ;; Confirmation Messages
+
+ ;; [GENERIC] Confirmation Messages
  :confirm/delete "¿Está seguro que desea eliminar este registro?"
  :confirm/cancel "¿Está seguro que desea cancelar?"
  :confirm/discard "¿Descartar los cambios?"
- 
- ;; Grid/Table
+
+ ;; [GENERIC] Grid/Table
  :grid/no-data "No hay datos para mostrar"
  :grid/showing "Mostrando {from} a {to} de {total} registros"
  :grid/per-page "Por página"
  :grid/page "Página"
  :grid/of "de"
- 
- ;; Authentication
+
+ ;; [GENERIC] Authentication
  :auth/login "Iniciar Sesión"
  :auth/logout "Cerrar Sesión"
  :auth/register "Registrarse"
@@ -119,27 +124,27 @@
  :auth/invalid-credentials "Usuario o contraseña incorrectos"
  :auth/session-expired "Su sesión ha expirado"
  :auth/welcome "Bienvenido"
- 
- ;; Date/Time
+
+ ;; [GENERIC] Date/Time
  :date/today "Hoy"
  :date/yesterday "Ayer"
  :date/tomorrow "Mañana"
  :date/days "días"
  :date/months "meses"
  :date/years "años"
- 
- ;; File Upload
+
+ ;; [GENERIC] File Upload
  :file/select "Seleccionar archivo"
  :file/drag-drop "Arrastre y suelte archivos aquí"
  :file/max-size "Tamaño máximo: {size}"
  :file/allowed-types "Tipos permitidos: {types}"
- 
- ;; Subgrids
+
+ ;; [GENERIC] Subgrids
  :subgrid/title "Registros relacionados"
  :subgrid/loading "Cargando registros..."
  :subgrid/empty "No hay registros relacionados"
- 
- ;; Business Logic (Alquileres example)
+
+ ;; [DEMO] Business Logic (Alquileres example) — reemplazar con la lógica de negocio propia
  :alquiler/duration "Duración"
  :alquiler/initial-total "Total Inicial"
  :alquiler/monthly-payment "Pago Mensual"
@@ -147,13 +152,13 @@
  :alquiler/active "Activo"
  :alquiler/expired "Vencido"
  :alquiler/canceled "Cancelado"
- 
- ;; Language Selector
+
+ ;; [GENERIC] Language Selector
  :lang/select "Seleccionar idioma"
  :lang/spanish "Español"
  :lang/english "English"
- 
- ;; DataTables
+
+ ;; [GENERIC] DataTables
  :datatables/search "Buscar:"
  :datatables/search-placeholder "Buscar..."
  :datatables/length-menu "Mostrar _MENU_ registros"

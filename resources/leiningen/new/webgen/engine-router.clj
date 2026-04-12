@@ -150,9 +150,13 @@
                        (crud/save-with-audit entity params user-id)
                        (crud/save-record entity params {:user-id user-id}))]
           (if (:success result)
-            {:status 200
-             :headers {"Content-Type" "application/json"}
-             :body "{\"ok\":true}"}
+            (let [entity-name (name entity)
+                  record-id (:success result)
+                  return-tab (get params "return_tab" (get params :return_tab))
+                  url (str "/admin/" entity-name
+                           (when (and record-id (number? record-id))
+                             (str "?id=" record-id)))]
+              (redirect url))
             {:status 400
              :headers {"Content-Type" "application/json"}
              :body (str "{\"ok\":false,\"errors\":"
@@ -276,7 +280,7 @@
     (POST "/save" request
       (handle-save (assoc-in request [:params :entity] entity)))
 
-    (GET "/delete/:id" [id :as request]
+    (POST "/delete/:id" [id :as request]
       (handle-delete (-> request
                          (assoc-in [:params :entity] entity)
                          (assoc-in [:params :id] id))))

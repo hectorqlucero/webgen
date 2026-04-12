@@ -3,6 +3,13 @@
 (function () {
   'use strict';
 
+  /** Escape HTML special characters to prevent XSS in innerHTML */
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(String(str)));
+    return div.innerHTML;
+  }
+
   // Detect current language from HTML lang attribute or default to 'es'
   function getCurrentLanguage() {
     var htmlLang = document.documentElement.getAttribute('lang');
@@ -24,6 +31,10 @@
     var dependentSelects = document.querySelectorAll('select[data-fk-parent]');
 
     dependentSelects.forEach(function (select) {
+      // Skip if already initialized (prevents duplicate listeners from MutationObserver)
+      if (select.dataset.fkInitialized) return;
+      select.dataset.fkInitialized = 'true';
+
       var parentField = select.getAttribute('data-fk-parent');
       var fkEntity = select.getAttribute('data-fk-entity');
 
@@ -65,7 +76,7 @@
       url += '&fk-fields=' + encodeURIComponent(fkFormFields);
     }
 
-    fetch(url)
+    fetch(url, { credentials: 'same-origin' })
       .then(function (response) {
         return response.json();
       })
@@ -73,7 +84,7 @@
         if (data.ok && data.options) {
           childSelect.innerHTML = data.options.map(function (opt) {
             var selected = opt.value === childSelect.getAttribute('data-fk-current-value') ? ' selected' : '';
-            return '<option value="' + opt.value + '"' + selected + '>' + opt.label + '</option>';
+            return '<option value="' + escapeHtml(opt.value) + '"' + selected + '>' + escapeHtml(opt.label) + '</option>';
           }).join('');
         } else {
           childSelect.innerHTML = '<option value="">-- Error --</option>';
@@ -132,7 +143,7 @@
     var fkFormFields = selectEl ? selectEl.getAttribute('data-fk-form-fields') : '';
 
     // Get entity configuration
-    fetch('/api/fk-modal-config?entity=' + encodeURIComponent(entity) + '&lang=' + encodeURIComponent(window.currentLang || 'es'))
+    fetch('/api/fk-modal-config?entity=' + encodeURIComponent(entity) + '&lang=' + encodeURIComponent(window.currentLang || 'es'), { credentials: 'same-origin' })
       .then(function (response) { return response.json(); })
       .then(function (config) {
         if (config.ok) {
@@ -307,15 +318,19 @@
 
     // Validate required fields
     var hasErrors = false;
+    var errorMessages = [];
     (config['form-fields'] || []).forEach(function (field) {
       if (field.required && (!formData[field.id] || formData[field.id].trim() === '')) {
-        errorDiv.textContent = (field.label || field.id) + ' es requerido';
-        errorDiv.classList.remove('d-none');
+        errorMessages.push((field.label || field.id) + ' es requerido');
         hasErrors = true;
       }
     });
 
-    if (hasErrors) return;
+    if (hasErrors) {
+      errorDiv.textContent = errorMessages.join(', ');
+      errorDiv.classList.remove('d-none');
+      return;
+    }
 
     var xhr = new XMLHttpRequest();
     xhr.open('POST', '/api/fk-create');
@@ -359,7 +374,7 @@
               url += '&fk-fields=' + encodeURIComponent(fkFormFields);
             }
 
-            fetch(url, { cache: 'no-store' })
+            fetch(url, { cache: 'no-store', credentials: 'same-origin' })
               .then(function (resp) {
                 if (!resp.ok) { throw new Error('HTTP ' + resp.status); }
                 return resp.json();

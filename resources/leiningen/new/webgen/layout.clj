@@ -1,6 +1,7 @@
 (ns {{sanitized}}.layout
   (:require
    [clj-time.core :as t]
+   [clojure.data.json :as json]
    [clojure.string :as str]
    [hiccup.page :refer [html5]]
    [{{sanitized}}.models.crud :refer [config]]
@@ -247,20 +248,19 @@
   "Outputs JavaScript variables with i18n translations for client-side use"
   [request]
   [:script
-   (str "window.i18nStrings = {"
-        "  emptyTable: \"" (i18n/tr request :grid/no-records) "\","
-        "  info: \"" (i18n/tr request :datatables/info) "\","
-        "  infoEmpty: \"" (i18n/tr request :datatables/info-empty) "\","
-        "  infoFiltered: \"" (i18n/tr request :datatables/info-filtered) "\","
-        "  lengthMenu: \"" (i18n/tr request :datatables/length-menu) "\","
-        "  search: \"" (i18n/tr request :datatables/search) "\","
-        "  searchPlaceholder: \"" (i18n/tr request :datatables/search-placeholder) "\","
-        "  zeroRecords: \"" (i18n/tr request :datatables/zero-records) "\","
-        "  paginate: {"
-        "    previous: '<i class=\"bi bi-chevron-left\"></i>',"
-        "    next: '<i class=\"bi bi-chevron-right\"></i>'"
-        "  }"
-        "};")])
+   (str "window.i18nStrings = "
+        (json/write-str
+         {:emptyTable     (i18n/tr request :grid/no-records)
+          :info           (i18n/tr request :datatables/info)
+          :infoEmpty      (i18n/tr request :datatables/info-empty)
+          :infoFiltered   (i18n/tr request :datatables/info-filtered)
+          :lengthMenu     (i18n/tr request :datatables/length-menu)
+          :search         (i18n/tr request :datatables/search)
+          :searchPlaceholder (i18n/tr request :datatables/search-placeholder)
+          :zeroRecords    (i18n/tr request :datatables/zero-records)
+          :paginate       {:previous "<i class=\"bi bi-chevron-left\"></i>"
+                           :next     "<i class=\"bi bi-chevron-right\"></i>"}})
+        ";")])
 
 (defn app-js [request]
   (list
@@ -277,9 +277,9 @@
    [:script {:src "/vendor/buttons.print.min.js"}]
    (i18n-js-vars request)
    [:script {:src "/vendor/app.js"}]
-   [:script {:src "/js/tabgrid.js?v=2"}]
-   [:script (:src "/js/mhighlight.js")]
-   [:script (:src "/js/lang.js")]
+   [:script {:src "/js/tabgrid.js?v=3"}]
+   [:script {:src "/js/mhighlight.js"}]
+   [:script {:src "/js/lang.js"}]
    ;; fk-dependent.js contains the logic for dependent selects & create modal
    ;; bump version when editing so browsers reload the file
    [:script {:src "/js/fk-dependent.js?v=6"}]))

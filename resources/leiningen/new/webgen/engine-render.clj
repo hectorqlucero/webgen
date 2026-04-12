@@ -310,8 +310,8 @@
 
 (defn render-form-modal
   "Renders a form wrapped in a modal."
-  [title entity row]
-  (let [form-content (render-form entity row)]
+  [request title entity row]
+  (let [form-content (render-form request entity row)]
     (grid/build-modal title row form-content)))
 
 (defn- build-fields-map

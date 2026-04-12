@@ -33,6 +33,10 @@ pom.xml.asc
 .nrepl-history
 .rebel_readline_history
 
+# Nested tooling caches (inside template resources)
+resources/**/.clj-kondo/
+resources/**/.lsp/
+
 # Dev containers
 /.devcontainer/
 

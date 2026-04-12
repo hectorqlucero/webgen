@@ -1,4 +1,3 @@
-
 (ns {{sanitized}}.migrations
   (:require
    [{{sanitized}}.models.crud :as crud]
@@ -24,9 +23,38 @@
         {:id id dir-key content}))))
 
 (defn split-sql [sql]
-  (->> (clojure.string/split sql #";[\r\n]*")
-       (map clojure.string/trim)
-       (filter seq)))
+  (let [lines (st/split-lines sql)]
+    (loop [remaining lines
+           current   ""
+           stmts     []
+           in-block  false]
+      (if (empty? remaining)
+        (let [s (st/trim current)]
+          (if (seq s)
+            (conj stmts (st/replace s #";\s*$" ""))
+            stmts))
+        (let [line        (first remaining)
+              trimmed     (st/trim line)
+              new-current (str current line "\n")
+              entering    (and (not in-block) (re-find #"(?i)\bBEGIN\b" trimmed))
+              now-in-block (or in-block entering)
+              leaving     (and now-in-block (re-find #"(?i)^\s*END\s*;?\s*$" trimmed))]
+          (cond
+            leaving
+            (let [s (st/trim new-current)
+                  s (st/replace s #";\s*$" "")]
+              (recur (rest remaining) "" (if (seq s) (conj stmts s) stmts) false))
+
+            now-in-block
+            (recur (rest remaining) new-current stmts true)
+
+            (re-find #";\s*$" trimmed)
+            (let [s (st/trim new-current)
+                  s (st/replace s #";\s*$" "")]
+              (recur (rest remaining) "" (if (seq s) (conj stmts s) stmts) false))
+
+            :else
+            (recur (rest remaining) new-current stmts false)))))))
 
 (defn build-migrations [migration-files]
   (let [parsed (map parse-migration-file migration-files)
@@ -44,7 +72,6 @@
                            grouped)]
       migrations)))
 
-
 (defn ensure-sqlite-db-file [conn]
   (when (and (= (:subprotocol conn) "sqlite")
              (string? (:subname conn)))
@@ -52,7 +79,6 @@
       (when-not (.exists (io/file dbfile))
         (io/make-parents dbfile)
         (spit dbfile "")))))
-
 
 (defn- normalize-conn-key [k]
   (cond

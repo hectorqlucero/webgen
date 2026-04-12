@@ -8,6 +8,14 @@ window.TabGrid = (function () {
 
   let selectedParentId = null;
   let currentEntity = null;
+  let editButtonsBound = false;
+
+  /** Escape HTML special characters to prevent XSS */
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+  }
 
   /**
    * Get a human-readable entity title for the modal header.
@@ -79,6 +87,9 @@ window.TabGrid = (function () {
    * Initialize edit button handlers
    */
   function initEditButtons() {
+    if (editButtonsBound) return;
+    editButtonsBound = true;
+
     // Edit button handler
     $(document).on('click', '.edit-btn', function (e) {
       e.preventDefault();
@@ -137,7 +148,9 @@ window.TabGrid = (function () {
           url: url,
           success: function (html) {
             $('#exampleModal .modal-body').html(html);
-            $('#exampleModal').modal('show');
+            var modalEl = document.getElementById('exampleModal');
+            var modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
           },
           error: function (xhr, status, error) {
             console.error('[TabGrid] Failed to load add form:', error);
@@ -416,8 +429,10 @@ window.TabGrid = (function () {
       data: null,
       title: 'Actions',
       render: function (data, type, row) {
-        const editUrl = '/admin/' + subgridEntity + '/edit-form/' + row.id;
-        const deleteUrl = '/admin/' + subgridEntity + '/delete/' + row.id;
+        var safeId = escapeHtml(String(row.id));
+        var safeEntity = escapeHtml(String(subgridEntity));
+        const editUrl = '/admin/' + safeEntity + '/edit-form/' + safeId;
+        const deleteUrl = '/admin/' + safeEntity + '/delete/' + safeId;
         const actions = window.subgridActions && window.subgridActions[subgridEntity]
           ? window.subgridActions[subgridEntity]
           : { edit: true, delete: true };
@@ -431,9 +446,9 @@ window.TabGrid = (function () {
         }
         if (actions.delete) {
           buttons += `
-            <a href="${deleteUrl}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure?')">
+            <button type="button" class="btn btn-danger btn-sm delete-btn" data-delete-url="${deleteUrl}">
               <i class="bi bi-trash"></i> Delete
-            </a>`;
+            </button>`;
         }
         return `<div class="btn-group btn-group-sm">${buttons}</div>`;
       }
@@ -460,28 +475,46 @@ window.TabGrid = (function () {
     const loadingDiv = pane.querySelector('.subgrid-loading');
     if (loadingDiv) {
       loadingDiv.innerHTML = `
-        <div class="alert alert-${type}">
+        <div class="alert alert-${escapeHtml(type)}">
           <i class="bi bi-info-circle me-2"></i>
-          ${message}
+          ${escapeHtml(message)}
         </div>
       `;
     }
   }
 
-  // --- Client-only safety: intercept DELETE links and handle via AJAX (capture phase)
+  // --- Intercept DELETE buttons and handle via POST AJAX ---
   document.addEventListener('click', function (e) {
-    const a = e.target.closest && e.target.closest('a.btn.btn-danger[href*="/delete/"]');
-    if (!a) return;
-    // prevent inline onclick confirm and default navigation
+    const btn = e.target.closest && e.target.closest('button.delete-btn[data-delete-url], a.btn-danger[data-delete-url]');
+    if (!btn) return;
     e.preventDefault();
     e.stopImmediatePropagation();
 
     if (!window.confirm('Are you sure?')) return;
 
-    fetch(a.href, { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+    // Save active tab before reload so it can be restored
+    const activeTab = $('.nav-tabs .nav-link.active').data('bs-target');
+    if (activeTab) {
+      sessionStorage.setItem('activeTab', activeTab);
+      localStorage.setItem('activeTab', activeTab);
+    }
+
+    var tokenEl = document.querySelector('input[name="__anti-forgery-token"]');
+    var headers = { 'X-Requested-With': 'XMLHttpRequest' };
+    var body = '';
+    if (tokenEl) {
+      headers['Content-Type'] = 'application/x-www-form-urlencoded';
+      body = '__anti-forgery-token=' + encodeURIComponent(tokenEl.value);
+    }
+
+    fetch(btn.getAttribute('data-delete-url'), {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: headers,
+      body: body
+    })
       .then(resp => {
         if (resp.ok) {
-          // successful delete (admin/system) — reload to show updated grid
           window.location.reload();
         } else if (resp.status === 403) {
           alert('Not authorized');
@@ -490,7 +523,7 @@ window.TabGrid = (function () {
         }
       })
       .catch(() => alert('Network error while trying to delete.'));
-  }, true); // use capture phase so inline onclick is bypassed
+  }, true); // use capture phase
 
   // Initialize on DOM ready
   $(document).ready(init);

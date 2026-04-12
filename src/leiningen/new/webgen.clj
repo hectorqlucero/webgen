@@ -161,15 +161,6 @@
              ["README.md" (render "README.md" data)]
              [".gitignore" (render "gitignore" data)]
 
-             ;; Documentation
-             ["QUICKSTART.md" (render "QUICKSTART.md" data)]
-             ["HOOKS_GUIDE.md" (render "HOOKS_GUIDE.md" data)]
-             ["FRAMEWORK_GUIDE.md" (render "FRAMEWORK_GUIDE.md" data)]
-             ["DATABASE_MIGRATION_GUIDE.md" (render "DATABASE_MIGRATION_GUIDE.md" data)]
-             ["COLLABORATION_GUIDE.md" (render "COLLABORATION_GUIDE.md" data)]
-             ["QUICK_REFERENCE.md" (render "QUICK_REFERENCE.md" data)]
-             ["RUN_APP.md" (render "RUN_APP.md" data)]
-
              ;; Entity configurations (must be rendered to replace {{sanitized}})
              ["resources/entities/users.edn" (render "users-entity.edn" data)]
              ["resources/entities/contactos.edn" (render "contactos-entity.edn" data)]
@@ -195,5 +186,5 @@
     (main/info "  lein database")
     (main/info "  lein with-profile dev run")
     (main/info "")
-    (main/info "See QUICKSTART.md for more information.")
+    (main/info "See README.md for more information.")
     (main/info "")))

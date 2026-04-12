@@ -1,6 +1,32 @@
 # Change Log
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
+## [0.4.0] - 2026-04-12
+### Added
+- **Section 23 in README.md** — "Custom Dashboards and Reports": full guide to the 20% of functionality outside the entity system, including KPI card dashboards, date-range reports, CSV export, JSON chart APIs, and a decision table for when to use entity config vs a custom handler.
+- **`docs/TUTORIAL_POS_INVENTORY.md`** — new step-by-step tutorial for junior programmers building a Point of Sale inventory system from scratch. Covers all 16 steps: project creation, database migrations, all entity configs (productos, provedores, inventario, movimientos), hook implementations for image upload and automatic inventory adjustment on save/delete, and the full custom POS register screen (controller/model/view, CSS, JavaScript cart engine, CSRF-safe fetch API, receipt printing).
+
+### Changed
+- **`README.md`** — complete rewrite. All content from CHEATSHEET.md, FRAMEWORK_GUIDE.md, HOOKS_GUIDE.md, DATABASE_MIGRATION_GUIDE.md, QUICK_REFERENCE.md, QUICKSTART.md, and RUN_APP.md consolidated into a single 2,400+ line professional reference covering every entity option, all field types, hooks, validators, computed fields, subgrids, custom queries, access control, audit trail, migrations, scaffolding, custom routes, menu, i18n, auth, themes, deployment, and publishing.
+- **`resources/leiningen/new/webgen/README.md`** — rewritten as a practical getting-started guide for generated projects (quick start, project structure, adding entities, database commands, config reference, troubleshooting).
+- **`resources/i18n/en.edn`** — added legend at top; all section headers prefixed with `[GENERIC]` or `[DEMO]` to distinguish reusable framework keys from real estate demo content.
+- **`resources/i18n/es.edn`** — same `[GENERIC]`/`[DEMO]` markers applied (legend written in Spanish).
+
+### Removed
+- `CHEATSHEET.md` — content merged into root README.md.
+- `TEMPLATE_README.md` — superseded by the rewritten README.md.
+- `CONTRIBUTING.md` — removed (content not relevant to template end users).
+- `CODE_OF_CONDUCT.md` — removed.
+- `docs/DEMO.md` — removed; demo content covered in tutorial.
+- `docs/TUTORIAL_REALSTATE_MEXICO.md` — replaced by TUTORIAL_POS_INVENTORY.md.
+- `resources/leiningen/new/webgen/FRAMEWORK_GUIDE.md` — merged into root README.md.
+- `resources/leiningen/new/webgen/HOOKS_GUIDE.md` — merged into root README.md.
+- `resources/leiningen/new/webgen/DATABASE_MIGRATION_GUIDE.md` — merged into root README.md.
+- `resources/leiningen/new/webgen/COLLABORATION_GUIDE.md` — removed.
+- `resources/leiningen/new/webgen/QUICKSTART.md` — merged into root README.md.
+- `resources/leiningen/new/webgen/RUN_APP.md` — merged into root README.md.
+- `resources/leiningen/new/webgen/QUICK_REFERENCE.md` — merged into root README.md.
+
 ## (0.3.2) - 2026-01-25
 ### Upgraded
 - Enhanced fk fields. Added sorting and filtering
