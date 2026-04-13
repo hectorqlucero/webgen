@@ -10,7 +10,7 @@
 
 (defn- gen-controller
   [handler-name]
-  (str "(ns {{sanitiezed}}.handlers." handler-name ".controller\n"
+  (str "(ns {{sanitized}}.handlers." handler-name ".controller\n"
        "  (:require\n"
        "   [{{sanitized}}.handlers." handler-name ".model :as model]\n"
        "   [{{sanitized}}.handlers." handler-name ".view :as view]\n"
