@@ -62,7 +62,42 @@ Think of it this way: `entities/` files describe *what* your data looks like. `h
 
 ---
 
-## Step 3 — Configure the Database
+## Step 3 — Remove the Example Files
+
+WebGen generates a set of example files to demonstrate its features: a Contactos entity, a Cars entity, a Siblings entity, and their matching hooks and migrations. These are useful for exploration, but they conflict with the migration numbers you are about to create and will clutter the application menu. Remove them now.
+
+### Delete the example migrations
+
+```bash
+rm resources/migrations/003-contactos.sqlite.up.sql
+rm resources/migrations/003-contactos.sqlite.down.sql
+rm resources/migrations/004-siblings.sqlite.up.sql
+rm resources/migrations/004-siblings.sqlite.down.sql
+rm resources/migrations/005-cars.sqlite.up.sql
+rm resources/migrations/005-cars.sqlite.down.sql
+```
+
+### Delete the example entities
+
+```bash
+rm resources/entities/contactos.edn
+rm resources/entities/cars.edn
+rm resources/entities/siblings.edn
+```
+
+### Delete the example hooks
+
+```bash
+rm src/pos/hooks/contactos.clj
+rm src/pos/hooks/cars.clj
+rm src/pos/hooks/siblings.clj
+```
+
+After these deletions the only migration files should be `001-users.*` and `002-users_view.*`. The only hook file remaining should be `users.clj`.
+
+---
+
+## Step 4 — Configure the Database
 
 Open `resources/config/app-config.edn`. Find the connections section. The default database is SQLite, which stores everything in a single file and requires no setup. Leave it as-is for now.
 
@@ -83,7 +118,7 @@ Also verify the port is set to something you like:
 
 ---
 
-## Step 4 — Write the Database Migrations
+## Step 5 — Write the Database Migrations
 
 Migrations are SQL files that create your database tables. WebGen runs them in order based on their number prefix.
 
@@ -176,7 +211,7 @@ DROP TABLE IF EXISTS movimientos;
 
 ---
 
-## Step 5 — Run the Migrations
+## Step 6 — Run the Migrations
 
 Now tell WebGen to apply all the migrations:
 
@@ -196,7 +231,7 @@ This creates three default users for you to log in with.
 
 ---
 
-## Step 6 — Start the Development Server
+## Step 7 — Start the Development Server
 
 ```bash
 lein with-profile dev run
@@ -206,11 +241,11 @@ Wait for the message that the server started, then open your browser to `http://
 
 Log in with `admin@example.com` and password `admin`.
 
-You will see the default application with the Users and Contactos example entities in the menu. In the next steps you will add your own entities.
+You will see the default application with only the Users entity in the menu. In the next steps you will add your own entities.
 
 ---
 
-## Step 7 — Create the Products Entity
+## Step 8 — Create the Products Entity
 
 Entity files tell WebGen what fields exist, how they look in the UI, and what queries to run. Create `resources/entities/productos.edn`:
 
@@ -262,7 +297,7 @@ Now refresh your browser. "Productos" should appear in the menu.
 
 ---
 
-## Step 8 — Create the Products Hook for Image Uploads
+## Step 9 — Create the Products Hook for Image Uploads
 
 Hooks are Clojure functions. The products entity uses two hooks:
 
@@ -299,7 +334,7 @@ Create `src/pos/hooks/productos.clj`:
 
 ---
 
-## Step 9 — Create the Suppliers Entity
+## Step 10 — Create the Suppliers Entity
 
 Create `resources/entities/provedores.edn`:
 
@@ -333,7 +368,7 @@ Refresh the browser. "Provedores" appears in the menu.
 
 ---
 
-## Step 10 — Create the Inventory Entity
+## Step 11 — Create the Inventory Entity
 
 Inventory is a child of both Products and Suppliers. It is hidden from the main menu because it is only accessed through the Productos or Provedores subgrid tabs. You do not add inventory records directly — the Movimientos hook does it automatically. But you can view and correct them here.
 
@@ -405,7 +440,7 @@ The `:list` query joins three tables to fetch the product name and supplier name
 
 ---
 
-## Step 11 — Create the Stock Movements Entity
+## Step 12 — Create the Stock Movements Entity
 
 Movements are also a child entity (accessed through the Productos subgrid). This is where all the business logic lives. When a movement is saved, the hook automatically updates the inventory.
 
@@ -463,7 +498,7 @@ Create `resources/entities/movimientos.edn`:
 
 ---
 
-## Step 12 — Create the Movements Hook (the core business logic)
+## Step 13 — Create the Movements Hook (the core business logic)
 
 This hook is the heart of the application. It does three things:
 
@@ -586,7 +621,7 @@ These are three functions provided by WebGen's `crud` namespace. They run SQL ag
 
 ---
 
-## Step 13 — Test the Application
+## Step 14 — Test the Application
 
 ### Add products
 
@@ -631,7 +666,7 @@ The `before-delete` and `after-delete` hooks handled the reversal automatically.
 
 ---
 
-## Step 14 — Understanding What You Built
+## Step 15 — Understanding What You Built
 
 Here is a summary of how the parts connect:
 
@@ -676,10 +711,10 @@ after-delete hook runs:
 
 ---
 
-## Step 15 — Optional Improvements
+## Step 16 — Optional Improvements
 
 These are enhancements you can try on your own, each building on what you have already learned.
-Before you try this enhancements I suggest you jump this step and come back to it if needed after you perfom Step 16.
+Before you try this enhancements I suggest you jump this step and come back to it if needed after you perfom Step 17.
 
 ### Add the movement date to the grid
 
@@ -740,7 +775,7 @@ Then edit `app-config.edn` and change `:default` and `:main` to `:mysql`.
 
 ---
 
-## Step 16 — Build the Custom POS Register Screen
+## Step 17 — Build the Custom POS Register Screen
 
 Everything you have built so far uses the entity system: EDN config files drive the CRUD interface automatically. But a real point of sale register is different. A cashier needs a touch-friendly product grid, a running cart, a payment calculator, and a receipt — not a CRUD form.
 
