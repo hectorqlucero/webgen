@@ -340,8 +340,10 @@
 (defn error-404
   ([msg] (error-404 msg nil))
   ([msg redirect-url]
-   [:div
-    [:h1 "Error 404"]
-    [:p msg]
-    (when redirect-url
-      [:a {:href redirect-url} "Go back"])]))
+   {:status 404
+    :headers {"Content-Type" "text/html; charset=utf-8"}
+    :body (html5 [:div
+                  [:h1 "Error 404"]
+                  [:p msg]
+                  (when redirect-url
+                    [:a {:href redirect-url} "Go back"])])}))
