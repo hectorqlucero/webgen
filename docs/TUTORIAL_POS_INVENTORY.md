@@ -331,8 +331,6 @@ Create `resources/entities/provedores.edn`:
 
 Refresh the browser. "Provedores" appears in the menu.
 
-Go ahead and add a few suppliers. You will need them in the next step.
-
 ---
 
 ## Step 10 — Create the Inventory Entity
@@ -613,6 +611,8 @@ These are three functions provided by WebGen's `crud` namespace. They run SQL ag
 7. Save
 
 Now click the **Inventario** tab. You should see a new record with `cantidad = 100`.
+1. Click on Edit button to edit the **Inventario**
+2. Add a new **Provedor** on the select box. If no **Provedor** exists you can create a new one by clicking on the + button to the right of the select
 
 ### Record a sale
 
