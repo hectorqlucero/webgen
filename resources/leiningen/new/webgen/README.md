@@ -191,7 +191,7 @@ java -jar target/uberjar/{{name}}-0.1.0-standalone.jar
   :default :sqlite   ; Connection used by entities
   :main    :sqlite}  ; Connection used by migrations
 
- :port          8080
+ :port          3000
  :site-name     "{{name}}"
  :uploads       "./uploads/{{name}}/"
  :max-upload-mb 5
@@ -229,7 +229,7 @@ Update `:rights` in the entity configuration, or check the user's access level.
 **Port already in use**
 
 ```bash
-lsof -i :8080
+lsof -i :3000
 kill -9 <PID>
 ```
 

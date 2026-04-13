@@ -206,7 +206,6 @@ Every entity is a single EDN file in `resources/entities/`. The file name determ
 
 | Value | Menu Label | Typical Entities |
 |---|---|---|
-| `:catalog` | Catalog | Products, categories, suppliers |
 | `:clients` | Clients | Customers, contacts, agents |
 | `:properties` | Properties | Real estate, buildings, units |
 | `:financial` | Financial | Payments, invoices, commissions |
@@ -1183,29 +1182,33 @@ The menu is generated automatically from entity configurations. To add custom en
 
 ### Custom Navigation Links
 
+Each entry is a vector `["/path" "Label" "Rights" order]`. `"Rights"` is optional (`"U"` = regular users and above, `"A"` = admins only, `nil` = everyone). `order` controls position among nav links (lower = first).
+
 ```clojure
 (def custom-nav-links
-  [{:href "/dashboard" :label "Dashboard"}
-   {:href "/reports"   :label "Reports"}])
+  [["/"          "Home"      nil  0]
+   ["/dashboard" "Dashboard" "U" 10]
+   ["/admin"     "Admin"     "A" 20]])
 ```
 
 ### Custom Dropdown Menus
 
+Each dropdown requires `:id`, `:data-id`, `:label`, `:order`, and `:items`. Items use the same vector format as nav links.
+
 ```clojure
 (def custom-dropdowns
-  {:reports {:label "Reports"
-             :items [{:href "/reports/sales"     :label "Sales"}
-                     {:href "/reports/inventory" :label "Inventory"}]}})
+  {:Reports
+   {:id      "navdropReports"
+    :data-id "Reports"
+    :label   "Reports"
+    :order   40
+    :items   [["/reports/sales"     "Sales"     "U" 10]
+              ["/reports/inventory" "Inventory" "U" 20]]}})
 ```
 
 ### Merging with Auto-Generated Menu
 
-```clojure
-(defn get-menu-config []
-  (let [auto (auto-menu/get-menu-config)]
-    {:nav-links (concat (:nav-links auto) custom-nav-links)
-     :dropdowns (merge (:dropdowns auto) custom-dropdowns)}))
-```
+`get-menu-config` in `menu.clj` automatically merges `custom-nav-links` and `custom-dropdowns` with the auto-generated entity menus — sorted by `:order`. You only need to update those two vars; do not redefine `get-menu-config`.
 
 ---
 
@@ -1372,21 +1375,22 @@ All protected pages go in `src/myapp/routes/proutes.clj`. The framework applies 
 
 ### Adding Items to the Menu
 
-To make your custom pages appear in the navigation bar alongside the entity entries, edit `src/myapp/menu.clj`:
+To make your custom pages appear in the navigation bar alongside the entity entries, edit `src/myapp/menu.clj`. Add top-level links to `custom-nav-links` and grouped dropdown entries to `custom-dropdowns`:
 
 ```clojure
-{:label    "Dashboard"
- :url      "/dashboard"
- :icon     "bi bi-speedometer2"
- :rights   ["A" "S"]
- :order    5}
+;; Top-level nav link — visible to admins and above
+(def custom-nav-links
+  [["/"          "Home"      nil  0]
+   ["/dashboard" "Dashboard" "A"  5]])
 
-{:label    "Sales Report"
- :url      "/reports/sales"
- :icon     "bi bi-bar-chart-line"
- :category :Reports
- :rights   ["A" "S"]
- :order    10}
+;; Dropdown group with report links
+(def custom-dropdowns
+  {:Reports
+   {:id      "navdropReports"
+    :data-id "Reports"
+    :label   "Reports"
+    :order   40
+    :items   [["/reports/sales" "Sales Report" "A" 10]]}})
 ```
 
 ---

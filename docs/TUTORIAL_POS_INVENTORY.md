@@ -113,7 +113,7 @@ When you are ready for production, you can change these to `:mysql` or `:postgre
 Also verify the port is set to something you like:
 
 ```clojure
-:port 8080
+:port 3000
 ```
 
 ---

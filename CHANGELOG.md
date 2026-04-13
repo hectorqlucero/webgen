@@ -1,6 +1,15 @@
 # Change Log
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
+## [0.4.2] - 2026-04-12
+### Fixed
+- **`README.md`** — Section 17 (Menu Customization) examples corrected to match the actual `menu.clj` API:
+  - `custom-nav-links` now documented as vector-of-vectors `["/path" "Label" "Rights" order]` instead of the previously shown map format.
+  - `custom-dropdowns` now includes required `:id`, `:data-id`, and `:order` keys, with items in the correct vector format.
+  - Removed the incorrect `get-menu-config` reimplementation example; replaced with a note that the function handles merging automatically.
+- **`README.md`** — Section 4 Menu Categories table: removed nonexistent `:catalog` category.
+- **`README.md`** — Section 23 "Adding Items to the Menu": replaced invalid bare EDN map literals (using `:url`, `:icon`, `:category` keys) with a correct `custom-nav-links` / `custom-dropdowns` example.
+
 ## [0.4.1] - 2026-04-12
 ### Fixed
 - **`models-form.clj`** — single-toggle `:checkbox` fields (no `:options`) now render correctly. Previously the `build-field` function only handled checkboxes as multi-option groups, causing a single checkbox to produce an empty div with no `<input>` element.
