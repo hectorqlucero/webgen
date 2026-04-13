@@ -34,8 +34,7 @@
                  [ring/ring-defaults "0.7.0"]
                  [ring/ring-devel "1.15.3"]
                  [ring/ring-codec "1.3.0"]]
-  :main ^:skip-aot {{sanitized}}.core
-  :aot [{{sanitized}}.core]
+  :main {{sanitized}}.core
   :plugins [[lein-ancient "0.7.0"]
             [lein-pprint "1.3.2"]]
   :uberjar-name "{{sanitized}}.jar"
@@ -66,6 +65,7 @@
             ;;   lein gen-handler reports remove   ; remove
             "gen-handler" ["run" "-m" "{{sanitized}}.gen.handler" "--"]}
   :profiles {:uberjar {:aot :all
+                       :main {{sanitized}}.core
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}
              :dev {:source-paths ["src" "dev"]
                    :main {{sanitized}}.dev}})

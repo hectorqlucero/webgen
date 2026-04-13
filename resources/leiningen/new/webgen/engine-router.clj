@@ -292,10 +292,6 @@
   (GET "/dashboard/:entity" [entity :as request]
     (handle-dashboard (assoc-in request [:params :entity] entity)))
 
-  ;; Report Routes (alias for dashboard)
-  (GET "/reports/:entity" [entity :as request]
-    (handle-dashboard (assoc-in request [:params :entity] entity)))
-
   ;; Development/Admin Routes
   (GET "/admin/reload-config" request
     (try
