@@ -488,34 +488,49 @@ Create `src/pos/hooks/movimientos.clj`:
   "After a movement is saved, update the inventory for the product.
    - compra (purchase) increases stock
    - venta  (sale)     decreases stock
-   If no inventory record exists for the product, create one."
-  [data _result]
-  (try
-    (let [producto-id     (:producto_id data)
-          tipo-movimiento (:tipo_movimiento data)
-          cantidad        (if (string? (:cantidad data))
-                            (parse-long (:cantidad data))
-                            (:cantidad data))
-          ;; Purchases add to stock, sales subtract
-          adjustment      (if (= tipo-movimiento "compra")
-                            cantidad
-                            (- cantidad))]
-      (when producto-id
-        (let [existing-inv (first (Query ["SELECT * FROM inventario WHERE producto_id = ?" producto-id]))]
-          (if existing-inv
-            ;; Update the existing inventory record
-            (Update :inventario
-                    {:cantidad            (+ (:cantidad existing-inv) adjustment)
-                     :ultima_actualizacion (java.sql.Date/valueOf (java.time.LocalDate/now))}
-                    ["id = ?" (:id existing-inv)])
-            ;; No inventory record yet — create one
-            (Insert :inventario
-                    {:producto_id          producto-id
-                     :cantidad             adjustment
-                     :ultima_actualizacion (java.sql.Date/valueOf (java.time.LocalDate/now))})))))
-    (catch Exception e
-      (println "[ERROR] after-save failed:" (.getMessage e))))
-  {:success true})
+   If no inventory record exists for the product, create one.
+   Optionally accepts a db connection/transaction as the first argument
+   so inventory updates can share an open transaction."
+  ([data result] (after-save nil data result))
+  ([conn data _result]
+   (try
+     (let [producto-id     (:producto_id data)
+           tipo-movimiento (:tipo_movimiento data)
+           cantidad        (if (string? (:cantidad data))
+                             (parse-long (:cantidad data))
+                             (:cantidad data))
+           ;; Purchases add to stock, sales subtract
+           adjustment      (if (= tipo-movimiento "compra")
+                             cantidad
+                             (- cantidad))
+           today           (java.sql.Date/valueOf (java.time.LocalDate/now))]
+       (when producto-id
+         (if conn
+           ;; --- inside an explicit transaction ---
+           (let [existing-inv (first (Query conn ["SELECT * FROM inventario WHERE producto_id = ?" producto-id]))]
+             (if existing-inv
+               (Update conn :inventario
+                       {:cantidad             (+ (:cantidad existing-inv) adjustment)
+                        :ultima_actualizacion today}
+                       ["id = ?" (:id existing-inv)])
+               (Insert conn :inventario
+                       {:producto_id          producto-id
+                        :cantidad             adjustment
+                        :ultima_actualizacion today})))
+           ;; --- no explicit connection: use global db ---
+           (let [existing-inv (first (Query ["SELECT * FROM inventario WHERE producto_id = ?" producto-id]))]
+             (if existing-inv
+               (Update :inventario
+                       {:cantidad             (+ (:cantidad existing-inv) adjustment)
+                        :ultima_actualizacion today}
+                       ["id = ?" (:id existing-inv)])
+               (Insert :inventario
+                       {:producto_id          producto-id
+                        :cantidad             adjustment
+                        :ultima_actualizacion today}))))))
+     (catch Exception e
+       (println "[ERROR] after-save failed:" (.getMessage e))))
+   {:success true}))
 
 (defn before-delete
   "Save the movement record before it is deleted so after-delete can reverse it."
@@ -664,6 +679,7 @@ after-delete hook runs:
 ## Step 15 — Optional Improvements
 
 These are enhancements you can try on your own, each building on what you have already learned.
+Before you try this enhancements I suggest you jump this step and come back to it if needed after you perfom Step 16.
 
 ### Add the movement date to the grid
 
@@ -834,6 +850,16 @@ Open `src/pos/routes/proutes.clj`. This file has your custom routes (separate fr
 
 The framework picks up `proutes` automatically and adds these to the application's route table.
 
+### Update the menu
+Open `src/pos/menu.clj`. This file has your custom menus (separate from autogen menus). Add the POS menu:
+
+```
+(def custom-nav-links
+  "Custom navigation links (non-dropdown, not entity-based)"
+  [["/" "HOME" nil 0]
+   ["/pos" "PUNTA DE VENTA" nil 10]])
+```
+
 ### Model — database queries and the sale transaction
 
 Create `src/pos/handlers/pos/model.clj`:
@@ -874,8 +900,12 @@ Create `src/pos/handlers/pos/model.clj`:
   (jdbc/with-db-transaction [tx db]
     (let [venta-result (first (Insert tx :ventas venta-header))
           venta-id     (or (:generated_key venta-result)
+                           ((keyword "last_insert_rowid()") venta-result)
                            (:last_insert_rowid venta-result)
-                           (:id venta-result))]
+                           (:id venta-result)
+                           (first (vals venta-result)))]
+      (when (nil? venta-id)
+        (throw (ex-info "Could not determine venta id after insert" {:result venta-result})))
       (doseq [item items]
         ;; Insert the detail line
         (Insert tx :ventas_detalle
@@ -889,7 +919,7 @@ Create `src/pos/handlers/pos/model.clj`:
                    :tipo_movimiento "venta"
                    :cantidad        (:cantidad item)}
               result (Insert tx :movimientos mov)]
-          (mov-hooks/after-save mov result)))
+          (mov-hooks/after-save tx mov result)))
       venta-id)))
 ```
 
