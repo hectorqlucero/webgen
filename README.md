@@ -453,6 +453,13 @@ Use `:fk-parent` to make one FK filter based on the value selected in another.
  :value "T"}
 ```
 
+`:value` is the value submitted when the checkbox is **checked**. When it is **unchecked**, an empty string `""` is submitted instead (a hidden fallback input ensures the key is always present in the request params). If your database column expects `1`/`0` or `"T"`/`"F"`, coerce the value in a `before-save` hook:
+
+```clojure
+(defn before-save [params]
+  (update params :newsletter #(if (= % "T") "T" "F")))
+```
+
 ### File Upload
 
 ```clojure
@@ -1934,7 +1941,7 @@ Entity configs define everything about a CRUD interface. Located in `resources/e
 | `:time` | Time picker | Event time | `min`, `max` |
 | `:select` | Dropdown select | Category, status | `options` (array of `{:value :label}`) |
 | `:radio` | Radio button group | Status, type | `options` (array with `:id`, `:label`, `:value`) |
-| `:checkbox` | Single checkbox | Active, featured | `value` (default checked value) |
+| `:checkbox` | Single checkbox | Active, featured | `value` (value sent when checked; `""` sent when unchecked) |
 | `:file` | File upload | Image, PDF | Handled via hooks |
 | `:hidden` | Hidden field | ID, foreign keys | `value` |
 | `:computed` | Calculated/display only | Total, full name | Read-only, computed via hooks |

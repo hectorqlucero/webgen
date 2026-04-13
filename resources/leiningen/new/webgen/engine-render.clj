@@ -228,6 +228,7 @@
                          :type "checkbox"
                          :id (name id)
                          :name (name id)
+                         :checked-value (or value "T")
                          :value field-value})
 
       :file

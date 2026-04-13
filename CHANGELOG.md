@@ -1,6 +1,17 @@
 # Change Log
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
+## [0.4.1] - 2026-04-12
+### Fixed
+- **`models-form.clj`** — single-toggle `:checkbox` fields (no `:options`) now render correctly. Previously the `build-field` function only handled checkboxes as multi-option groups, causing a single checkbox to produce an empty div with no `<input>` element.
+  - Added a dedicated branch for option-less checkboxes that renders a hidden fallback `<input value="">` (so the param key is always present when unchecked) followed by the real checkbox input.
+  - `:checked` state is now correctly determined by comparing the current DB value against the configured checked value.
+- **`engine-render.clj`** — the `:checkbox` render path now passes `:checked-value` (the entity field's configured `:value`, e.g. `"T"`) separately from `:value` (the current DB value), so the checked state reflects the actual stored data instead of always being true.
+
+### Changed
+- **`README.md`** — `:checkbox` field documentation updated to clarify that unchecked submits `""`, and added a canonical `before-save` hook pattern for coercing the value at the database layer.
+- **`docs/TUTORIAL_POS_INVENTORY.md`** — added new **Step 3 — Remove the Example Files** instructing readers to delete the generated example migrations (`003-contactos`, `004-siblings`, `005-cars`), their entity EDN files, and the example hooks (`contactos.clj`, `cars.clj`, `siblings.clj`) before starting the tutorial. All subsequent steps renumbered (4–17).
+
 ## [0.4.0] - 2026-04-12
 ### Added
 - **Section 23 in README.md** — "Custom Dashboards and Reports": full guide to the 20% of functionality outside the entity system, including KPI card dashboards, date-range reports, CSV export, JSON chart APIs, and a decision table for when to use entity config vs a custom handler.

@@ -222,6 +222,25 @@
            label-el
            select-el]))
 
+      (and (= type "checkbox") (empty? (:options args)))
+      (let [checked-value (or (:checked-value args) "T")]
+        [:div.mb-3
+         ;; Hidden fallback ensures the key is always present in params when unchecked
+         [:input {:type "hidden" :name (:name args) :value ""}]
+         [:div.form-check
+          [:input.form-check-input
+           {:type     "checkbox"
+            :id       (or (:id args) (:name args))
+            :name     (:name args)
+            :value    checked-value
+            :checked  (when (= (str (:value args)) (str checked-value)) true)
+            :required (:required args)
+            :disabled (:disabled args)
+            :style    "transform: scale(1.2);"}]
+          [:label.form-check-label.fw-medium.ms-2
+           {:for (or (:id args) (:name args))}
+           (:label args)]]])
+
       (or (= type "radio") (= type "checkbox"))
       [:div.mb-3
        [:label.form-label.fw-semibold.d-block (:label args)]
