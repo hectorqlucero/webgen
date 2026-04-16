@@ -41,6 +41,7 @@
  
  ;; Lifecycle hooks for business logic
  ;; Senior developer: Implement these in src/{{sanitized}}/hooks/users.clj
+ :hooks {:before-save :{{sanitized}}.hooks.users/before-save}
  ;; Uncomment and implement as needed:
  ;; :hooks {:before-load :{{sanitized}}.hooks.users/before-load
  ;;         :after-load :{{sanitized}}.hooks.users/after-load

@@ -1,6 +1,14 @@
 # Change Log
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
+## [0.4.5] - 2026-04-16
+### Fixed
+- **`hooks-users.clj`** — Implemented `before-save` hook to handle password lifecycle for user records:
+  - **New user, no password provided** → a bcrypt-hashed default password is set equal to the user's username (email). The user can change it via `/change/password` after first login.
+  - **Existing user, no password in form params** → the `:password` key is stripped from params before the update, leaving the existing hash in the database untouched.
+  - **Any user with an explicit password value** → the plain-text value is hashed with `buddy-hashers` (bcrypt) before being written to the database.
+- **`users-entity.edn`** — Enabled the `:hooks {:before-save ...}` entry so the password hook is active in every generated project.
+
 ## [0.4.4] - 2026-04-16
 ### Fixed
 - **`layout.clj`** — Replaced the plain logout button in the navbar with a user dropdown. Logged-in users now see a dropdown showing their username (with a `bi-person-circle` icon) that contains a **Change Password** link (`/change/password`) and a **Logout** item. This makes the password change feature reachable from the authenticated UI for the first time.

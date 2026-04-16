@@ -6,7 +6,10 @@
    See: HOOKS_GUIDE.md for detailed documentation and examples.
    Example: src/{{sanitized}}/hooks/alquileres.clj
    
-   Uncomment the hooks you need and implement the logic.")
+   Uncomment the hooks you need and implement the logic."
+  (:require
+   [buddy.hashers :as hashers]
+   [clojure.string :as st]))
 
 ;; =============================================================================
 ;; Validators
@@ -70,23 +73,29 @@
 (defn before-save
   "Hook executed before saving a record.
    
-   Use cases:
-   - Validate data
-   - Set defaults
-   - Transform values
-   - Check permissions
+   Password handling:
+   - New user with no password → default password set to their username (email).
+     They must change it via /change/password after first login.
+   - Existing user with no password in params → password column left untouched.
+   - Any user where a password value is provided → hashed before saving.
    
    Args: [params] - Form data to be saved
    Returns: Modified params map OR {:errors {...}} if validation fails"
   [params]
-  ;; TODO: Add validation and transformation logic
-  ;; Example:
-  ;; (if-let [errors (validate-dates params)]
-  ;;   {:errors errors}
-  ;;   (assoc params :status "active"))
-  
-  (println "[INFO] Saving users...")
-  params)
+  (let [password (:password params)
+        is-new?  (let [id (:id params)] (or (nil? id) (st/blank? (str id)) (= (str id) "0")))]
+    (cond
+      ;; Password provided — hash it regardless of new/edit
+      (and password (not (st/blank? password)))
+      (assoc params :password (hashers/derive password))
+
+      ;; New record, no password — set default to username (email)
+      is-new?
+      (assoc params :password (hashers/derive (or (:username params) "changeme")))
+
+      ;; Existing record, no password — leave the column untouched
+      :else
+      (dissoc params :password))))
 
 (defn after-save
   "Hook executed after successfully saving a record.

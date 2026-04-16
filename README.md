@@ -1455,6 +1455,18 @@ Change all passwords before deploying to production.
 - All routes under `proutes` require an active session
 - Role-based access per entity via `:rights`
 
+### Creating New Users
+
+When an admin creates a new user through the Users grid, the `before-save` hook in `hooks/users.clj` automatically assigns a default password equal to the user's **username (email address)**, hashed with bcrypt. The user can log in immediately and must change their password via the **Change Password** option in the navbar dropdown.
+
+When editing an **existing** user, if the password field is not submitted, the hook strips the key from params so the existing password hash is never overwritten.
+
+| Scenario | Result |
+|---|---|
+| New user, no password | Default password = username (email), bcrypt-hashed |
+| Existing user, no password in form | Existing password preserved unchanged |
+| Any user, password value provided | Value hashed with bcrypt before saving |
+
 ### Custom Middleware
 
 Add middleware in `src/myapp/core.clj`:
