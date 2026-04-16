@@ -5,6 +5,7 @@
  :rights ["A" "S"]
  :mode :parameter-driven
  :menu-category :system
+ :menu-hidden? true
 
  :fields [{:id :id        :label "ID"        :type :hidden}
           {:id :entity    :label "Entity"    :type :text}
