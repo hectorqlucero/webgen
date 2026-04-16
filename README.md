@@ -361,15 +361,15 @@ An FK field renders as a searchable dropdown populated from another entity's tab
 
 ;; Both :list and :get queries must JOIN the FK table to populate the display column
 :queries
-{:list "SELECT p.*, c.name AS category_name
-        FROM products p
-        LEFT JOIN categories c ON p.category_id = c.id
-        ORDER BY p.name"
+{:list "SELECT pro.*, cat.name AS category_name
+        FROM products pro
+        LEFT JOIN categories cat ON pro.category_id = cat.id
+        ORDER BY pro.name"
 
- :get  "SELECT p.*, c.name AS category_name
-        FROM products p
-        LEFT JOIN categories c ON p.category_id = c.id
-        WHERE p.id = ?"}
+ :get  "SELECT pro.*, cat.name AS category_name
+        FROM products pro
+        LEFT JOIN categories cat ON pro.category_id = cat.id
+        WHERE pro.id = ?"}
 ```
 
 Multiple FK display columns (all joined into the dropdown label):
@@ -386,15 +386,15 @@ Multiple FK display columns (all joined into the dropdown label):
 
 ;; JOIN the agents table to populate agent_name in both views
 :queries
-{:list "SELECT t.*, a.first_name || ' ' || a.last_name AS agent_name
-        FROM tickets t
-        LEFT JOIN agents a ON t.agent_id = a.id
-        ORDER BY t.created_at DESC"
+{:list "SELECT tic.*, age.first_name || ' ' || age.last_name AS agent_name
+        FROM tickets tic
+        LEFT JOIN agents age ON tic.agent_id = age.id
+        ORDER BY tic.created_at DESC"
 
- :get  "SELECT t.*, a.first_name || ' ' || a.last_name AS agent_name
-        FROM tickets t
-        LEFT JOIN agents a ON t.agent_id = a.id
-        WHERE t.id = ?"}
+ :get  "SELECT tic.*, age.first_name || ' ' || age.last_name AS agent_name
+        FROM tickets tic
+        LEFT JOIN agents age ON tic.agent_id = age.id
+        WHERE tic.id = ?"}
 ```
 
 #### Cascading Dependent FK Fields
@@ -437,23 +437,23 @@ Use `:fk-parent` to make one FK filter based on the value selected in another.
 
 ;; JOIN all three FK tables so every display column is populated in :list and :get
 :queries
-{:list "SELECT a.*, s.name AS state_name,
-               m.name AS municipality_name,
-               n.name AS neighborhood_name
-        FROM addresses a
-        LEFT JOIN states         s ON a.state_id         = s.id
-        LEFT JOIN municipalities m ON a.municipality_id  = m.id
-        LEFT JOIN neighborhoods  n ON a.neighborhood_id  = n.id
-        ORDER BY a.id"
+{:list "SELECT adr.*, sta.name AS state_name,
+               mun.name AS municipality_name,
+               nei.name AS neighborhood_name
+        FROM addresses adr
+        LEFT JOIN states         sta ON adr.state_id         = sta.id
+        LEFT JOIN municipalities mun ON adr.municipality_id  = mun.id
+        LEFT JOIN neighborhoods  nei ON adr.neighborhood_id  = nei.id
+        ORDER BY adr.id"
 
- :get  "SELECT a.*, s.name AS state_name,
-               m.name AS municipality_name,
-               n.name AS neighborhood_name
-        FROM addresses a
-        LEFT JOIN states         s ON a.state_id         = s.id
-        LEFT JOIN municipalities m ON a.municipality_id  = m.id
-        LEFT JOIN neighborhoods  n ON a.neighborhood_id  = n.id
-        WHERE a.id = ?"}
+ :get  "SELECT adr.*, sta.name AS state_name,
+               mun.name AS municipality_name,
+               nei.name AS neighborhood_name
+        FROM addresses adr
+        LEFT JOIN states         sta ON adr.state_id         = sta.id
+        LEFT JOIN municipalities mun ON adr.municipality_id  = mun.id
+        LEFT JOIN neighborhoods  nei ON adr.neighborhood_id  = nei.id
+        WHERE adr.id = ?"}
 ```
 
 #### Radio Buttons
@@ -908,20 +908,20 @@ Use `:list` and `:get` with any SQL you need, including joins:
 
 ```clojure
 :queries
-{:list "SELECT o.*,
-               c.name       AS customer_name,
-               c.email      AS customer_email,
-               COUNT(oi.id) AS item_count
-        FROM orders o
-        LEFT JOIN customers  c  ON o.customer_id = c.id
-        LEFT JOIN order_items oi ON o.id = oi.order_id
-        GROUP BY o.id
-        ORDER BY o.created_at DESC"
+{:list "SELECT ord.*,
+               cus.name       AS customer_name,
+               cus.email      AS customer_email,
+               COUNT(ori.id)  AS item_count
+        FROM orders ord
+        LEFT JOIN customers   cus ON ord.customer_id = cus.id
+        LEFT JOIN order_items ori ON ord.id = ori.order_id
+        GROUP BY ord.id
+        ORDER BY ord.created_at DESC"
 
- :get  "SELECT o.*, c.name AS customer_name
-        FROM orders o
-        LEFT JOIN customers c ON o.customer_id = c.id
-        WHERE o.id = ?"}
+ :get  "SELECT ord.*, cus.name AS customer_name
+        FROM orders ord
+        LEFT JOIN customers cus ON ord.customer_id = cus.id
+        WHERE ord.id = ?"}
 ```
 
 ### Function-Based Queries
@@ -1226,10 +1226,10 @@ src/myapp/handlers/
 
 (defn top-customers [limit]
   (db/query
-    "SELECT c.name, SUM(o.total) AS total_spent
-     FROM customers c
-     JOIN orders o ON c.id = o.customer_id
-     GROUP BY c.id
+    "SELECT cus.name, SUM(ord.total) AS total_spent
+     FROM customers cus
+     JOIN orders ord ON cus.id = ord.customer_id
+     GROUP BY cus.id
      ORDER BY total_spent DESC
      LIMIT ?"
     [limit]))
@@ -1499,14 +1499,14 @@ To make your custom pages appear in the navigation bar alongside the entity entr
   "Top 10 products by quantity sold."
   [limit]
   (Query db ["SELECT
-               p.nombre,
-               SUM(d.cantidad)            AS unidades,
-               SUM(d.subtotal)            AS ingresos
-             FROM ventas_detalle d
-             JOIN productos p ON d.producto_id = p.id
-             JOIN ventas    v ON d.venta_id    = v.id
-             WHERE v.estado = 'completada'
-             GROUP BY p.id
+               pro.nombre,
+               SUM(det.cantidad)            AS unidades,
+               SUM(det.subtotal)            AS ingresos
+             FROM ventas_detalle det
+             JOIN productos pro ON det.producto_id = pro.id
+             JOIN ventas    ven ON det.venta_id    = ven.id
+             WHERE ven.estado = 'completada'
+             GROUP BY pro.id
              ORDER BY unidades DESC
              LIMIT ?"
             limit]))
@@ -1613,17 +1613,17 @@ To make your custom pages appear in the navigation bar alongside the entity entr
   "Fetch sales detail rows between two dates (inclusive)."
   [from to]
   (Query db ["SELECT
-               v.id          AS venta_id,
-               v.fecha,
-               v.total,
-               v.pago,
-               v.cambio,
-               u.username    AS cajero
-             FROM ventas v
-             LEFT JOIN users u ON v.usuario_id = u.id
-             WHERE DATE(v.fecha) BETWEEN ? AND ?
-               AND v.estado = 'completada'
-             ORDER BY v.fecha DESC"
+               ven.id          AS venta_id,
+               ven.fecha,
+               ven.total,
+               ven.pago,
+               ven.cambio,
+               usr.username    AS cajero
+             FROM ventas ven
+             LEFT JOIN users usr ON ven.usuario_id = usr.id
+             WHERE DATE(ven.fecha) BETWEEN ? AND ?
+               AND ven.estado = 'completada'
+             ORDER BY ven.fecha DESC"
             from to]))
 
 (defn report-totals [rows]
@@ -2682,10 +2682,10 @@ For complex queries beyond CRUD, use direct database access:
 ;; Simple query
 (defn get-top-customers [limit]
   (db/query 
-    "SELECT c.*, SUM(o.total) as total_spent
-     FROM customers c
-     JOIN orders o ON c.id = o.customer_id
-     GROUP BY c.id
+    "SELECT cus.*, SUM(ord.total) as total_spent
+     FROM customers cus
+     JOIN orders ord ON cus.id = ord.customer_id
+     GROUP BY cus.id
      ORDER BY total_spent DESC
      LIMIT ?" 
     [limit]))
