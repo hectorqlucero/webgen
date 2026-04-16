@@ -85,12 +85,29 @@
    [:span.d-none.d-md-inline (:site-name config)]])
 
 (defn logout-button [request]
-  [:li.nav-item.ms-3
-   [:a.btn.btn-primary.btn-sm.px-3.rounded-pill.fw-semibold
-    {:href "/home/logoff"
-     :onclick "localStorage.removeItem('active-link')"}
-    [:i.bi.bi-box-arrow-right.me-1]
-    (str (i18n/tr request :auth/logout) " " (user-name request))]])
+  [:li.nav-item.dropdown.ms-3
+   [:a.btn.btn-primary.btn-sm.px-3.rounded-pill.fw-semibold.dropdown-toggle
+    {:href "#"
+     :id "userDropdown"
+     :role "button"
+     :data-bs-toggle "dropdown"
+     :aria-expanded "false"}
+    [:i.bi.bi-person-circle.me-1]
+    (user-name request)]
+   [:ul.dropdown-menu.dropdown-menu-end.shadow.border-0
+    {:aria-labelledby "userDropdown"}
+    [:li
+     [:a.dropdown-item.fw-semibold
+      {:href "/change/password"}
+      [:i.bi.bi-key.me-2]
+      (i18n/tr request :auth/change-password)]]
+    [:li [:hr.dropdown-divider]]
+    [:li
+     [:a.dropdown-item.fw-semibold.text-danger
+      {:href "/home/logoff"
+       :onclick "localStorage.removeItem('active-link')"}
+      [:i.bi.bi-box-arrow-right.me-2]
+      (i18n/tr request :auth/logout)]]]])
 
 ;; THEME SWITCHER
 (def theme-options

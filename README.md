@@ -1050,7 +1050,11 @@ Use `before-load` to filter rows based on the current user:
 
 ## 12. Audit Trail
 
-Enable per-entity with `:audit? true`. The framework automatically populates four columns on every save:
+Enable per-entity with `:audit? true`. This activates two independent mechanisms:
+
+### 1. Audit Columns on the Entity Table
+
+The framework automatically populates four columns on every save:
 
 | Column | Content |
 |---|---|
@@ -1059,22 +1063,93 @@ Enable per-entity with `:audit? true`. The framework automatically populates fou
 | `modified_by` | User ID of the last editor |
 | `modified_at` | Timestamp of last modification |
 
-These columns must exist in the database table. Include them in the migration:
+> **Note:** The framework also auto-detects these columns without `:audit? true`. If the four columns exist in the table, they are populated on every save regardless of the flag.
+
+These columns must exist in the database table. Add them to the migration:
 
 ```sql
+-- SQLite
 created_by  INTEGER,
 created_at  TEXT DEFAULT (datetime('now')),
 modified_by INTEGER,
 modified_at TEXT
+
+-- PostgreSQL / MySQL
+created_by  INTEGER,
+created_at  TIMESTAMP DEFAULT NOW(),
+modified_by INTEGER,
+modified_at TIMESTAMP
 ```
 
-To show them in the UI, include hidden fields in the entity:
+To show them in the UI, add them as read-only fields in the entity:
 
 ```clojure
 {:id :created_by  :label "Created By"  :type :hidden}
 {:id :created_at  :label "Created At"  :type :hidden}
 {:id :modified_by :label "Modified By" :type :hidden}
 {:id :modified_at :label "Modified At" :type :hidden}
+```
+
+### 2. Audit Log Table
+
+When `:audit? true` is set, the framework also writes one row to an `audit_log` table on every save and delete. Each row records which entity was touched, which operation was performed, a snapshot of the data, the user ID, and a timestamp.
+
+The migration for this table ships with the template as `006-audit_log.<db>.up.sql`. Run migrations to create it:
+
+```sql
+-- SQLite  (e.g. 006-audit_log.sqlite.up.sql)
+CREATE TABLE IF NOT EXISTS audit_log (
+  id        INTEGER PRIMARY KEY AUTOINCREMENT,
+  entity    TEXT NOT NULL,
+  operation TEXT NOT NULL,   -- 'create', 'update', 'delete'
+  data      TEXT,            -- EDN snapshot of the record
+  user_id   INTEGER,
+  timestamp TEXT             -- stored as ISO-8601 string by the framework
+);
+
+-- PostgreSQL  (e.g. 006-audit_log.postgresql.up.sql)
+CREATE TABLE IF NOT EXISTS audit_log (
+  id        SERIAL PRIMARY KEY,
+  entity    TEXT NOT NULL,
+  operation TEXT NOT NULL,
+  data      TEXT,
+  user_id   INTEGER,
+  timestamp TEXT             -- stored as ISO-8601 string by the framework
+);
+
+-- MySQL  (e.g. 006-audit_log.mysql.up.sql)
+CREATE TABLE IF NOT EXISTS audit_log (
+  id        INT AUTO_INCREMENT PRIMARY KEY,
+  entity    VARCHAR(100) NOT NULL,
+  operation VARCHAR(20)  NOT NULL,
+  data      TEXT,
+  user_id   INT,
+  timestamp VARCHAR(50)  -- stored as ISO-8601 string by the framework
+);
+```
+
+> **Connection note:** the audit log is always written to the `:default` database connection, regardless of which connection the entity itself uses.
+
+If the `audit_log` table does not exist, the framework logs a warning and continues — it will **not** crash.
+
+You can expose the log as a read-only entity:
+
+```clojure
+{:entity  :audit_log
+ :title   "Audit Log"
+ :table   "audit_log"
+ :connection :default
+ :rights  ["A" "S"]
+ :menu-category :system
+ :fields  [{:id :id        :label "ID"        :type :hidden}
+           {:id :entity    :label "Entity"     :type :text}
+           {:id :operation :label "Operation"  :type :text}
+           {:id :user_id   :label "User"       :type :text}
+           {:id :timestamp :label "Timestamp"  :type :text}
+           {:id :data      :label "Data"       :type :textarea}]
+ :queries {:list "SELECT * FROM audit_log ORDER BY id DESC"
+           :get  "SELECT * FROM audit_log WHERE id = ?"}
+ :actions {:new false :edit false :delete false}}
 ```
 
 ---

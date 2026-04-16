@@ -1,6 +1,35 @@
 # Change Log
 All notable changes to this project will be documented in this file. This change log follows the conventions of [keepachangelog.com](http://keepachangelog.com/).
 
+## [0.4.4] - 2026-04-16
+### Fixed
+- **`layout.clj`** — Replaced the plain logout button in the navbar with a user dropdown. Logged-in users now see a dropdown showing their username (with a `bi-person-circle` icon) that contains a **Change Password** link (`/change/password`) and a **Logout** item. This makes the password change feature reachable from the authenticated UI for the first time.
+- **`models-form.clj`** — Removed the "Change Password" button from the login form. It linked to a `wrap-login`-protected route (`/change/password`) making it inaccessible to unauthenticated users and creating a redirect loop. The entry point is now correctly placed in the post-login navbar dropdown.
+
+## [0.4.3] - 2026-04-16
+### Added
+- **`resources/migrations/006-audit_log.sqlite.up.sql`** — new migration creates the `audit_log` table for SQLite.
+- **`resources/migrations/006-audit_log.sqlite.down.sql`** — drops the `audit_log` table (SQLite).
+- **`resources/migrations/006-audit_log.mysql.up.sql`** — new migration creates the `audit_log` table for MySQL.
+- **`resources/migrations/006-audit_log.mysql.down.sql`** — drops the `audit_log` table (MySQL).
+- **`resources/migrations/006-audit_log.postgresql.up.sql`** — new migration creates the `audit_log` table for PostgreSQL.
+- **`resources/migrations/006-audit_log.postgresql.down.sql`** — drops the `audit_log` table (PostgreSQL).
+- **`audit-log-entity.edn`** — new read-only entity config for the `audit_log` table. Restricted to `["A" "S"]` rights, all create/edit/delete actions disabled, sorted newest-first. Generated to `resources/entities/audit_log.edn` in every new project.
+- **`webgen.clj`** — registered `audit-log-entity.edn` so it is included in every generated project.
+
+### Changed
+- **`README.md`** — Section 12 (Audit Trail) fully rewritten:
+  - Separated into two mechanisms: (1) audit columns on the entity table (`created_by`, `created_at`, `modified_by`, `modified_at`) and (2) the `audit_log` table written on every save/delete when `:audit? true`.
+  - Added note that audit columns are auto-detected even without `:audit? true` — if the four columns exist in the table they are populated automatically.
+  - Added `CREATE TABLE` SQL for all three databases with correct `TEXT`/`VARCHAR` column types matching what the framework actually writes (`java.time.Instant` serialized as ISO-8601 string).
+  - Added connection note: audit log is always written to the `:default` connection.
+  - Updated wording from "must be created manually" to "ships with the template" now that the migrations are included.
+  - Added read-only entity config example for browsing audit log entries in the admin UI.
+- **`README.md`** — Section 4 (Entity Configuration): Custom UI Renderers section expanded to document all three supported keys (`:grid-fn`, `:form-fn`, `:dashboard-fn`) with correct function signatures and Hiccup examples for each.
+- **`README.md`** — Section 23 (Custom Dashboards and Reports): added "Working Example: Contactos Summary Dashboard" subsection with complete, runnable controller/model/view code using the `contactos`, `cars`, and `siblings` demo tables.
+- **`README.md`** — All SQL JOIN examples updated to use 3-character table aliases (e.g. `pro`, `cat`, `ord`, `cus`) matching the convention used by `lein scaffold`.
+- **`README.md`** — FK Field section: added `:queries` blocks with `LEFT JOIN` examples to the single-FK, multiple-FK, and cascading-FK examples showing how both `:list` and `:get` must join the FK table to populate `:grid-only?` display columns.
+
 ## [0.4.2] - 2026-04-12
 ### Fixed
 - **`README.md`** — Section 17 (Menu Customization) examples corrected to match the actual `menu.clj` API:

@@ -1,0 +1,19 @@
+{:entity :audit_log
+ :title "Audit Log"
+ :table "audit_log"
+ :connection :default
+ :rights ["A" "S"]
+ :mode :parameter-driven
+ :menu-category :system
+
+ :fields [{:id :id        :label "ID"        :type :hidden}
+          {:id :entity    :label "Entity"    :type :text}
+          {:id :operation :label "Operation" :type :text}
+          {:id :user_id   :label "User"      :type :text}
+          {:id :timestamp :label "Timestamp" :type :text}
+          {:id :data      :label "Data"      :type :textarea}]
+
+ :queries {:list "SELECT * FROM audit_log ORDER BY id DESC"
+           :get  "SELECT * FROM audit_log WHERE id = ?"}
+
+ :actions {:new false :edit false :delete false}}

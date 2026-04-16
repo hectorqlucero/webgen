@@ -166,6 +166,7 @@
              ["resources/entities/contactos.edn" (render "contactos-entity.edn" data)]
              ["resources/entities/cars.edn" (render "cars-entity.edn" data)]
              ["resources/entities/siblings.edn" (render "siblings-entity.edn" data)]
+             ["resources/entities/audit_log.edn" (render "audit-log-entity.edn" data)]
 
              ;; Config file (must be rendered to replace {{name}})
              ["resources/config/app-config.edn" (render "config-app-config.edn" data)]

@@ -92,11 +92,7 @@
        [:div.d-flex.gap-2.justify-content-end.mt-4
         [:button.btn.btn-success.btn-lg.fw-semibold
          {:type "submit"}
-         [:i.bi.bi-box-arrow-in-right.me-2] (i18n/tr nil :auth/login)]
-        [:a.btn.btn-outline-info.btn-lg.fw-semibold
-         {:role "button"
-          :href "/change/password"}
-         [:i.bi.bi-key.me-2] (i18n/tr nil :auth/change-password)]]]]]]))
+         [:i.bi.bi-box-arrow-in-right.me-2] (i18n/tr nil :auth/login)]]]]]})
 
 (defn build-image-field
   "Renders an image upload field with preview functionality"
