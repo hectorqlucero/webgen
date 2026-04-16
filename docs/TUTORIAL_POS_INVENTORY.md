@@ -1421,16 +1421,6 @@ Verify the inventory was reduced: go to **Productos**, click a product row, open
 
 These are enhancements you can try on your own, each building on what you have already learned.
 
-### Add the movement date to the grid
-
-The `fecha_movimiento` column exists in the database but is commented out in the entity. Uncomment it:
-
-```clojure
-{:id :fecha_movimiento :label "Fecha" :type :date :hidden-in-form? true}
-```
-
-Set `:hidden-in-form? true` so the user never edits it manually — the database default fills it automatically.
-
 ### Show low stock as a visual warning
 
 In `productos.edn`, add a `before-load` hook. In the hook, read the inventory quantity for each product and add a computed field:
@@ -1449,22 +1439,19 @@ In `productos.edn`, add a `before-load` hook. In the hook, read the inventory qu
 
 ### Restrict who can delete movements
 
-Only administrators should be able to delete a movement because it changes inventory. Add to the Movimientos entity:
+Only administrators should be able to delete a movement because it changes inventory. Change the `:actions` in `movimientos.edn` to hide the Edit button — movements should only be created or deleted, not edited in place:
 
 ```clojure
 :actions {:new true :edit false :delete true}
 ```
 
-And in the `before-delete` hook, check the user level:
+To also hide the Delete button from regular users, change `:rights` so only admins and system users can access the entity at all:
 
 ```clojure
-(defn before-delete [{:keys [id user]}]
-  (if (contains? #{"A" "S"} (:level user))
-    (do
-      ;; save the record as before
-      {:success true})
-    {:errors {:general "Solo los administradores pueden eliminar movimientos"}}))
+:rights ["A" "S"]
 ```
+
+If you need finer control — for example, letting users view movements but only letting admins delete them — that requires a custom controller rather than a hook, because hooks do not have access to the session user.
 
 ### Convert migrations for MySQL
 
