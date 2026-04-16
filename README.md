@@ -1826,6 +1826,132 @@ The front-end calls this endpoint with `fetch()` and renders the data into a Cha
 
 ---
 
+### Working Example: Contactos Summary Dashboard
+
+This example uses the three tables that ship with the default template (`contactos`, `cars`, `siblings`) and shows the exact files you need to create.
+
+**What it renders:** a read-only page at `/contactos-dashboard` that shows total contacts, total cars, total siblings, and a per-contact breakdown table.
+
+---
+
+**`src/myapp/handlers/contactos_dashboard/model.clj`**
+
+```clojure
+(ns myapp.handlers.contactos-dashboard.model
+  (:require [myapp.models.crud :refer [db Query]]))
+
+(defn summary
+  "Aggregate totals across the three demo tables."
+  []
+  (let [totals (first (Query db ["SELECT
+                                    (SELECT COUNT(*) FROM contactos) AS total_contactos,
+                                    (SELECT COUNT(*) FROM cars)      AS total_cars,
+                                    (SELECT COUNT(*) FROM siblings)  AS total_siblings"]))]
+    totals))
+
+(defn per-contact
+  "One row per contact with their car and sibling counts."
+  []
+  (Query db ["SELECT
+               con.id,
+               con.name,
+               con.email,
+               COUNT(DISTINCT car.id) AS cars,
+               COUNT(DISTINCT sib.id) AS siblings
+             FROM contactos con
+             LEFT JOIN cars     car ON car.contacto_id = con.id
+             LEFT JOIN siblings sib ON sib.contacto_id = con.id
+             GROUP BY con.id
+             ORDER BY con.name"]))
+```
+
+---
+
+**`src/myapp/handlers/contactos_dashboard/view.clj`**
+
+```clojure
+(ns myapp.handlers.contactos-dashboard.view)
+
+(defn- kpi-card [label value color icon]
+  [:div.col-md-4
+   [:div.card.border-0.shadow-sm.mb-3
+    [:div.card-body.d-flex.align-items-center.gap-3
+     [:div {:class (str "fs-1 text-" color)}
+      [:i {:class (str "bi " icon)}]]
+     [:div
+      [:div.text-muted.small label]
+      [:div.fs-4.fw-bold value]]]]])
+
+(defn- breakdown-table [rows]
+  [:table.table.table-striped.table-hover.table-sm
+   [:thead.table-dark
+    [:tr
+     [:th "Name"] [:th "Email"]
+     [:th.text-center "Cars"] [:th.text-center "Siblings"]]]
+   [:tbody
+    (if (seq rows)
+      (for [row rows]
+        [:tr
+         [:td (:name row)]
+         [:td (:email row)]
+         [:td.text-center (:cars row)]
+         [:td.text-center (:siblings row)]])
+      [:tr [:td.text-center {:colspan 4} "No contacts found."]])]])
+
+(defn dashboard-view [summary rows]
+  (list
+   [:h4.mb-4 "Contactos Summary"]
+   [:div.row.g-3.mb-4
+    (kpi-card "Total Contacts" (:total_contactos summary 0) "primary"  "bi-people-fill")
+    (kpi-card "Total Cars"     (:total_cars      summary 0) "success"  "bi-car-front-fill")
+    (kpi-card "Total Siblings" (:total_siblings  summary 0) "warning"  "bi-person-lines-fill")]
+   [:div.card.border-0.shadow-sm
+    [:div.card-header.bg-transparent.fw-bold "Per-Contact Breakdown"]
+    [:div.card-body (breakdown-table rows)]]))
+```
+
+---
+
+**`src/myapp/handlers/contactos_dashboard/controller.clj`**
+
+```clojure
+(ns myapp.handlers.contactos-dashboard.controller
+  (:require [myapp.handlers.contactos-dashboard.model :as model]
+            [myapp.handlers.contactos-dashboard.view  :as view]
+            [myapp.layout                              :refer [application]]
+            [myapp.models.util                         :refer [get-session-id]]))
+
+(defn main [request]
+  (let [summary (model/summary)
+        rows    (model/per-contact)
+        content (view/dashboard-view summary rows)]
+    (application request "Contactos Dashboard" (get-session-id request) nil content)))
+```
+
+---
+
+**Register the route in `src/myapp/routes/proutes.clj`:**
+
+```clojure
+(ns myapp.routes.proutes
+  (:require [compojure.core :refer [defroutes GET]]
+            [myapp.handlers.contactos-dashboard.controller :as contactos-dash]))
+
+(defroutes proutes
+  (GET "/contactos-dashboard" request (contactos-dash/main request)))
+```
+
+**Add a menu entry in `src/myapp/menu.clj`:**
+
+```clojure
+(def custom-nav-links
+  [["/contactos-dashboard" "Contactos Dashboard" "U" 20]])
+```
+
+The page is now available at `http://localhost:3000/contactos-dashboard` for any logged-in user.
+
+---
+
 ### Summary: The 20% Pattern
 
 ```
