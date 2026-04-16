@@ -358,6 +358,18 @@ An FK field renders as a searchable dropdown populated from another entity's tab
 
 ;; Add a display-only column to show the joined value in the grid
 {:id :category_name :label "Category" :grid-only? true}
+
+;; Both :list and :get queries must JOIN the FK table to populate the display column
+:queries
+{:list "SELECT p.*, c.name AS category_name
+        FROM products p
+        LEFT JOIN categories c ON p.category_id = c.id
+        ORDER BY p.name"
+
+ :get  "SELECT p.*, c.name AS category_name
+        FROM products p
+        LEFT JOIN categories c ON p.category_id = c.id
+        WHERE p.id = ?"}
 ```
 
 Multiple FK display columns (all joined into the dropdown label):
@@ -371,6 +383,18 @@ Multiple FK display columns (all joined into the dropdown label):
  :required? true
  :hidden-in-grid? true}
 {:id :agent_name :label "Agent" :grid-only? true}
+
+;; JOIN the agents table to populate agent_name in both views
+:queries
+{:list "SELECT t.*, a.first_name || ' ' || a.last_name AS agent_name
+        FROM tickets t
+        LEFT JOIN agents a ON t.agent_id = a.id
+        ORDER BY t.created_at DESC"
+
+ :get  "SELECT t.*, a.first_name || ' ' || a.last_name AS agent_name
+        FROM tickets t
+        LEFT JOIN agents a ON t.agent_id = a.id
+        WHERE t.id = ?"}
 ```
 
 #### Cascading Dependent FK Fields
@@ -410,6 +434,26 @@ Use `:fk-parent` to make one FK filter based on the value selected in another.
  :fk-can-create? true
  :hidden-in-grid? true}
 {:id :neighborhood_name :label "Neighborhood" :grid-only? true}
+
+;; JOIN all three FK tables so every display column is populated in :list and :get
+:queries
+{:list "SELECT a.*, s.name AS state_name,
+               m.name AS municipality_name,
+               n.name AS neighborhood_name
+        FROM addresses a
+        LEFT JOIN states         s ON a.state_id         = s.id
+        LEFT JOIN municipalities m ON a.municipality_id  = m.id
+        LEFT JOIN neighborhoods  n ON a.neighborhood_id  = n.id
+        ORDER BY a.id"
+
+ :get  "SELECT a.*, s.name AS state_name,
+               m.name AS municipality_name,
+               n.name AS neighborhood_name
+        FROM addresses a
+        LEFT JOIN states         s ON a.state_id         = s.id
+        LEFT JOIN municipalities m ON a.municipality_id  = m.id
+        LEFT JOIN neighborhoods  n ON a.neighborhood_id  = n.id
+        WHERE a.id = ?"}
 ```
 
 #### Radio Buttons
