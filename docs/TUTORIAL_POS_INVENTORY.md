@@ -1423,7 +1423,7 @@ These are enhancements you can try on your own, each building on what you have a
 
 ### Show low stock as a visual warning
 
-In `productos.edn`, add a `before-load` hook. In the hook, read the inventory quantity for each product and add a computed field:
+In `productos.edn`, add an `after-load` hook. In the hook, query the existing `inventario` table for each product and attach the quantity as a computed field. **No migration is needed** — `:stock_actual` is a virtual field that exists only in memory; it is never stored in the database.
 
 ```clojure
 ;; In the entity, add to :fields:
@@ -1436,6 +1436,8 @@ In `productos.edn`, add a `before-load` hook. In the hook, read the inventory qu
            (assoc row :stock_actual (or (:cantidad inv) 0))))
        rows))
 ```
+
+The framework calls `after-load` after fetching the product rows and before rendering the grid. The hook adds `:stock_actual` to each row map on the fly, and the entity field definition tells the grid to display it. The value comes from the `inventario` table that already exists.
 
 ### Restrict who can delete movements
 
