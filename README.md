@@ -303,9 +303,6 @@ Every field map supports any combination of these keys:
 
 ;; Date and time picker
 {:id :created_at  :label "Created At"    :type :datetime}
-
-;; Time picker
-{:id :opens_at    :label "Opening Time"  :type :time}
 ```
 
 ### Selection Inputs
@@ -845,16 +842,25 @@ The child entity's `:queries` must accept the parent ID as a parameter. The fram
 
 ## 10. Custom Queries
 
-### Named SQL Queries
+The framework automatically uses exactly two query keys from the `:queries` map:
+
+| Key | Used by | Purpose |
+|---|---|---|
+| `:list` | Grid / list view | Returns all rows (with optional filters from `before-load`) |
+| `:get`  | Edit form / subgrid | Returns a single row by `id` |
+
+These are the **only** keys the framework calls automatically. Any other key you add is ignored unless you call it explicitly from a custom handler via `(query/custom-query entity :your-key)`.
+
+### Standard Queries
 
 ```clojure
-:queries {:list    "SELECT * FROM products ORDER BY name"
-          :get     "SELECT * FROM products WHERE id = ?"
-          :active  "SELECT * FROM products WHERE status = 'active' ORDER BY name"
-          :by-cat  "SELECT * FROM products WHERE category_id = ? ORDER BY name"}
+:queries {:list "SELECT * FROM products ORDER BY name"
+          :get  "SELECT * FROM products WHERE id = ?"}
 ```
 
 ### Queries with Joins
+
+Use `:list` and `:get` with any SQL you need, including joins:
 
 ```clojure
 :queries
@@ -876,21 +882,21 @@ The child entity's `:queries` must accept the parent ID as a parameter. The fram
 
 ### Function-Based Queries
 
-For queries that need runtime logic, reference a function by its fully-qualified keyword:
+When `:list` or `:get` need runtime logic (dynamic filters, user-specific data), reference a function by its fully-qualified keyword instead of a SQL string:
 
 ```clojure
-:queries {:low-stock    :myapp.queries.products/low-stock
-          :sales-report :myapp.queries.reports/sales-by-month}
+:queries {:list :myapp.queries.products/list-for-user
+          :get  "SELECT * FROM products WHERE id = ?"}
 ```
 
 ```clojure
 (ns myapp.queries.products
   (:require [myapp.models.crud :as crud]))
 
-(defn low-stock [params conn]
-  (let [threshold (or (:threshold params) 10)]
-    (crud/Query ["SELECT * FROM products WHERE stock < ? ORDER BY stock ASC"
-                 threshold]
+(defn list-for-user [params conn]
+  (let [user-id (get-in params [:user :id])]
+    (crud/Query ["SELECT * FROM products WHERE owner_id = ? ORDER BY name"
+                 user-id]
                 :conn conn)))
 ```
 
@@ -1008,8 +1014,16 @@ Examples:
 ```bash
 lein migrate                        # Apply all pending migrations
 lein rollback                       # Rollback the last applied migration
-lein create-migration add-phone     # Create a new blank migration pair
 ```
+
+To add a new migration, create the SQL files manually in `resources/migrations/` following the naming convention above. For example, to add a `products` table create:
+
+```
+002-products.sqlite.up.sql
+002-products.sqlite.down.sql
+```
+
+Then run `lein migrate`.
 
 ### Converting Migrations Between Databases
 
@@ -1028,7 +1042,7 @@ Type mappings applied automatically:
 | `INTEGER` | `INT` | `INTEGER` |
 | `TEXT` | `TEXT` | `TEXT` |
 | `REAL` | `DOUBLE` | `DOUBLE PRECISION` |
-| `BLOB` | `LONGBLOB` | `BYTEA` |
+| `BLOB` | `BLOB` | `BYTEA` |
 | `datetime('now')` | `CURRENT_TIMESTAMP` | `CURRENT_TIMESTAMP` |
 
 Always review generated files and add indexes, constraints, and VARCHAR lengths appropriate to your target database before applying.
@@ -1052,10 +1066,11 @@ Scaffolding inspects an existing database table and generates the entity configu
 ### Typical Workflow
 
 ```bash
-# 1. Create the migration
-lein create-migration add-products
+# 1. Create migration files manually in resources/migrations/
+#    e.g. 002-products.sqlite.up.sql / 002-products.sqlite.down.sql
 
-# 2. Edit the generated SQL files in resources/migrations/
+# 2. Write the CREATE TABLE SQL in the .up file
+#    and the DROP TABLE SQL in the .down file
 
 # 3. Apply the migration
 lein migrate
@@ -1067,7 +1082,6 @@ lein scaffold products
 ```bash
 lein scaffold products          # Scaffold a single entity
 lein scaffold --all             # Scaffold all tables in the database
-lein scaffold --interactive     # Prompt for each table
 lein scaffold products --force  # Overwrite existing files
 ```
 
@@ -1801,10 +1815,10 @@ These demonstrate:
 ### Create Additional Entities
 
 ```bash
-# 1. Create and apply the migration first
-lein create-migration add-products
-# Edit the SQL files in resources/migrations/, then:
-lein migrate
+# 1. Create migration files manually in resources/migrations/
+#    e.g. 002-products.sqlite.up.sql / 002-products.sqlite.down.sql
+# 2. Write CREATE TABLE SQL in the .up file
+lein migrate                         # Apply the migration
 
 # 2. Scaffold the entity from the live table
 lein scaffold products
@@ -1954,7 +1968,6 @@ Entity configs define everything about a CRUD interface. Located in `resources/e
 | `:password` | Password input (masked) | Password field | `placeholder`, `required` |
 | `:date` | Date picker | Birth date, expiry | `min`, `max` |
 | `:datetime` | Date and time picker | Created timestamp | `min`, `max` |
-| `:time` | Time picker | Event time | `min`, `max` |
 | `:select` | Dropdown select | Category, status | `options` (array of `{:value :label}`) |
 | `:radio` | Radio button group | Status, type | `options` (array with `:id`, `:label`, `:value`) |
 | `:checkbox` | Single checkbox | Active, featured | `value` (value sent when checked; `""` sent when unchecked) |
@@ -2067,8 +2080,8 @@ Register hooks in entity config `resources/entities/products.edn`:
 
 **Automatic Timestamps:**
 ```clojure
-(defn before-save [row]
-  (assoc row :updated_at (java.time.LocalDateTime/now)))
+(defn before-save [params]
+  (assoc params :updated_at (java.time.LocalDateTime/now)))
 ```
 
 ## **Database** Database Support
@@ -2081,11 +2094,11 @@ WebGen generates vendor-specific migrations automatically.
 lein scaffold products
 ```
 
-Generates the entity config and hooks file from the live database table. To add a new table, create and apply a migration first, then run scaffold:
+Generates the entity config and hooks file from the live database table. To add a new table, create the migration SQL files manually, apply them, then scaffold:
 
 ```bash
-lein create-migration add-products   # Create blank migration pair
-# Edit resources/migrations/ SQL files
+# Create resources/migrations/002-products.sqlite.up.sql (and .down.sql)
+# Write the CREATE TABLE SQL, then:
 lein migrate                          # Apply migration
 lein scaffold products                # Generate entity from live table
 ```
@@ -2154,14 +2167,7 @@ lein database             # Seed default users
 
 ## **Documentation:** Documentation
 
-Generated projects include comprehensive documentation:
-
-- **QUICKSTART.md** - Get started quickly
-- **FRAMEWORK_GUIDE.md** - Complete framework documentation
-- **HOOKS_GUIDE.md** - Hook system and customization
-- **DATABASE_MIGRATION_GUIDE.md** - Migration management
-- **QUICK_REFERENCE.md** - Command reference
-- **RUN_APP.md** - Running and deployment
+Generated projects include a `README.md` with quick-start instructions and this reference. For full framework documentation, see the repository README.
 
 ## **Tools:** Common Commands
 
@@ -2181,9 +2187,8 @@ lein with-profile dev run            # Start dev server (port 3000)
                                      # Auto-reloads on config/hook changes
 lein compile                         # Compile project
 
-# Scaffolding (requires migration to be applied first)
-lein create-migration add-products   # Create a blank migration pair
-                                     # Edit SQL files in resources/migrations/
+# Scaffolding (migration must be applied first)
+# Create migration SQL files in resources/migrations/ manually
 lein migrate                         # Apply the migration
 lein scaffold products               # Generate entity config and hooks from live table
                                      # - resources/entities/products.edn
@@ -2194,7 +2199,7 @@ lein test                            # Run tests
 
 # Production
 lein uberjar                         # Build standalone JAR
-java -jar target/myapp.jar           # Run production server
+java -jar target/uberjar/myapp-0.1.0-standalone.jar  # Run production server
 ```
 
 ### Auto-Reload Feature
@@ -2264,7 +2269,7 @@ Edit `src/myapp/menu.clj` to add custom menu items that don't come from entities
 
 ```clojure
 (def custom-nav-links
-  [["home"       "Home"      nil  0]
+  [["/"          "Home"      nil  0]
    ["/dashboard" "Dashboard" "U" 10]
    ["/reports"   "Reports"   "U" 20]
    ["/analytics" "Analytics" "A" 30]])
@@ -2370,18 +2375,18 @@ Hooks provide deep customization without modifying framework code.
 ```clojure
 (ns myapp.hooks.orders)
 
-(defn after-load [rows]
+(defn after-load [rows params]
   ;; Calculate derived fields
-  (map (fn [row]
-         (let [subtotal (* (:quantity row) (:price row))
-               tax (* subtotal 0.08)
-               total (+ subtotal tax)]
-           (assoc row
-                  :subtotal subtotal
-                  :tax tax
-                  :total total
-                  :status-badge (status-badge (:status row)))))
-       rows))
+  (mapv (fn [row]
+          (let [subtotal (* (:quantity row) (:price row))
+                tax (* subtotal 0.08)
+                total (+ subtotal tax)]
+            (assoc row
+                   :subtotal subtotal
+                   :tax tax
+                   :total total
+                   :status-badge (status-badge (:status row)))))
+        rows))
 
 (defn status-badge [status]
   (case status
@@ -2396,33 +2401,33 @@ Hooks provide deep customization without modifying framework code.
 ```clojure
 (ns myapp.hooks.products)
 
-(defn before-save [row]
+(defn before-save [params]
   ;; Handle multiple file uploads
-  (cond-> row
+  (cond-> params
     ;; Main product image
-    (contains? row :image)
-    (assoc :file (:image row))
-    
-    ;; Product thumbnail
-    (contains? row :thumbnail)
-    (assoc :file_thumb (:thumbnail row))
-    
-    ;; Product PDF datasheet
-    (contains? row :datasheet)
-    (assoc :file_pdf (:datasheet row))))
+    (contains? params :image)
+    (assoc :file (:image params))
 
-(defn after-save [row]
+    ;; Product thumbnail
+    (contains? params :thumbnail)
+    (assoc :file_thumb (:thumbnail params))
+
+    ;; Product PDF datasheet
+    (contains? params :datasheet)
+    (assoc :file_pdf (:datasheet params))))
+
+(defn after-save [entity-id params]
   ;; Generate thumbnails after save
-  (when (:image row)
-    (generate-thumbnail (:image row)))
-  
+  (when (:image params)
+    (generate-thumbnail (:image params)))
+
   ;; Update search index
-  (update-search-index row)
-  
+  (update-search-index params)
+
   ;; Notify warehouse
-  (notify-inventory-system row)
-  
-  row)
+  (notify-inventory-system params)
+
+  {:success true})
 ```
 
 #### Dynamic Query Filtering
@@ -2453,30 +2458,26 @@ Hooks provide deep customization without modifying framework code.
 ```clojure
 (ns myapp.hooks.invoices)
 
-(defn before-save [row]
-  ;; Business rule validation
-  (validate-invoice row)
-  
-  ;; Auto-calculate fields
-  (let [items (fetch-invoice-items (:id row))
-        subtotal (reduce + (map :total items))
-        tax (* subtotal (:tax_rate row))
-        total (+ subtotal tax)]
-    (assoc row
-           :subtotal subtotal
-           :tax tax
-           :total total
-           :updated_at (java.time.LocalDateTime/now))))
+(defn before-save [params]
+  ;; Business rule validation — return {:errors {...}} to abort
+  (let [errors (cond-> {}
+                 (< (or (:total params) 0) 0)
+                 (assoc :total "Invoice total cannot be negative")
 
-(defn validate-invoice [row]
-  (when (< (:total row) 0)
-    (throw (ex-info "Invoice total cannot be negative" {:row row})))
-  
-  (when (empty? (:customer_id row))
-    (throw (ex-info "Customer is required" {:row row})))
-  
-  (when (< (count (:items row)) 1)
-    (throw (ex-info "Invoice must have at least one item" {:row row}))))
+                 (empty? (:customer_id params))
+                 (assoc :customer_id "Customer is required"))]
+    (if (seq errors)
+      {:errors errors}
+      ;; Auto-calculate fields before saving
+      (let [items    (fetch-invoice-items (:id params))
+            subtotal (reduce + 0 (map :total items))
+            tax      (* subtotal (or (:tax_rate params) 0))
+            total    (+ subtotal tax)]
+        (assoc params
+               :subtotal   subtotal
+               :tax        tax
+               :total      total
+               :updated_at (java.time.LocalDateTime/now))))))
 ```
 
 #### Cascade Operations
@@ -2484,19 +2485,19 @@ Hooks provide deep customization without modifying framework code.
 ```clojure
 (ns myapp.hooks.customers)
 
-(defn after-delete [id]
+(defn after-delete [entity-id]
   ;; Cascade delete related records
-  (delete-customer-addresses id)
-  (delete-customer-orders id)
-  (delete-customer-notes id)
-  
+  (delete-customer-addresses entity-id)
+  (delete-customer-orders entity-id)
+  (delete-customer-notes entity-id)
+
   ;; Update analytics
   (update-customer-count)
-  
+
   ;; Audit log
-  (log-customer-deletion id)
-  
-  id)
+  (log-customer-deletion entity-id)
+
+  {:success true})
 ```
 
 ---

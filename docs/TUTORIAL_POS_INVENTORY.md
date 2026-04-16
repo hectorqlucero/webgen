@@ -711,71 +711,7 @@ after-delete hook runs:
 
 ---
 
-## Step 16 — Optional Improvements
-
-These are enhancements you can try on your own, each building on what you have already learned.
-Before you try this enhancements I suggest you jump this step and come back to it if needed after you perfom Step 17.
-
-### Add the movement date to the grid
-
-The `fecha_movimiento` column exists in the database but is commented out in the entity. Uncomment it:
-
-```clojure
-{:id :fecha_movimiento :label "Fecha" :type :date :hidden-in-form? true}
-```
-
-Set `:hidden-in-form? true` so the user never edits it manually — the database default fills it automatically.
-
-### Show low stock as a visual warning
-
-In `productos.edn`, add a `before-load` hook. In the hook, read the inventory quantity for each product and add a computed field:
-
-```clojure
-;; In the entity, add to :fields:
-{:id :stock_actual :label "Stock" :type :number :grid-only? true}
-
-;; In the hook namespace:
-(defn after-load [rows params]
-  (map (fn [row]
-         (let [inv (first (Query ["SELECT cantidad FROM inventario WHERE producto_id = ?" (:id row)]))]
-           (assoc row :stock_actual (or (:cantidad inv) 0))))
-       rows))
-```
-
-### Restrict who can delete movements
-
-Only administrators should be able to delete a movement because it changes inventory. Add to the Movimientos entity:
-
-```clojure
-:actions {:new true :edit false :delete true}
-```
-
-And in the `before-delete` hook, check the user level:
-
-```clojure
-(defn before-delete [{:keys [id user]}]
-  (if (contains? #{"A" "S"} (:level user))
-    (do
-      ;; save the record as before
-      {:success true})
-    {:errors {:general "Solo los administradores pueden eliminar movimientos"}}))
-```
-
-### Convert migrations for MySQL
-
-When you are ready to move to a real database server:
-
-```bash
-lein convert-migrations mysql
-lein migrate
-lein copy-data mysql
-```
-
-Then edit `app-config.edn` and change `:default` and `:main` to `:mysql`.
-
----
-
-## Step 17 — Build the Custom POS Register Screen
+## Step 16 — Build the Custom POS Register Screen
 
 Everything you have built so far uses the entity system: EDN config files drive the CRUD interface automatically. But a real point of sale register is different. A cashier needs a touch-friendly product grid, a running cart, a payment calculator, and a receipt — not a CRUD form.
 
@@ -1478,6 +1414,69 @@ var POS = (function () {
 9. Click **Print Receipt** to open the printable receipt in a new window
 
 Verify the inventory was reduced: go to **Productos**, click a product row, open the **Inventario** tab. The quantity should be lower by the amount sold.
+
+---
+
+## Step 17 — Optional Improvements
+
+These are enhancements you can try on your own, each building on what you have already learned.
+
+### Add the movement date to the grid
+
+The `fecha_movimiento` column exists in the database but is commented out in the entity. Uncomment it:
+
+```clojure
+{:id :fecha_movimiento :label "Fecha" :type :date :hidden-in-form? true}
+```
+
+Set `:hidden-in-form? true` so the user never edits it manually — the database default fills it automatically.
+
+### Show low stock as a visual warning
+
+In `productos.edn`, add a `before-load` hook. In the hook, read the inventory quantity for each product and add a computed field:
+
+```clojure
+;; In the entity, add to :fields:
+{:id :stock_actual :label "Stock" :type :number :grid-only? true}
+
+;; In the hook namespace:
+(defn after-load [rows params]
+  (map (fn [row]
+         (let [inv (first (Query ["SELECT cantidad FROM inventario WHERE producto_id = ?" (:id row)]))]
+           (assoc row :stock_actual (or (:cantidad inv) 0))))
+       rows))
+```
+
+### Restrict who can delete movements
+
+Only administrators should be able to delete a movement because it changes inventory. Add to the Movimientos entity:
+
+```clojure
+:actions {:new true :edit false :delete true}
+```
+
+And in the `before-delete` hook, check the user level:
+
+```clojure
+(defn before-delete [{:keys [id user]}]
+  (if (contains? #{"A" "S"} (:level user))
+    (do
+      ;; save the record as before
+      {:success true})
+    {:errors {:general "Solo los administradores pueden eliminar movimientos"}}))
+```
+
+### Convert migrations for MySQL
+
+When you are ready to move to a real database server:
+
+```bash
+lein convert-migrations mysql
+lein migrate
+lein copy-data mysql
+```
+
+Then edit `app-config.edn` and change `:default` and `:main` to `:mysql`.
 
 ---
 
