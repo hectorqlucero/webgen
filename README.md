@@ -60,14 +60,6 @@ lein with-profile dev run
 
 Visit `http://localhost:8080` and log in with `admin@example.com` / `admin`.
 
-### Create Your First Entity
-
-```bash
-lein scaffold products
-```
-
-This generates `resources/entities/products.edn`, the database migration files, and a hooks file. Refresh the browser and the Products entity appears in the menu with a full CRUD interface.
-
 ---
 
 ## 2. Project Structure
