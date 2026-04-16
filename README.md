@@ -1304,6 +1304,18 @@ Edit `src/myapp/routes/proutes.clj` for pages that require authentication. The f
 
 ### Custom Handler (MVC Pattern)
 
+Use the `gen-handler` alias to scaffold the handler skeleton automatically:
+
+```bash
+# Create handler skeleton
+lein gen-handler dashboard
+
+# Remove handler skeleton
+lein gen-handler dashboard remove
+```
+
+This creates the following structure and automatically adds the controller require to `src/myapp/routes/proutes.clj`:
+
 ```
 src/myapp/handlers/
 └── dashboard/
@@ -1312,44 +1324,96 @@ src/myapp/handlers/
     └── view.clj
 ```
 
-**Controller:**
+The generated files follow the MVC pattern. Below is a complete, working example of a **dashboard** that renders one Bootstrap 5 card per database table, each showing the table name and its row count.
+
+**Controller** (`src/myapp/handlers/dashboard/controller.clj`):
 
 ```clojure
 (ns myapp.handlers.dashboard.controller
-  (:require [myapp.handlers.dashboard.model :as model]
-            [myapp.handlers.dashboard.view  :as view]))
+  (:require
+   [myapp.handlers.dashboard.model :as model]
+   [myapp.handlers.dashboard.view  :as view]
+   [myapp.layout                   :refer [application]]
+   [myapp.models.util              :refer [get-session-id]]))
 
-(defn main [request]
-  (let [user  (get-in request [:session :user])
-        stats (model/get-stats user)]
-    (view/dashboard-page stats)))
+(defn main
+  [request]
+  (let [title   "Dashboard"
+        ok      (get-session-id request)
+        js      nil
+        tables  (model/table-stats)
+        content (view/main title tables)]
+    (application request title ok js content)))
 ```
 
-**Model:**
+**Model** (`src/myapp/handlers/dashboard/model.clj`):
 
 ```clojure
 (ns myapp.handlers.dashboard.model
-  (:require [myapp.models.db :as db]))
+  (:require
+   [myapp.models.crud :refer [db Query]]
+   [myapp.models.db   :as db-vendor]))
 
-(defn get-stats [user]
-  {:order-count (db/query-one "SELECT COUNT(*) AS n FROM orders WHERE user_id = ?" [(:id user)])
-   :revenue     (db/query-one "SELECT SUM(total) AS s FROM orders WHERE user_id = ?" [(:id user)])})
+(defn- list-tables []
+  (cond
+    (db-vendor/sqlite? db)
+    (map :name
+         (Query db ["SELECT name
+                       FROM sqlite_master
+                      WHERE type = 'table'
+                        AND name NOT LIKE 'sqlite_%'
+                        AND name != 'ragtime_migrations'
+                      ORDER BY name"]))
+
+    (db-vendor/postgres? db)
+    (map :table_name
+         (Query db ["SELECT table_name
+                       FROM information_schema.tables
+                      WHERE table_schema = 'public'
+                        AND table_type   = 'BASE TABLE'
+                      ORDER BY table_name"]))
+
+    :else ;; MySQL
+    (map :table_name
+         (Query db ["SELECT table_name
+                       FROM information_schema.tables
+                      WHERE table_schema = DATABASE()
+                        AND table_type   = 'BASE TABLE'
+                      ORDER BY table_name"]))))
+
+(defn- row-count [table]
+  (or (:cnt (first (Query db [(str "SELECT COUNT(*) AS cnt FROM " table)])))
+      0))
+
+(defn table-stats
+  "Returns a seq of {:table \"name\" :count n} for every table in the DB."
+  []
+  (for [t (list-tables)]
+    {:table t :count (row-count t)}))
 ```
 
-**View:**
+**View** (`src/myapp/handlers/dashboard/view.clj`):
 
 ```clojure
 (ns myapp.handlers.dashboard.view
-  (:require [myapp.layout :as layout]
-            [hiccup.core  :refer [html]]))
+  (:require
+   [hiccup.core :refer [html]]))
 
-(defn dashboard-page [stats]
-  (layout/application "Dashboard"
-    (html
-      [:div.container.mt-4
-       [:h1 "Dashboard"]
-       [:p "Total orders: " (get-in stats [:order-count :n])]
-       [:p "Revenue: $"     (get-in stats [:revenue :s])]])))
+(defn- table-card [{:keys [table count]}]
+  [:div.col
+   [:div.card.h-100.shadow-sm
+    [:div.card-body.d-flex.flex-column.align-items-center.justify-content-center.py-4
+     [:h5.card-title.text-capitalize.mb-3 (clojure.string/replace table "_" " ")]
+     [:span.display-6.fw-bold.text-primary count]
+     [:p.card-text.text-muted.mt-1 "records"]]]])
+
+(defn main
+  [title tables]
+  (html
+   [:div.container.mt-4
+    [:h2.mb-4 title]
+    [:div.row.row-cols-1.row-cols-sm-2.row-cols-md-3.row-cols-lg-4.g-4
+     (map table-card tables)]]))
 ```
 
 ### Direct Database Access
