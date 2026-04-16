@@ -190,8 +190,67 @@ Every entity is a single EDN file in `resources/entities/`. The file name determ
              :icon        "bi bi-chat"}]
 
  ;; ── Custom UI Renderers (advanced) ────────────────────────────────────
- :ui {:grid-fn :myapp.views.products/custom-grid
-      :form-fn :myapp.views.products/custom-form}}
+ :ui {:grid-fn      :myapp.views.products/custom-grid      ; Replace the list/grid view
+      :form-fn      :myapp.views.products/custom-form      ; Replace the edit/new form
+      :dashboard-fn :myapp.views.products/custom-dashboard ; Replace the dashboard view
+      }}
+```
+
+The `:ui` map lets you replace any of the three standard views with your own Hiccup-returning function. All three keys are optional — omit any you do not need to override.
+
+| Key | Replaces | Function signature |
+|---|---|---|
+| `:grid-fn` | List / grid view | `(fn [entity rows] hiccup)` |
+| `:form-fn` | Edit / new form | `(fn [entity row] hiccup)` |
+| `:dashboard-fn` | Dashboard / read-only view | `(fn [entity rows] hiccup)` |
+
+Each value is a fully-qualified keyword that resolves to a function at load time (the same syntax used for hook functions and query functions).
+
+**Custom grid example** — replaces the standard DataTable with a card layout:
+
+```clojure
+;; src/myapp/views/products.clj
+(ns myapp.views.products)
+
+(defn custom-grid [entity rows]
+  [:div.row
+   (for [row rows]
+     [:div.col-md-3
+      [:div.card.mb-3
+       [:div.card-body
+        [:h5.card-title (:name row)]
+        [:p.card-text (:description row)]
+        [:span.badge.bg-primary (:category_name row)]]]])])
+```
+
+**Custom form example** — replaces the standard modal form with a full-page layout:
+
+```clojure
+(defn custom-form [entity row]
+  (let [action (str "/admin/" (name entity) "/save")]
+    [:form {:method "POST" :action action}
+     [:div.row
+      [:div.col-md-6
+       [:label "Name"]
+       [:input.form-control {:name "name" :value (:name row "")}]]
+      [:div.col-md-6
+       [:label "Price"]
+       [:input.form-control {:type "number" :name "price" :value (:price row "")}]]]
+     [:button.btn.btn-primary {:type "submit"} "Save"]]))
+```
+
+**Custom dashboard example** — replaces the standard read-only grid with a summary panel:
+
+```clojure
+(defn custom-dashboard [entity rows]
+  (let [total (reduce + 0 (map :amount rows))]
+    [:div
+     [:h4 "Total: " total]
+     [:table.table
+      [:thead [:tr [:th "Date"] [:th "Amount"]]]
+      [:tbody
+       (for [row rows]
+         [:tr [:td (:date row)] [:td (:amount row)]])]]]))
 ```
 
 ### Menu Categories
