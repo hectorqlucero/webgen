@@ -11,7 +11,7 @@
                  [hiccup "2.0.0"]
                  [buddy/buddy-hashers "2.0.167"]
                  [com.draines/postal "2.0.5"]
-                 [cheshire "6.1.0"]
+                 [cheshire "6.2.0"]
                  [clj-pdf "2.7.4"]
                  [ondrs/barcode "0.1.0"]
                  [pdfkit-clj "0.1.7"]
@@ -29,10 +29,10 @@
                  ;; [com.h2database/h2 "2.2.224"]                        ; H2
                  ;; [com.oracle.database.jdbc/ojdbc8 "21.11.0.0"]        ; Oracle (check licensing)
                  [ragtime "0.8.1"]
-                 [ring/ring-core "1.15.3"]
-                 [ring/ring-jetty-adapter "1.15.3"]
+                 [ring/ring-core "1.15.4"]
+                 [ring/ring-jetty-adapter "1.15.4"]
                  [ring/ring-defaults "0.7.0"]
-                 [ring/ring-devel "1.15.3"]
+                 [ring/ring-devel "1.15.4"]
                  [ring/ring-codec "1.3.0"]]
   :main {{sanitized}}.core
   :plugins [[lein-ancient "0.7.0"]
