@@ -237,7 +237,7 @@ This creates three default users for you to log in with.
 lein with-profile dev run
 ```
 
-Wait for the message that the server started, then open your browser to `http://localhost:8080`.
+Wait for the message that the server started, then open your browser to `http://localhost:3000`.
 
 Log in with `admin@example.com` and password `admin`.
 
@@ -1468,7 +1468,7 @@ var POS = (function () {
 ### Test the POS screen
 
 1. Restart the server: `lein with-profile dev run`
-2. Navigate to `http://localhost:8080/pos`
+2. Navigate to `http://localhost:3000/pos`
 3. You should see the product grid on the left and the cart panel on the right
 4. Click a product card — it appears in the cart
 5. Click the same card again — quantity increments
@@ -1502,7 +1502,7 @@ The `after-load` hook in `productos.clj` must require `image-link` from `pos.mod
 **Port already in use**
 
 ```bash
-lsof -i :8080
+lsof -i :3000
 kill -9 <PID>
 ```
 

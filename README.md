@@ -58,7 +58,7 @@ lein database     # Seed default users
 lein with-profile dev run
 ```
 
-Visit `http://localhost:8080` and log in with `admin@example.com` / `admin`.
+Visit `http://localhost:3000` and log in with `admin@example.com` / `admin`.
 
 ---
 
