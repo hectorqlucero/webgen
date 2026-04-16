@@ -1455,17 +1455,55 @@ To also hide the Delete button from regular users, change `:rights` so only admi
 
 If you need finer control — for example, letting users view movements but only letting admins delete them — that requires a custom controller rather than a hook, because hooks do not have access to the session user.
 
-### Convert migrations for MySQL
+### Move to a production database (MySQL or PostgreSQL)
 
-When you are ready to move to a real database server:
+When you are ready to move off SQLite to a real database server, the framework provides tools to convert the migration files and copy all data across.
+
+**Step 1 — Convert the SQLite migrations to the target format:**
 
 ```bash
 lein convert-migrations mysql
-lein migrate
-lein copy-data mysql
+# or
+lein convert-migrations postgresql
 ```
 
-Then edit `app-config.edn` and change `:default` and `:main` to `:mysql`.
+This reads every `*.sqlite.up.sql` and `*.sqlite.down.sql` file in `resources/migrations/` and writes equivalent `*.mysql.up.sql` / `*.postgresql.up.sql` files. Review the generated files before continuing — the converter handles the common cases but complex SQLite-specific SQL may need manual adjustment.
+
+**Step 2 — Point the migrator at the target database:**
+
+Open `app-config.edn` and change the `:main` key (used by `lein migrate`) to the target database connection:
+
+```clojure
+:main :mysql      ; or :postgres for PostgreSQL
+```
+
+Make sure the credentials for `:mysql` or `:postgres` in `:connections` are correct.
+
+**Step 3 — Apply the migrations to the new database:**
+
+```bash
+lein migrate
+```
+
+**Step 4 — Copy all data from SQLite to the new database:**
+
+```bash
+lein copy-data localdb mysql        # SQLite → MySQL
+# or
+lein copy-data localdb postgres     # SQLite → PostgreSQL
+```
+
+The first argument is the **source** and the second is the **target**. `localdb` is the alias for the SQLite database defined in `app-config.edn`.
+
+**Step 5 — Switch the application to use the new database:**
+
+In `app-config.edn`, change `:default` (used by the running application) to match:
+
+```clojure
+:default :mysql   ; or :postgres
+```
+
+Restart the server and verify everything works before decommissioning the SQLite file.
 
 ---
 
