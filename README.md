@@ -119,10 +119,10 @@ Edit `resources/config/app-config.edn`:
   :default :sqlite   ; Connection used by entities
   :main    :sqlite}  ; Connection used by migrations
 
- :port            8080
+ :port            3000
  :site-name       "My Application"
  :company-name    "Acme Corp"
- :base-url        "http://0.0.0.0:8080/"
+ :base-url        "http://0.0.0.0:3000/"
  :uploads         "./uploads/myapp/"
  :max-upload-mb   5
  :allowed-image-exts ["jpg" "jpeg" "png" "gif" "webp"]
@@ -1047,6 +1047,23 @@ Prerequisites: run `lein migrate` on the target database first.
 
 ## 15. Scaffolding
 
+Scaffolding inspects an existing database table and generates the entity configuration and hook file. **The migration must be created and applied before running scaffold** — scaffold reads the live schema, it does not create migrations.
+
+### Typical Workflow
+
+```bash
+# 1. Create the migration
+lein create-migration add-products
+
+# 2. Edit the generated SQL files in resources/migrations/
+
+# 3. Apply the migration
+lein migrate
+
+# 4. Scaffold the entity from the live table
+lein scaffold products
+```
+
 ```bash
 lein scaffold products          # Scaffold a single entity
 lein scaffold --all             # Scaffold all tables in the database
@@ -1057,12 +1074,6 @@ lein scaffold products --force  # Overwrite existing files
 Scaffolding creates:
 
 - `resources/entities/products.edn` — entity configuration
-- `resources/migrations/XXX-products.sqlite.up.sql` — SQLite migration
-- `resources/migrations/XXX-products.sqlite.down.sql`
-- `resources/migrations/XXX-products.mysql.up.sql`
-- `resources/migrations/XXX-products.mysql.down.sql`
-- `resources/migrations/XXX-products.postgresql.up.sql`
-- `resources/migrations/XXX-products.postgresql.down.sql`
 - `src/myapp/hooks/products.clj` — hook file
 
 When scaffolding child tables that have a foreign key column, the corresponding parent entity's subgrid configuration is automatically updated.
@@ -1734,7 +1745,7 @@ MIT License. See LICENSE for details.
 - **Parameter-Driven**: Define entities in EDN files - no code generation needed
 - **Hot Reload**: Change entity configs and hooks, refresh browser - no server restart
 - **Database-Agnostic**: MySQL, PostgreSQL, SQLite with automatic migrations
-- **Auto-Scaffolding**: `lein scaffold products` creates entity config, migrations, and hooks
+- **Auto-Scaffolding**: `lein scaffold products` creates entity config and hooks from the live database table (migration must be applied first)
 - **Built for Enterprise**: MRP, Accounting, Inventory, POS-capable
 - **Hook System**: Customize behavior without modifying core framework code
 
@@ -1766,7 +1777,7 @@ lein database
 
 # 4. Start server
 lein with-profile dev run
-# Visit: http://localhost:8080
+# Visit: http://localhost:3000
 # Default credentials: admin@example.com / admin
 ```
 
@@ -1790,13 +1801,20 @@ These demonstrate:
 ### Create Additional Entities
 
 ```bash
+# 1. Create and apply the migration first
+lein create-migration add-products
+# Edit the SQL files in resources/migrations/, then:
+lein migrate
+
+# 2. Scaffold the entity from the live table
 lein scaffold products
 ```
 
 This creates:
 - `resources/entities/products.edn` - Entity configuration
-- `resources/migrations/XXX-products.*.sql` - Database migrations
 - `src/myapp/hooks/products.clj` - Hook file for customization
+
+> **Note:** Scaffold reads the existing database table. The migration must be applied before running `lein scaffold`.
 
 ## **Important:** What's Different?
 
@@ -1818,7 +1836,7 @@ Modify config → Never lose changes
 |---------|-------------|
 | **No Code Generation** | Pure configuration-driven - edit EDN files, not generated code |
 | **Hot Reload** | Change configs/hooks → refresh browser (no restart needed) |
-| **Auto-Scaffolding** | `lein scaffold entity` creates everything |
+| **Auto-Scaffolding** | `lein scaffold entity` generates entity config and hooks from the live table (apply migration first) |
 | **Multi-Database** | MySQL, PostgreSQL, SQLite with vendor-specific migrations |
 | **Subgrids** | Master-detail relationships with modal interfaces |
 | **File Uploads** | Automatic handling via hooks (before-save/after-load) |
@@ -1831,15 +1849,16 @@ Modify config → Never lose changes
 Entity configs define everything about a CRUD interface. Located in `resources/entities/*.edn`:
 
 ```clojure
-{:table :products                    ; Database table name
- :pk :id                             ; Primary key column
- :title "Products"                   ; Page title
- :menu-label "Products"              ; Menu display text
- :menu-category :catalog             ; Menu grouping (:catalog, :admin, etc.)
+{:entity     :products               ; Unique keyword identifier
+ :table      "products"              ; Database table name
+ :title      "Products"              ; Page title / menu display text
+ :connection :default                ; DB connection key from app-config.edn
+ :rights     ["U" "A" "S"]          ; Access control: User / Admin / System
+ :menu-category :catalog             ; Menu grouping (any keyword)
  :menu-hidden? false                 ; Hide from menu (for subgrids)
- 
+
  ;; Field definitions
- :columns
+ :fields
  [{:id :id 
    :label "ID" 
    :type :hidden}                    ; Hidden field (PK)
@@ -1917,9 +1936,10 @@ Entity configs define everything about a CRUD interface. Located in `resources/e
          :after-delete :myapp.hooks.products/after-delete}
  
  ;; Subgrids (master-detail relationships)
- :subgrids [{:entity :reviews          ; Child entity
-             :fk :product_id           ; Foreign key in child table
-             :label "Product Reviews"}]}
+ :subgrids [{:entity      :reviews       ; Child entity
+             :foreign-key :product_id    ; Foreign key in child table
+             :title       "Product Reviews"
+             :icon        "bi bi-list"}]}
 ```
 
 ### Supported Field Types
@@ -1944,7 +1964,7 @@ Entity configs define everything about a CRUD interface. Located in `resources/e
 
 ### Menu Organization
 
-Entities are automatically grouped in menus by `:menu-group`:
+Entities are automatically grouped in menus by `:menu-category`:
 
 - `:admin` → Administration
 - `:catalog` → Catalog  
@@ -1969,40 +1989,42 @@ Hooks let you customize behavior without modifying core code. All hooks are opti
   ;; params = {:entity :products :filters {...} :user {...}}
   params)
 
-(defn after-load [rows]
+(defn after-load [rows params]
   ;; Called after loading data from database
   ;; Transform display data (e.g., format dates, create links)
   ;; rows = [{:id 1 :name "Product" :image "photo.jpg"} ...]
-  (map #(assoc % :image (str "<img src='/uploads/" (:image %) "'>")) rows))
+  (mapv #(assoc % :image (str "<img src='/uploads/" (:image %) "'>")) rows))
 
-(defn before-save [row]
+(defn before-save [params]
   ;; Called before saving to database
   ;; Validate, transform, handle file uploads
-  ;; row = {:id 1 :name "Product" :image "photo.jpg"}
-  (if (contains? row :image)
-    (assoc row :file (:image row))  ; Trigger file upload
-    row))
+  ;; params = {:id 1 :name "Product" :image "photo.jpg"}
+  ;; Return {:errors {:field "message"}} to abort the save
+  (if (contains? params :image)
+    (assoc params :file (:image params))  ; Trigger file upload
+    params))
 
-(defn after-save [row]
+(defn after-save [entity-id params]
   ;; Called after saving to database
   ;; Send notifications, update related records
-  ;; row = {:id 1 :name "Product" ...}
-  (println "Saved product:" (:id row))
-  row)
+  ;; entity-id = saved record ID, params = form data
+  (println "Saved product:" entity-id)
+  {:success true})
 
-(defn before-delete [id]
+(defn before-delete [entity-id]
   ;; Called before deleting record
-  ;; Validate deletion, clean up related data
-  ;; id = 123
-  (println "Deleting product:" id)
-  id)
+  ;; Validate deletion, check constraints
+  ;; entity-id = 123
+  ;; Return {:errors {:general "message"}} to prevent deletion
+  (println "Deleting product:" entity-id)
+  {:success true})
 
-(defn after-delete [id]
+(defn after-delete [entity-id]
   ;; Called after deleting record
   ;; Clean up files, update related records
-  ;; id = 123
-  (println "Deleted product:" id)
-  id)
+  ;; entity-id = 123
+  (println "Deleted product:" entity-id)
+  {:success true})
 ```
 
 ### Hook Registration
@@ -2010,10 +2032,10 @@ Hooks let you customize behavior without modifying core code. All hooks are opti
 Register hooks in entity config `resources/entities/products.edn`:
 
 ```clojure
-{:table :products
- :pk :id
- :title "Products"
- 
+{:entity :products
+ :table  "products"
+ :title  "Products"
+
  :hooks {:before-load :myapp.hooks.products/before-load
          :after-load :myapp.hooks.products/after-load
          :before-save :myapp.hooks.products/before-save
@@ -2026,21 +2048,21 @@ Register hooks in entity config `resources/entities/products.edn`:
 
 **File Uploads:**
 ```clojure
-(defn before-save [row]
-  (if (contains? row :imagen)
-    (assoc row :file (:imagen row))  ; Framework handles upload
-    row))
+(defn before-save [params]
+  (if (contains? params :imagen)
+    (assoc params :file (:imagen params))  ; Framework handles upload
+    params))
 
-(defn after-load [rows]
-  (map #(assoc % :imagen (image-link (:imagen %))) rows))
+(defn after-load [rows params]
+  (mapv #(assoc % :imagen (image-link (:imagen %))) rows))
 ```
 
 **Data Validation:**
 ```clojure
-(defn before-save [row]
-  (when (< (:price row) 0)
-    (throw (ex-info "Price cannot be negative" {:price (:price row)})))
-  row)
+(defn before-save [params]
+  (if (neg? (or (:price params) 0))
+    {:errors {:price "Price cannot be negative"}}
+    params))
 ```
 
 **Automatic Timestamps:**
@@ -2059,10 +2081,14 @@ WebGen generates vendor-specific migrations automatically.
 lein scaffold products
 ```
 
-Creates migrations for all supported databases:
-- `001-products.mysql.up.sql` / `.down.sql`
-- `001-products.postgresql.up.sql` / `.down.sql`  
-- `001-products.sqlite.up.sql` / `.down.sql`
+Generates the entity config and hooks file from the live database table. To add a new table, create and apply a migration first, then run scaffold:
+
+```bash
+lein create-migration add-products   # Create blank migration pair
+# Edit resources/migrations/ SQL files
+lein migrate                          # Apply migration
+lein scaffold products                # Generate entity from live table
+```
 
 Switch databases without code changes - just update config!
 
@@ -2141,7 +2167,7 @@ Generated projects include comprehensive documentation:
 
 ```bash
 # Project Creation
-lein new webgen myapp                # Create new project
+lein new org.clojars.hector/webgen myapp  # Create new project
 cd myapp
 
 # Database Setup
@@ -2151,14 +2177,16 @@ lein database                        # Seed default users
                                      # (admin@example.com/admin, user@example.com/user, system@example.com/system)
 
 # Development
-lein with-profile dev run            # Start dev server (port 8080)
+lein with-profile dev run            # Start dev server (port 3000)
                                      # Auto-reloads on config/hook changes
 lein compile                         # Compile project
 
-# Scaffolding
-lein scaffold products               # Create entity, migrations, hooks
+# Scaffolding (requires migration to be applied first)
+lein create-migration add-products   # Create a blank migration pair
+                                     # Edit SQL files in resources/migrations/
+lein migrate                         # Apply the migration
+lein scaffold products               # Generate entity config and hooks from live table
                                      # - resources/entities/products.edn
-                                     # - resources/migrations/XXX-products.*.sql
                                      # - src/myapp/hooks/products.clj
 
 # Testing
@@ -2216,9 +2244,10 @@ Edit `src/myapp/core.clj` to modify authentication logic:
 
 Configure in entity configs:
 ```clojure
-{:table :admin_only_entity
- :menu-group :admin
- :required-role :administrator}  ; Restrict by role
+{:entity :admin_only_entity
+ :table  "admin_only_entity"
+ :menu-category :admin
+ :rights ["A" "S"]}              ; Restrict to admins and system only
 ```
 
 ---
@@ -2235,40 +2264,34 @@ Edit `src/myapp/menu.clj` to add custom menu items that don't come from entities
 
 ```clojure
 (def custom-nav-links
-  "Custom navigation links (non-dropdown)"
-  [{:href "/dashboard" :label "Dashboard"}
-   {:href "/reports" :label "Reports"}
-   {:href "/analytics" :label "Analytics"}])
+  [["home"       "Home"      nil  0]
+   ["/dashboard" "Dashboard" "U" 10]
+   ["/reports"   "Reports"   "U" 20]
+   ["/analytics" "Analytics" "A" 30]])
 ```
 
 #### Custom Dropdown Menus
 
 ```clojure
 (def custom-dropdowns
-  "Custom dropdown menus"
-  {:reports {:label "Reports"
-             :items [{:href "/reports/sales" :label "Sales Report"}
-                     {:href "/reports/inventory" :label "Inventory Report"}
-                     {:href "/reports/customers" :label "Customer Report"}]}
-   
-   :tools {:label "Tools"
-           :items [{:href "/tools/import" :label "Import Data"}
-                   {:href "/tools/export" :label "Export Data"}
-                   {:href "/tools/backup" :label "Backup Database"}]}})
+  {:Reports {:id      "navdropReports"
+             :data-id "Reports"
+             :label   "Reports"
+             :order   40
+             :items   [["/reports/sales"     "Sales"     "U" 10]
+                       ["/reports/inventory" "Inventory" "U" 20]
+                       ["/reports/customers" "Customers" "U" 30]]}
+
+   :Tools   {:id      "navdropTools"
+             :data-id "Tools"
+             :label   "Tools"
+             :order   50
+             :items   [["/tools/import" "Import Data" "A" 10]
+                       ["/tools/export" "Export Data" "A" 20]
+                       ["/tools/backup" "Backup"      "A" 30]]}})
 ```
 
-#### Merging Custom and Auto-Generated Menus
-
-```clojure
-(defn get-menu-config
-  "Returns the complete menu configuration with custom overrides"
-  []
-  (let [auto-generated (auto-menu/get-menu-config)]
-    {:nav-links (concat (:nav-links auto-generated) custom-nav-links)
-     :dropdowns (merge (:dropdowns auto-generated) custom-dropdowns)}))
-```
-
-**Result:** Custom items appear alongside entity-based menu items.
+**Result:** `get-menu-config` in `menu.clj` automatically merges `custom-nav-links` and `custom-dropdowns` with the auto-generated entity menus, sorted by `:order`. You only need to update those two vars — do not redefine `get-menu-config`.
 
 ---
 
@@ -2409,21 +2432,17 @@ Hooks provide deep customization without modifying framework code.
 
 (defn before-load [params]
   ;; Add user-specific filters
-  (let [user (:user params)
-        role (:role user)]
+  (let [user  (:user params)
+        level (:level user)]
     (cond
-      ;; Admins see everything
-      (= role :admin)
+      ;; System and Admin see everything
+      (contains? #{"S" "A"} level)
       params
-      
-      ;; Salespeople see only their orders
-      (= role :salesperson)
-      (assoc-in params [:filters :salesperson_id] (:id user))
-      
-      ;; Customers see only their orders
-      (= role :customer)
-      (assoc-in params [:filters :customer_id] (:id user))
-      
+
+      ;; Regular users see only their own records
+      (= level "U")
+      (assoc-in params [:filters :user_id] (:id user))
+
       ;; Default: no access
       :else
       (assoc params :filters {:id -1}))))  ; Returns no results
