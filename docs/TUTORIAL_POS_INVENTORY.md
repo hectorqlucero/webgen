@@ -64,7 +64,7 @@ Think of it this way: `entities/` files describe *what* your data looks like. `h
 
 ## Step 3 — Remove the Example Files
 
-WebGen generates a set of example files to demonstrate its features: a Contactos entity, a Cars entity, a Siblings entity, and their matching hooks and migrations. These are useful for exploration, but they conflict with the migration numbers you are about to create and will clutter the application menu. Remove them now.
+WebGen generates a set of example files to demonstrate its features: a Contactos entity, a Cars entity, a Siblings entity, and their matching hooks and migrations. These are useful for exploration, but they will clutter the application menu. Remove them now. The audit log migration (006) is kept because it is part of the core system.
 
 ### Delete the example migrations
 
@@ -93,7 +93,7 @@ rm src/pos/hooks/cars.clj
 rm src/pos/hooks/siblings.clj
 ```
 
-After these deletions the only migration files should be `001-users.*` and `002-users_view.*`. The only hook file remaining should be `users.clj`.
+After these deletions the remaining migration files should be `001-users.*`, `002-users_view.*`, and `006-audit_log.*`. The only hook file remaining should be `users.clj`.
 
 ---
 
@@ -122,9 +122,9 @@ Also verify the port is set to something you like:
 
 Migrations are SQL files that create your database tables. WebGen runs them in order based on their number prefix.
 
-### Migration 003 — Products table
+### Migration 007 — Products table
 
-Create the file `resources/migrations/003-productos.sqlite.up.sql`:
+Create the file `resources/migrations/007-productos.sqlite.up.sql`:
 
 ```sql
 CREATE TABLE productos (
@@ -136,15 +136,15 @@ CREATE TABLE productos (
 );
 ```
 
-Create the rollback file `resources/migrations/003-productos.sqlite.down.sql`:
+Create the rollback file `resources/migrations/007-productos.sqlite.down.sql`:
 
 ```sql
 DROP TABLE IF EXISTS productos;
 ```
 
-### Migration 004 — Suppliers table
+### Migration 008 — Suppliers table
 
-Create `resources/migrations/004-provedores.sqlite.up.sql`:
+Create `resources/migrations/008-provedores.sqlite.up.sql`:
 
 ```sql
 CREATE TABLE provedores (
@@ -155,15 +155,15 @@ CREATE TABLE provedores (
 );
 ```
 
-Create `resources/migrations/004-provedores.sqlite.down.sql`:
+Create `resources/migrations/008-provedores.sqlite.down.sql`:
 
 ```sql
 DROP TABLE IF EXISTS provedores;
 ```
 
-### Migration 005 — Inventory table
+### Migration 009 — Inventory table
 
-Create `resources/migrations/005-inventario.sqlite.up.sql`:
+Create `resources/migrations/009-inventario.sqlite.up.sql`:
 
 ```sql
 CREATE TABLE inventario (
@@ -180,15 +180,15 @@ CREATE INDEX idx_inventario_producto_id ON inventario(producto_id);
 CREATE INDEX idx_inventario_provedor_id ON inventario(provedor_id);
 ```
 
-Create `resources/migrations/005-inventario.sqlite.down.sql`:
+Create `resources/migrations/009-inventario.sqlite.down.sql`:
 
 ```sql
 DROP TABLE IF EXISTS inventario;
 ```
 
-### Migration 006 — Stock movements table
+### Migration 010 — Stock movements table
 
-Create `resources/migrations/006-movimientos.sqlite.up.sql`:
+Create `resources/migrations/010-movimientos.sqlite.up.sql`:
 
 ```sql
 CREATE TABLE movimientos (
@@ -203,7 +203,7 @@ CREATE TABLE movimientos (
 CREATE INDEX idx_movimientos_producto_id ON movimientos(producto_id);
 ```
 
-Create `resources/migrations/006-movimientos.sqlite.down.sql`:
+Create `resources/migrations/010-movimientos.sqlite.down.sql`:
 
 ```sql
 DROP TABLE IF EXISTS movimientos;
@@ -717,11 +717,11 @@ Everything you have built so far uses the entity system: EDN config files drive 
 
 WebGen lets you write custom pages alongside the entity system. The pattern is the classic MVC split: `model.clj` talks to the database, `view.clj` generates HTML, `controller.clj` connects routes to the model and view. This is exactly the same pattern as the `handlers/home/` directory that ships with every WebGen project.
 
-### Migration 009 — Sales tables
+### Migration 011 — Sales tables
 
 You need two tables: `ventas` for the sale header (date, total, payment, change) and `ventas_detalle` for the individual line items.
 
-Create `resources/migrations/009-ventas.sqlite.up.sql`:
+Create `resources/migrations/011-ventas.sqlite.up.sql`:
 
 ```sql
 CREATE TABLE ventas (
@@ -753,7 +753,7 @@ CREATE INDEX idx_ventas_detalle_venta_id    ON ventas_detalle(venta_id);
 CREATE INDEX idx_ventas_detalle_producto_id ON ventas_detalle(producto_id);
 ```
 
-Create `resources/migrations/009-ventas.sqlite.down.sql`:
+Create `resources/migrations/011-ventas.sqlite.down.sql`:
 
 ```sql
 DROP TABLE IF EXISTS ventas_detalle;
