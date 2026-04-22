@@ -12,12 +12,12 @@
 ;;   - order  (optional): lower number = appears first (default: 0)
 ;;   - icon   (optional): Bootstrap icon class string, e.g. "bi bi-house"
 ;; Examples:
-;;   ["/dashboard" "DASHBOARD" "U" 10 "bi bi-speedometer2"]
+;;   ["/dashboard" "DASHBOARD" "bi bi-speedometer2"  "U" 10]
 ;;   ["/admin"     "ADMIN"     "A" 20]
 ;;   ["/settings"  "SETTINGS"  nil 30]
 ;;   ["/home"      "HOME"]
 ;;   ["/help"      "HELP"      "bi bi-info-circle"]
-;;   ["/settings"  "SETTINGS"  "U" 30 "bi bi-gear"]
+;;   ["/settings"  "SETTINGS" "bi bi-gear" "U" 30]
 (def custom-nav-links
   "Custom navigation links (non-dropdown, not entity-based)"
   [["/" "HOME" "bi bi-house" nil 0]])
@@ -32,9 +32,9 @@
 ;;     :data-id "Reports"
 ;;     :label "Reportes"
 ;;     :order 40
-;;     :icon "bi bi-chart"
-;;     :items [["/reports/contactos" "Contactos" "U" 10 "bi bi-people"]
-;;             ["/reports/users" "Usuarios" "A" 20 "bi bi-people"]]}}
+;;     :icon "bi bi-printer"
+;;     :items [["/reports/contactos" "Contactos" "bi bi-people" "U" 10]
+;;             ["/reports/users" "Usuarios" "bi bi-people"  "A" 20]]}}
 ;; Notice the order in items... It orders the dropdown items
 (def custom-dropdowns
   "Custom dropdown menus (not entity-based)"
