@@ -5,6 +5,8 @@
  :rights ["U" "A" "S"]  ;; User levels: U=User, A=Admin, S=System
  :mode :parameter-driven
  :menu-category :Users
+ :menu-icon "bi bi-person-circle"
+ :dropdown-menu "bi bi-people"
  
  ;; Fields auto-detected from database schema
  :fields [

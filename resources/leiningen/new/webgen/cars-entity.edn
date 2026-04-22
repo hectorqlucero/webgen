@@ -5,6 +5,7 @@
  :rights ["U" "A" "S"]  ;; User levels: U=User, A=Admin, S=System
  :mode :parameter-driven
  :menu-hidden? true  ;; Hide from main menu (child entity accessed via subgrids)
+ :menu-icon "bi bi-car-front"
 
  ;; Fields auto-detected from database schema
  :fields [{:id :id :label "ID" :type :hidden}

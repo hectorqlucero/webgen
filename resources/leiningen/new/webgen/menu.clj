@@ -12,7 +12,7 @@
 ;;   - order  (optional): lower number = appears first (default: 0)
 ;;   - icon   (optional): Bootstrap icon class string, e.g. "bi bi-house"
 ;; Examples:
-;;   ["/dashboard" "DASHBOARD" "U" 10]
+;;   ["/dashboard" "DASHBOARD" "U" 10 "bi bi-speedometer2"]
 ;;   ["/admin"     "ADMIN"     "A" 20]
 ;;   ["/settings"  "SETTINGS"  nil 30]
 ;;   ["/home"      "HOME"]
