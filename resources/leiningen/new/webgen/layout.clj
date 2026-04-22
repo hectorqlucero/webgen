@@ -16,7 +16,8 @@
       (str/replace #"[^a-zA-Z0-9\-]" "")
       (str/replace #"^$" "home")))
 
-(defn build-link [request href label]
+
+(defn build-link [request href label & [icon]]
   (let [uri (:uri request)
         data-id (generate-data-id href)
         is-active (= uri href)]
@@ -27,9 +28,11 @@
        :class (str (when is-active "active bg-gradient text-primary-emphasis shadow-sm"))
        :aria-current (when is-active "page")
        :onclick "localStorage.setItem('active-link', this.dataset.id)"}
+      (when icon [:i.me-2 {:class icon}])
       label]]))
 
-(defn build-dropdown-link [request href label]
+
+(defn build-dropdown-link [request href label & [icon]]
   (let [uri (:uri request)
         is-active (= uri href)]
     [:li
@@ -39,17 +42,31 @@
        :aria-current (when is-active "page")
        :data-id (generate-data-id href)
        :onclick "localStorage.setItem('active-link', this.dataset.id)"}
+      (when icon [:i.me-2 {:class icon}])
       label]]))
 
 (defn build-menu [request items]
   (when (some #{(user-level request)} ["A" "S" "U"])
-    (for [{:keys [href label role]} items
+    (for [{:keys [href label role icon]} items
           :when (or (nil? role)
                     (= (user-level request) role)
                     (some #{(user-level request)} ["A" "S"]))]
-      (build-dropdown-link request href label))))
+      (build-dropdown-link request href label icon))))
 
-(defn build-dropdown [request dropdown-id data-id label items]
+;; HELPER FUNCTIONS
+(defn menu-item->map [[href label & rest]]
+  (let [[role-or-icon maybe-icon] rest
+        role (when (and role-or-icon (not (clojure.string/starts-with? (str role-or-icon) "bi ")))
+               role-or-icon)
+        icon (cond
+               (and maybe-icon (string? maybe-icon)) maybe-icon
+               (and role-or-icon (string? role-or-icon) (clojure.string/starts-with? role-or-icon "bi ")) role-or-icon
+               :else nil)]
+    (cond-> {:href href :label label}
+      role (assoc :role role)
+      icon (assoc :icon icon))))
+
+(defn build-dropdown [request dropdown-id data-id label items & [icon]]
   (when (some #{(user-level request)} ["A" "S" "U"])
     [:li.nav-item.dropdown
      [:a.nav-link.dropdown-toggle.fw-semibold.px-3.py-2.rounded.transition
@@ -60,22 +77,20 @@
        :role "button"
        :data-bs-toggle "dropdown"
        :aria-expanded "false"}
+      (when icon [:i.me-2 {:class icon}])
       label]
      [:ul.dropdown-menu.shadow-lg.border-0.rounded.mt-2
       {:aria-labelledby dropdown-id
        :style "max-height: 60vh; overflow-y: auto;"}
       (build-menu request items)]]))
 
-;; HELPER FUNCTIONS
-(defn menu-item->map [[href label & [role]]]
-  {:href href :label label :role role})
+(defn create-dropdown [request {:keys [id data-id label items icon]}]
+  (let [menu-items (map menu-item->map items)]
+    (build-dropdown request id data-id label menu-items icon)))
 
 (defn create-nav-links [request nav-links]
-  (map (fn [[href label]] (build-link request href label)) nav-links))
-
-(defn create-dropdown [request {:keys [id data-id label items]}]
-  (let [menu-items (map menu-item->map items)]
-    (build-dropdown request id data-id label menu-items)))
+  (map (fn [item]
+         (apply build-link request item)) nav-links))
 
 (defn brand-logo []
   [:a.navbar-brand.fw-bold.fs-4.d-flex.align-items-center.gap-2 {:href "/"}
@@ -301,6 +316,7 @@
    ;; bump version when editing so browsers reload the file
    [:script {:src "/js/fk-dependent.js?v=6"}]))
 
+
 ;; LAYOUT FUNCTIONS
 
 ;; Add theme class to <body> using (:theme config)
@@ -354,6 +370,16 @@
      [:span "Copyright © "
       (t/year (t/now)) " " (:company-name config) " - All Rights Reserved"]]]))
 
+(defn error-404
+  ([msg] (error-404 msg nil))
+  ([msg redirect-url]
+   {:status 404
+    :headers {"Content-Type" "text/html; charset=utf-8"}
+    :body (html5 [:div
+                  [:h1 "Error 404"]
+                  [:p msg]
+                  (when redirect-url
+                    [:a {:href redirect-url} "Go back"])])}))
 (defn error-404
   ([msg] (error-404 msg nil))
   ([msg redirect-url]
