@@ -2,6 +2,7 @@
   (:require
    [clojure.java.io :as io]
    [clojure.edn :as edn]
+   [clojure.pprint :as pp]
    [clojure.string :as str]))
 
 (defn discover-entities
@@ -41,7 +42,7 @@
   (try
     (when-let [resource (io/resource (str "entities/" entity-name ".edn"))]
       (edn/read-string (slurp resource)))
-    (catch Exception e
+    (catch Exception _
       (println (str "Warning: Could not load entity config: " entity-name))
       nil)))
 
@@ -55,13 +56,17 @@
             title (:title config)
             rights (:rights config)
             category (or (:menu-category config) :admin)
-            order (or (:menu-order config) 999)]
+            order (or (:menu-order config) 999)
+            menu-icon (:menu-icon config)
+            dropdown-icon (:dropdown-icon config)]
         {:entity entity-kw
          :title title
          :href (str "/admin/" (name entity-kw))
          :rights rights
          :category category
-         :order order}))))
+         :order order
+         :menu-icon menu-icon
+         :dropdown-icon dropdown-icon}))))
 
 (def default-categories
   "Default menu categories with Spanish labels for real estate system"
@@ -118,27 +123,31 @@
        (into {})))
 
 (defn format-menu-item
-  "Formats a single menu item for {{sanitized}}.menu format"
+  "Formats a single menu item"
   [entity-info]
   (let [rights-str (when-let [rights (:rights entity-info)]
-                     (first rights))] ; Use first right level as minimum
-    (if rights-str
-      [(:href entity-info) (:title entity-info) rights-str]
-      [(:href entity-info) (:title entity-info)])))
+                     (first rights))
+        icon (or (:dropdown-icon entity-info)
+                 (:menu-icon entity-info))] ; Use dropdown-icon when present, otherwise fallback to menu-icon
+    (cond-> [(:href entity-info) (:title entity-info)]
+      rights-str (conj rights-str)
+      icon (conj icon))))
 
 (defn generate-dropdown-config
   "Generates dropdown configuration for a category"
   [category-key items idx]
   (let [category-info (get default-categories category-key)
-        label (or (:label category-info) (str/capitalize (name category-key)))]
+        label (or (:label category-info) (str/capitalize (name category-key)))
+        category-icon (some :menu-icon items)]
     {:id (str "navdrop" idx)
      :data-id (name category-key)
      :label label
      :order (apply min (map :order items))
+     :icon category-icon
      :items (map format-menu-item items)}))
 
 (defn generate-full-menu-config
-  "Generates complete menu configuration for {{sanitized}}.menu"
+  "Generates complete menu configuration"
   []
   (let [menu-items (generate-menu-items)
         sorted-categories (sort-by #(get-in default-categories [% :order] 999)
