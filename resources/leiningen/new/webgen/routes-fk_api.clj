@@ -36,22 +36,21 @@
 
 (defn- build-fk-sql
   "Build SQL query for FK options"
-  [entity parent-field fk-config]
-  (let [fk-fields (or (:fk-field fk-config) [:nombre])
-        sort-by (or (:fk-sort fk-config) [:nombre])
-        separator (or (:fk-separator fk-config) " — ")
+  [entity parent-field fk-fields fk-config]
+  (let [sort-by (or (:fk-sort fk-config) (first fk-fields))
         parent-field-kw (keyword parent-field)
         fields-str (str/join ", " (map name fk-fields))
-        order-str (str/join ", " (map name (if (sequential? sort-by) sort-by [sort-by])))]
-    (str "SELECT id, " fields-str
-         " FROM " (name entity)
-         " WHERE " (name parent-field-kw) " = ?"
-         " ORDER BY " order-str)))
+        order-str (str/join ", " (map name (if (sequential? sort-by) sort-by [sort-by])))
+        sql (str "SELECT id, " fields-str
+                 " FROM " (name entity)
+                 " WHERE " (name parent-field-kw) " = ?"
+                 " ORDER BY " order-str)]
+    sql))
 
 (defn- format-fk-options
-  "Format FK options with labels. If fk-fields is nil or empty, default to [:nombre]."
+  "Format FK options with labels."
   [rows fk-fields separator]
-  (let [fk-fields (or (and (seq fk-fields) fk-fields) [:nombre])
+  (let [fk-fields (and (seq fk-fields) fk-fields)
         label-fn (fn [row]
                    (->> fk-fields
                         (map #(str (get row % "")))
@@ -68,27 +67,29 @@
   [request]
   (let [params (:params request)
         entity (parse-entity-param params)
-        [parent-field parent-value] (parse-parent-param params)]
+        [parent-field parent-value] (parse-parent-param params)
+        fk-fields-param (or (get params "fk-fields") (get params :fk-fields))]
     (if entity
       (try
         (let [fk-config (config/get-entity-config entity)
-              fk-fields (or (:fk-field fk-config) [:nombre])
+              fk-fields (if fk-fields-param
+                          (map keyword (str/split fk-fields-param #","))
+                          (:fk-field fk-config))
               separator (or (:fk-separator fk-config) " — ")
               has-parent? (and parent-field parent-value)
               sql (if has-parent?
-                    (build-fk-sql entity parent-field fk-config)
+                    (build-fk-sql entity parent-field fk-fields fk-config)
                     (let [fields-str (str/join ", " (map name fk-fields))
-                          sort-by (or (:fk-sort fk-config) [:nombre])
+                          sort-by (or (:fk-sort fk-config) (first fk-fields))
                           order-str (str/join ", " (map name (if (sequential? sort-by) sort-by [sort-by])))]
                       (str "SELECT id, " fields-str " FROM " (name entity) " ORDER BY " order-str)))
               rows (if has-parent?
                      (model-crud/Query model-crud/db [sql (Integer/parseInt parent-value)])
                      (model-crud/Query model-crud/db [sql]))]
-          (if rows
+          (if (seq rows)
             (json-response {:ok true :options (format-fk-options rows fk-fields separator)})
-            (json-response {:ok false :error "Database query failed" :options []})))
+            (json-response {:ok true :options []})))
         (catch Exception e
-          (println "[ERROR] get-fk-options:" (.getMessage e))
           (json-response {:ok false :error (.getMessage e) :options []})))
       (json-response {:ok false :error "Missing required params" :options []}))))
 
@@ -156,8 +157,6 @@
             (let [result (crud/save-record entity data-kw {})]
               (handle-fk-save-result result entity-config data-kw))))
         (catch Exception e
-          (println "[ERROR] create-fk-record:" (.getMessage e))
-          (.printStackTrace e)
           (json-response {:ok false :error (.getMessage e)})))
       (json-response {:ok false :error "Missing required params"}))))
 
@@ -165,7 +164,7 @@
   "Returns entity configuration for modal form.
    Includes both a lightweight `form-fields` vector (id,label,type,required?,placeholder)
    and a rendered HTML string (`form-html`) so the client can choose how to build the
-   modal.  Using server‑side rendering keeps input types, options, and FK selects
+   modal.  Using server-side rendering keeps input types, options, and FK selects
    in sync with the normal form logic."
   [request]
   (let [params (:params request)
@@ -174,13 +173,10 @@
     (if entity
       (try
         (let [entity-config (config/get-entity-config entity)
-              ;; Use get-form-fields to properly exclude grid-only, hidden-in-form, computed
               fields (config/get-form-fields entity)
               form-fields (map #(select-keys % [:id :label :type :required? :placeholder
                                                 :options :fk :fk-field :fk-parent])
                                fields)
-              ;; render the fields using the same server-side helper; pass empty row
-              ;; we reference the private var via var literal to avoid visibility errors
               rendered (let [render-fn #'{{sanitized}}.engine.render/render-field]
                          (->> fields
                               (map #(render-fn % {}))
@@ -191,10 +187,7 @@
                           :form-fields form-fields
                           :form-html rendered}))
         (catch Exception e
-          (println "[ERROR] get-fk-modal-config:" (.getMessage e))
-          (json-response {:ok false :error (.getMessage e)}))
-        (finally
-          (println "[DEBUG] get-fk-modal-config completed")))
+          (json-response {:ok false :error (.getMessage e)})))
       (json-response {:ok false :error "Missing entity parameter"}))))
 
 (defroutes fk-api-routes
