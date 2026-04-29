@@ -156,7 +156,7 @@
 
                      ;; Fallback to a sensible local SQLite file for development
                      :else
-                     {:default {:db-type "sqlite" :db-name "db/{{sanitize}}.sqlite"}})]
+                     {:default {:db-type "sqlite" :db-name "db/.sqlite"}})]
     (into {}
           (keep (fn [[k v]]
                   (let [resolved (resolve-conn conn-cands v)]
@@ -865,15 +865,14 @@
       nil)))
 
 (defn- build-form-delete* [db* table id-or-pk pk-fields]
-  (try
-    (let [row (select-row db* table id-or-pk pk-fields)]
-      (when-let [img (:imagen row)] (safe-delete-upload! img))
-      (when row (cascade-delete-images! db* table row))
-      (boolean (seq (perform-delete db* table id-or-pk pk-fields))))
-    (catch Exception e
-      (println "[ERROR] build-form-delete failed:" (.getMessage e))
-      (println "[ERROR] Exception details:" e)
-      false)))
+  (let [row (select-row db* table id-or-pk pk-fields)
+        delete-result (when row
+                        (cascade-delete-images! db* table row)
+                        (perform-delete db* table id-or-pk pk-fields))
+        deleted? (pos? (update-count' delete-result))]
+    (when (and deleted? row)
+      (when-let [img (:imagen row)] (safe-delete-upload! img)))
+    deleted?))
 
 (defn build-form-delete
   ([table id-or-pk]

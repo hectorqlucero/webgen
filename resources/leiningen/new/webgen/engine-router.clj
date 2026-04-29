@@ -194,7 +194,8 @@
           (if (:success result)
             {:status 302
              :headers {"Location" (str "/admin/" entity-name)}}
-            (error-404 "Unable to delete record!" (str "/admin/" entity-name))))
+            (error-404 (or (:error result) "Unable to delete record!")
+                       (str "/admin/" entity-name))))
         (catch Exception e
           (println "[ERROR] Delete handler failed:" (.getMessage e))
           (.printStackTrace e)
@@ -280,7 +281,14 @@
     (POST "/save" request
       (handle-save (assoc-in request [:params :entity] entity)))
 
+    ;; Modern delete path used by forms and AJAX
     (POST "/delete/:id" [id :as request]
+      (handle-delete (-> request
+                         (assoc-in [:params :entity] entity)
+                         (assoc-in [:params :id] id))))
+
+    ;; Backward-compatible GET delete path for legacy links or older framework behavior
+    (GET "/delete/:id" [id :as request]
       (handle-delete (-> request
                          (assoc-in [:params :entity] entity)
                          (assoc-in [:params :id] id))))

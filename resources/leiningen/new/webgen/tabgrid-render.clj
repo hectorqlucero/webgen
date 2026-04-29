@@ -1,15 +1,17 @@
 (ns {{sanitized}}.tabgrid.render
   "Clean TabGrid rendering - pure UI generation"
   (:require
+   [clojure.string :as str]
    [{{sanitized}}.i18n.core :as i18n]
+   [ring.util.anti-forgery :refer [anti-forgery-field]]
    [hiccup.util :refer [raw-string]]
    [{{sanitized}}.engine.config :as config]))
 
 (defn- safe-id [s]
   "Convert string to safe HTML ID"
   (-> (str s)
-      (clojure.string/lower-case)
-      (clojure.string/replace #"[^a-z0-9]+" "-")))
+      (str/lower-case)
+      (str/replace #"[^a-z0-9]+" "-")))
 
 (defn render-parent-grid-table
   "Renders the parent record as a simple detail view"
@@ -44,10 +46,15 @@
              [:i.bi.bi-pencil.me-1]
              (i18n/tr request :common/edit)])
           (when (:delete actions)
-            [:a.btn.btn-danger.btn-sm
-             {:href (str "/admin/" entity-name "/delete/" (:id row))}
-             [:i.bi.bi-trash.me-1]
-             (i18n/tr request :common/delete)])]]]]]]
+            [:form {:method "POST"
+                    :action (str "/admin/" entity-name "/delete/" (:id row))
+                    :style "display:inline"
+                    :onsubmit "return confirm('Are you sure?')"}
+             (raw-string (anti-forgery-field))
+             [:button.btn.btn-danger.btn-sm
+              {:type "submit"}
+              [:i.bi.bi-trash.me-1]
+              (i18n/tr request :common/delete)]])]]]]]]
     [:div.text-center.p-4
      [:i.bi.bi-inbox.text-muted {:style "font-size: 3rem"}]
      [:p.text-muted.mt-2 (i18n/tr request :grid/no-records)]]))
