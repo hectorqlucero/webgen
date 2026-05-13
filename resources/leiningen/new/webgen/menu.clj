@@ -20,7 +20,8 @@
 ;;   ["/settings"  "SETTINGS" "bi bi-gear" "U" 30]
 (def custom-nav-links
   "Custom navigation links (non-dropdown, not entity-based)"
-  [["/" "HOME" "bi bi-house" nil 0]])
+  [["/" "HOME" "bi bi-house" nil 0]
+   ["/dashboard" "DASHBOARd" "bi bi-speedometer2" "U" 10]])
 
 ;; Custom dropdown menus (not entity-based).
 ;; Use :order on the dropdown itself to control its position among other dropdowns.
@@ -33,8 +34,8 @@
 ;;     :label "Reportes"
 ;;     :order 40
 ;;     :icon "bi bi-printer"
-;;     :items [["/reports/contactos" "Contactos" "bi bi-people" "U" 10]
-;;             ["/reports/users" "Usuarios" "bi bi-people"  "A" 20]]}}
+;;     :items [["/reports/contactos" "Contactos"  "U" 10 "bi bi-people"]
+;;             ["/reports/users" "Usuarios" "A" 50 "bi bi-people"]]}}
 ;; Notice the order in items... It orders the dropdown items
 (def custom-dropdowns
   "Custom dropdown menus (not entity-based)"
@@ -144,11 +145,14 @@
         sorted-nav-links (combine-and-sort-nav-links auto-nav-links-as-maps formatted-custom-nav-links)
         ; Process custom dropdowns
         formatted-custom-dropdowns (format-custom-dropdowns custom-dropdowns)
-        ; Convert auto-generated dropdown items to maps for consistent sorting
+        ; Convert auto-generated dropdown items to maps for consistent sorting.
+        ; Uses parse-custom-menu-item (not parse-meta-args) because format-menu-item
+        ; now always emits [href title rights-or-nil order icon?] — the same format
+        ; as custom items — so the order field is correctly recovered.
         auto-dropdown-items-as-maps (fn [dropdown-config]
                                       (update dropdown-config :items
                                               (fn [items]
-                                                (map parse-meta-args items))))
+                                                (map parse-custom-menu-item items))))
         ; Apply conversion to all auto-generated dropdowns
         auto-dropdowns-as-maps (into {} (map (fn [[category-key dropdown-config]]
                                                [category-key (auto-dropdown-items-as-maps dropdown-config)])

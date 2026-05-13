@@ -123,15 +123,18 @@
        (into {})))
 
 (defn format-menu-item
-  "Formats a single menu item"
+  "Formats a single menu item as [href title rights-or-nil order icon?].
+   Always includes rights-str (may be nil) and order so parse-custom-menu-item
+   can correctly recover both fields."
   [entity-info]
   (let [rights-str (when-let [rights (:rights entity-info)]
                      (first rights))
         icon (or (:dropdown-icon entity-info)
-                 (:menu-icon entity-info))] ; Use dropdown-icon when present, otherwise fallback to menu-icon
-    (cond-> [(:href entity-info) (:title entity-info)]
-      rights-str (conj rights-str)
-      icon (conj icon))))
+                 (:menu-icon entity-info)) ; Use dropdown-icon when present, otherwise fallback to menu-icon
+        order (:order entity-info)]
+    (if icon
+      [(:href entity-info) (:title entity-info) rights-str order icon]
+      [(:href entity-info) (:title entity-info) rights-str order])))
 
 (defn generate-dropdown-config
   "Generates dropdown configuration for a category"
