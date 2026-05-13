@@ -20,8 +20,7 @@
 ;;   ["/settings"  "SETTINGS" "bi bi-gear" "U" 30]
 (def custom-nav-links
   "Custom navigation links (non-dropdown, not entity-based)"
-  [["/" "HOME" "bi bi-house" nil 0]
-   ["/dashboard" "DASHBOARd" "bi bi-speedometer2" "U" 10]])
+  [["/" "HOME" "bi bi-house" nil 0]])
 
 ;; Custom dropdown menus (not entity-based).
 ;; Use :order on the dropdown itself to control its position among other dropdowns.
