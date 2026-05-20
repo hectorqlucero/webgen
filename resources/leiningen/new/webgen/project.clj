@@ -3,10 +3,10 @@
   :url "http://example.com/FIXME" ; Change me - optional
   :license {:name "MIT License"
             :url "https://opensource.org/licenses/MIT"}
-  :dependencies [[org.clojure/clojure "1.12.4"]
+  :dependencies [[org.clojure/clojure "1.12.5"]
                  [org.clojure/data.csv "1.1.1"]
                  [org.clojure/data.json "2.5.2"]
-                 [org.slf4j/slf4j-simple "2.0.17"]
+                 [org.slf4j/slf4j-simple "2.0.18"]
                  [compojure "1.7.2"]
                  [hiccup "2.0.0"]
                  [buddy/buddy-hashers "2.0.167"]
@@ -22,8 +22,8 @@
                  [org.clojure/java.jdbc "0.7.12"]
                  ;; Active JDBC drivers (MySQL, PostgreSQL, SQLite)
                  [mysql/mysql-connector-java "8.0.33"]
-                 [org.postgresql/postgresql "42.7.10"]
-                 [org.xerial/sqlite-jdbc "3.51.2.0"]
+                 [org.postgresql/postgresql "42.7.11"]
+                 [org.xerial/sqlite-jdbc "3.53.1.0"]
                  ;; Optional JDBC drivers (uncomment if needed)
                  ;; [com.microsoft.sqlserver/mssql-jdbc "12.8.1.jre11"]   ; SQL Server
                  ;; [com.h2database/h2 "2.2.224"]                        ; H2
