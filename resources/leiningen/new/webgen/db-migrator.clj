@@ -23,6 +23,142 @@
       :else
       (map :table_name (jdbc/query source-db
                                    ["SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE' ORDER BY table_name"])))))
+
+(defn get-fk-dependencies
+  "Get foreign key dependencies as a map of {child-table #{parent-table}}.
+   Queries the source database for FK relationships."
+  [source-db]
+  (let [proto (:subprotocol source-db)]
+    (cond
+      (= proto "sqlite")
+      (reduce (fn [acc table]
+                (let [fk-rows (jdbc/query source-db [(str "PRAGMA foreign_key_list(" table ")")])]
+                  (if (seq fk-rows)
+                    (assoc acc table (set (map :table fk-rows)))
+                    acc)))
+              {}
+              (get-table-names source-db))
+
+      (= proto "mysql")
+      (reduce (fn [acc row]
+                (update acc (:table_name row) (fnil conj #{}) (:referenced_table_name row)))
+              {}
+              (jdbc/query source-db
+                          ["SELECT table_name, referenced_table_name
+                            FROM information_schema.key_column_usage
+                            WHERE table_schema = DATABASE()
+                            AND referenced_table_name IS NOT NULL"]))
+
+      :else
+      (reduce (fn [acc row]
+                (update acc (:table_name row) (fnil conj #{}) (:referenced_table_name row)))
+              {}
+              (jdbc/query source-db
+                          ["SELECT kcu.table_name, ccu.table_name AS referenced_table_name
+                            FROM information_schema.key_column_usage kcu
+                            JOIN information_schema.constraint_column_usage ccu
+                            ON kcu.constraint_name = ccu.constraint_name
+                            WHERE kcu.table_schema = 'public'
+                            AND ccu.table_name IS NOT NULL"])))))
+
+(defn topological-sort
+  "Sort tables so that parent tables come before child tables based on FK dependencies."
+  [tables fk-deps]
+  (let [table-set (set tables)
+        filtered-deps (into {} (for [[child parents] fk-deps
+                                     :when (contains? table-set child)]
+                                 [child (set (filter table-set parents))]))
+        visited (atom #{})
+        result (atom [])
+        in-stack (atom #{})]
+    (letfn [(visit [node]
+              (when (contains? @in-stack node)
+                (throw (ex-info (str "Circular dependency detected involving: " node) {:node node})))
+              (when-not (contains? @visited node)
+                (swap! in-stack conj node)
+                (doseq [dep (get filtered-deps node #{})]
+                  (visit dep))
+                (swap! in-stack disj node)
+                (swap! visited conj node)
+                (swap! result conj node)))]
+      (doseq [t tables]
+        (visit t)))
+    @result))
+
+(defn get-column-types
+  "Get column type info for a table as a map of {column-name type-string}."
+  [db table-name]
+  (let [proto (:subprotocol db)]
+    (cond
+      (= proto "sqlite")
+      (into {} (for [row (jdbc/query db [(str "PRAGMA table_info(" table-name ")")])]
+                 [(:name row) (:type row)]))
+
+      (= proto "mysql")
+      (into {} (for [row (jdbc/query db
+                                      ["SELECT column_name, column_type
+                                        FROM information_schema.columns
+                                        WHERE table_schema = DATABASE()
+                                        AND table_name = ?" table-name])]
+                 [(:column_name row) (:column_type row)]))
+
+      :else
+      (into {} (for [row (jdbc/query db
+                                      ["SELECT column_name, data_type
+                                        FROM information_schema.columns
+                                        WHERE table_schema = 'public'
+                                        AND table_name = ?" table-name])]
+                 [(:column_name row) (:data_type row)])))))
+
+(defn datetime-type?
+  "Check if a column type string represents a date/datetime/timestamp type."
+  [type-str]
+  (when type-str
+    (let [t (str/lower-case type-str)]
+      (or (str/includes? t "datetime")
+          (str/includes? t "timestamp")
+          (str/includes? t "date")))))
+
+(defn unix-timestamp-ms?
+  "Check if a value looks like a Unix timestamp in milliseconds."
+  [v]
+  (and (number? v)
+       (or (> (Math/abs (double v)) 1000000000))))
+
+(defn unix-timestamp-ms-string?
+  "Check if a string value looks like a Unix timestamp in milliseconds."
+  [v]
+  (and (string? v)
+       (re-matches #"-?\d{9,15}" v)
+       (try
+         (let [n (Long/parseLong v)]
+           (> (Math/abs (double n)) 1000000000))
+         (catch Exception _ false))))
+
+(defn ms-to-timestamp
+  "Convert Unix epoch milliseconds to a java.sql.Timestamp."
+  [ms]
+  (java.sql.Timestamp. ms))
+
+(defn convert-row-values
+  "Convert row values that are Unix timestamps to proper datetime values
+   when the target column is a date/datetime/timestamp type."
+  [row col-types]
+  (into {} (for [[k v] row]
+             (let [col-name (name k)
+                   col-type (get col-types col-name)]
+               (if (datetime-type? col-type)
+                 (cond
+                   (unix-timestamp-ms? v)
+                   [k (ms-to-timestamp v)]
+
+                   (unix-timestamp-ms-string? v)
+                   [k (ms-to-timestamp (Long/parseLong v))]
+
+                   :else
+                   [k v])
+                 [k v])))))
+
 (defn get-column-names
   "Get column names for a table"
   [db table-name]
@@ -69,7 +205,10 @@
           (clear-table target-db table-name))
 
         (let [rows (jdbc/query source-db [(str "SELECT * FROM " table-name)])
-              inserted (jdbc/insert-multi! target-db table-name rows)]
+              ;; Get target column types and convert timestamp values if needed
+              target-col-types (get-column-types target-db table-name)
+              converted-rows (map #(convert-row-values % target-col-types) rows)
+              inserted (jdbc/insert-multi! target-db table-name converted-rows)]
           {:table table-name
            :status :success
            :rows-copied (count inserted)
@@ -113,8 +252,10 @@
 
       (println "✓ Database connections successful\n")
 
-      (let [tables (remove #(#{"users_view" "ragtime_migrations"} %)
-                           (get-table-names source-db))
+      (let [raw-tables (remove #(#{"users_view" "ragtime_migrations"} %)
+                               (get-table-names source-db))
+            fk-deps (get-fk-dependencies source-db)
+            tables (topological-sort raw-tables fk-deps)
             results (doall
                      (for [table tables]
                        (do

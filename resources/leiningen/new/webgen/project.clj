@@ -34,12 +34,12 @@
                  [ring/ring-defaults "0.7.0"]
                  [ring/ring-devel "1.15.4"]
                  [ring/ring-codec "1.3.0"]]
-  :main {{sanitized}}.core
+  :main {{sanitized}} .core
   :plugins [[lein-ancient "0.7.0"]
             [lein-pprint "1.3.2"]]
   :uberjar-name "{{sanitized}}.jar"
   :target-path "target/%s"
-  :ring {:handler {{sanitized}}.core
+  :ring {:handler {{sanitized}} .core
          :auto-reload? true
          :auto-refresh? false}
   :resource-paths ["shared" "resources"]
@@ -56,16 +56,20 @@
             ;;   lein convert-migrations mysql        ; default (mysql)
             ;;   lein convert-migrations postgresql   ; postgres
             "convert-migrations" ["run" "-m" "{{sanitized}}.db.converter" "--"]
-            ;; Copy data from SQLite to MySQL/PostgreSQL
-            ;;   lein copy-data mysql    ; copy from SQLite to MySQL
-            ;;   lein copy-data postgresql
+            ;; Copy data between databases
+            ;;   lein copy-data localdb mysql          ; SQLite → MySQL
+            ;;   lein copy-data mysql localdb          ; MySQL → SQLite
+            ;;   lein copy-data localdb postgresql     ; SQLite → PostgreSQL
+            ;;   lein copy-data mysql postgresql       ; MySQL → PostgreSQL
+            ;;   lein copy-data localdb mysql --clear  ; clear target tables first
+            ;;   lein copy-data mysql                  ; MySQL → SQLite (default target)
             "copy-data" ["run" "-m" "{{sanitized}}.db.migrator" "--"]
             ;; Generate/remove handler skeleton (controller, model, view)
             ;;   lein gen-handler reports          ; create
             ;;   lein gen-handler reports remove   ; remove
             "gen-handler" ["run" "-m" "{{sanitized}}.gen.handler" "--"]}
   :profiles {:uberjar {:aot :all
-                       :main {{sanitized}}.core
+                       :main {{sanitized}} .core
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}
              :dev {:source-paths ["src" "dev"]
-                   :main {{sanitized}}.dev}})
+                   :main {{sanitized}} .dev}})
