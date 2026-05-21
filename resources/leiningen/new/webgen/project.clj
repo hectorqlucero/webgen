@@ -72,4 +72,4 @@
                        :main {{sanitized}}.core
                        :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}
              :dev {:source-paths ["src" "dev"]
-                   :main {{sanitized}} .dev}})
+                   :main {{sanitized}}.dev}})
