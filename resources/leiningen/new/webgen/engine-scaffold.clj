@@ -9,7 +9,7 @@
   (:require
    [clojure.edn :as edn]
    [clojure.string :as str]
-   [clojure.java.io :as io]s
+   [clojure.java.io :as io]
    [clojure.java.jdbc :as jdbc]
    [{{sanitized}}.models.crud :as crud]))
 
