@@ -1,0 +1,29 @@
+{:entity :projects
+ :title "Projects"
+ :table "projects"
+ :connection :default
+ :rights ["U" "A" "S"]
+ :mode :parameter-driven
+ :menu-order 999
+ :menu-icon "bi bi-kanban"
+
+ :fields [{:id :id :label "ID" :type :hidden}
+          {:id :project_code :label "Project Code" :type :textarea :required? true :placeholder "Project Code..."}
+          {:id :name :label "Name" :type :textarea :required? true :placeholder "Name..."}
+          {:id :starts_on :label "Starts On" :type :date}
+          {:id :ends_on :label "Ends On" :type :date}]
+
+ :queries {:list "SELECT * FROM projects ORDER BY id DESC"
+           :get "SELECT * FROM projects WHERE id = ?"}
+
+ :actions {:new true :edit true :delete true}
+
+ :subgrids [{:entity :employee_projects
+             :title "Employees (via Employee Projects)"
+             :foreign-key :project_id
+             :icon "bi bi-person"
+             :label "Employees (via Employee Projects)"
+             :relationship-type :many-to-many
+             :through-table :employee_projects
+             :related-entity :employees
+             :related-fk :employee_id}]}

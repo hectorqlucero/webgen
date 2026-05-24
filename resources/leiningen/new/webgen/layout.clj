@@ -67,22 +67,25 @@
       icon (assoc :icon icon))))
 
 (defn build-dropdown [request dropdown-id data-id label items & [icon]]
-  (when (some #{(user-level request)} ["A" "S" "U"])
-    [:li.nav-item.dropdown
-     [:a.nav-link.dropdown-toggle.fw-semibold.px-3.py-2.rounded.transition
-      {:href "#"
-       :id dropdown-id
-       :data-id data-id
-       :onclick "localStorage.setItem('active-link', this.dataset.id)"
-       :role "button"
-       :data-bs-toggle "dropdown"
-       :aria-expanded "false"}
-      (when icon [:i.me-2 {:class icon}])
-      label]
-     [:ul.dropdown-menu.shadow-lg.border-0.rounded.mt-2
-      {:aria-labelledby dropdown-id
-       :style "max-height: 60vh; overflow-y: auto;"}
-      (build-menu request items)]]))
+  (let [display-label (if (keyword? label)
+                        (i18n/tr request label)
+                        label)]
+    (when (some #{(user-level request)} ["A" "S" "U"])
+      [:li.nav-item.dropdown
+       [:a.nav-link.dropdown-toggle.fw-semibold.px-3.py-2.rounded.transition
+        {:href "#"
+         :id dropdown-id
+         :data-id data-id
+         :onclick "localStorage.setItem('active-link', this.dataset.id)"
+         :role "button"
+         :data-bs-toggle "dropdown"
+         :aria-expanded "false"}
+        (when icon [:i.me-2 {:class icon}])
+        display-label]
+       [:ul.dropdown-menu.shadow-lg.border-0.rounded.mt-2
+        {:aria-labelledby dropdown-id
+         :style "max-height: 60vh; overflow-y: auto;"}
+        (build-menu request items)]])))
 
 (defn create-dropdown [request {:keys [id data-id label items icon]}]
   (let [menu-items (map menu-item->map items)]
@@ -282,16 +285,25 @@
   [:script
    (str "window.i18nStrings = "
         (json/write-str
-         {:emptyTable     (i18n/tr request :grid/no-records)
-          :info           (i18n/tr request :datatables/info)
-          :infoEmpty      (i18n/tr request :datatables/info-empty)
-          :infoFiltered   (i18n/tr request :datatables/info-filtered)
-          :lengthMenu     (i18n/tr request :datatables/length-menu)
-          :search         (i18n/tr request :datatables/search)
-          :searchPlaceholder (i18n/tr request :datatables/search-placeholder)
-          :zeroRecords    (i18n/tr request :datatables/zero-records)
-          :paginate       {:previous "<i class=\"bi bi-chevron-left\"></i>"
-                           :next     "<i class=\"bi bi-chevron-right\"></i>"}})
+         {:emptyTable         (i18n/tr request :grid/no-records)
+          :info               (i18n/tr request :datatables/info)
+          :infoEmpty          (i18n/tr request :datatables/info-empty)
+          :infoFiltered       (i18n/tr request :datatables/info-filtered)
+          :lengthMenu         (i18n/tr request :datatables/length-menu)
+          :search             (i18n/tr request :datatables/search)
+          :searchPlaceholder  (i18n/tr request :datatables/search-placeholder)
+          :zeroRecords        (i18n/tr request :datatables/zero-records)
+          :paginate           {:previous "<i class=\"bi bi-chevron-left\"></i>"
+                               :next     "<i class=\"bi bi-chevron-right\"></i>"}
+          ;; UI action labels
+          :edit               (i18n/tr request :common/edit)
+          :new                (i18n/tr request :common/new)
+          ;; Confirmation dialogs
+          :confirmDelete      (i18n/tr request :confirm/delete)
+          ;; Error messages
+          :errorNetwork       (i18n/tr request :error/network)
+          :errorServer        (i18n/tr request :error/server)
+          :errorNotAuthorized (i18n/tr request :error/unauthorized)})
         ";")])
 
 (defn app-js [request]
@@ -309,7 +321,7 @@
    [:script {:src "/vendor/buttons.print.min.js"}]
    (i18n-js-vars request)
    [:script {:src "/vendor/app.js"}]
-   [:script {:src "/js/tabgrid.js?v=3"}]
+   [:script {:src "/js/tabgrid.js?v=4"}]
    [:script {:src "/js/mhighlight.js"}]
    [:script {:src "/js/lang.js"}]
    ;; fk-dependent.js contains the logic for dependent selects & create modal
@@ -370,16 +382,6 @@
      [:span "Copyright © "
       (t/year (t/now)) " " (:company-name config) " - All Rights Reserved"]]]))
 
-(defn error-404
-  ([msg] (error-404 msg nil))
-  ([msg redirect-url]
-   {:status 404
-    :headers {"Content-Type" "text/html; charset=utf-8"}
-    :body (html5 [:div
-                  [:h1 "Error 404"]
-                  [:p msg]
-                  (when redirect-url
-                    [:a {:href redirect-url} "Go back"])])}))
 (defn error-404
   ([msg] (error-404 msg nil))
   ([msg redirect-url]

@@ -1,5 +1,6 @@
 (ns {{sanitized}}.engine.query
   (:require
+   [clojure.string :as str]
    [{{sanitized}}.engine.config :as config]
    [{{sanitized}}.models.crud :as crud]))
 
@@ -31,18 +32,18 @@
         connection (or conn (:connection config) :default)
         query-def (get-in config [:queries query-key])
         query (resolve-query query-def)]
-    
+
     (cond
       ;; SQL string query
       (string? query)
       (if (empty? params)
         (crud/Query query :conn connection)
         (crud/Query (into [query] params) :conn connection))
-      
+
       ;; Function query
       (fn? query)
       (query params connection)
-      
+
       :else
       (throw (ex-info "Unsupported query type"
                       {:entity entity :query-key query-key :query query})))))
@@ -53,13 +54,23 @@
   [entity & [opts]]
   (execute-query entity (merge {:query-key :list} opts)))
 
+(defn- parse-composite-id
+  "Parse composite key IDs that are pipe-separated (e.g., '1|2').
+   Returns a vector of individual key values."
+  [id primary-key]
+  (if (and primary-key (vector? primary-key) (> (count primary-key) 1))
+    (str/split (str id) #"\|")
+    [id]))
+
 (defn get-record
   "Executes the :get query for an entity with an ID.
-   Returns a single record."
+   Returns a single record. Handles both simple and composite keys."
   [entity id & [opts]]
-  (first
-   (execute-query entity
-                  (merge {:query-key :get :params [id]} opts))))
+  (let [config (config/get-entity-config entity)
+        params (parse-composite-id id (:primary-key config))]
+    (first
+     (execute-query entity
+                    (merge {:query-key :get :params params} opts)))))
 
 (defn custom-query
   "Executes a custom named query from the entity configuration.
@@ -113,20 +124,20 @@
   [entity {:keys [before-hook after-hook] :as opts}]
   (let [config (config/get-entity-config entity)
         params (:params opts [])
-        
+
         ;; Execute before hook
         params (if before-hook
                  (before-hook params)
                  params)
-        
+
         ;; Execute query
         result (execute-query entity (assoc opts :params params))
-        
+
         ;; Execute after hook
         result (if after-hook
                  (after-hook result params)
                  result)]
-    
+
     result))
 
 (defn list-with-hooks
@@ -143,15 +154,17 @@
                                opts))))
 
 (defn get-with-hooks
-  "Gets a record with before-load and after-load hooks."
+  "Gets a record with before-load and after-load hooks.
+   Handles both simple and composite keys."
   [entity id & [opts]]
   (let [config (config/get-entity-config entity)
         hooks (:hooks config)
         before-load (:before-load hooks)
         after-load (:after-load hooks)
+        params (parse-composite-id id (:primary-key config))
         result (execute-with-hooks entity
                                    (merge {:query-key :get
-                                           :params [id]
+                                           :params params
                                            :before-hook before-load
                                            :after-hook after-load}
                                           opts))]

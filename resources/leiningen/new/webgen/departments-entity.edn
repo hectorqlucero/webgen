@@ -1,0 +1,25 @@
+{:entity :departments
+ :title "Departments"
+ :table "departments"
+ :connection :default
+ :rights ["U" "A" "S"]
+ :mode :parameter-driven
+ :menu-order 999
+ :menu-icon "bi bi-people"
+
+ :fields [{:id :id :label "ID" :type :hidden}
+          {:id :organization_id :label "Organizations ID" :type :hidden}
+          {:id :name :label "Name" :type :textarea :required? true :placeholder "Name..."}
+          {:id :code :label "Code" :type :textarea :placeholder "Code..."}]
+
+ :queries {:list "SELECT dep.*, org.name as organization_nombre FROM departments dep LEFT JOIN organizations org ON dep.organization_id = org.id ORDER BY dep.id DESC"
+           :get "SELECT * FROM departments WHERE id = ?"}
+
+ :actions {:new true :edit true :delete true}
+
+ :subgrids [{:entity :employees
+             :title "Employees"
+             :foreign-key :department_id
+             :icon "bi bi-person"
+             :label "Employees"
+             :relationship-type :one-to-many}]}

@@ -135,6 +135,18 @@
   (fn [routes]
     (route-fn routes)))
 
+(defn wrap-streamable-body
+  "Normalizes known non-streamable response body types to plain strings.
+   This prevents Ring/Jetty from failing when a handler returns hiccup RawString."
+  [handler]
+  (fn [request]
+    (let [resp (handler request)
+          body (:body resp)]
+      (if (and (some? body)
+               (= "hiccup.util.RawString" (.getName (class body))))
+        (assoc resp :body (str body))
+        resp))))
+
 ;; Define the application routes dynamically
 ;; NOTE: Route order matters; more specific routes should come before generic ones.
 (def app-routes
@@ -171,6 +183,7 @@
 (defn create-app
   []
   (-> (app-routes)
+      (wrap-streamable-body)
       (wrap-multipart-params)
       (wrap-defaults (-> site-defaults
                          (assoc-in [:security :anti-forgery] true)

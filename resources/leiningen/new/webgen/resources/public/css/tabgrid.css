@@ -70,6 +70,7 @@
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -140,11 +141,11 @@
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
-  
+
   .tabgrid-container .nav-tabs .nav-item {
     flex-shrink: 0;
   }
-  
+
   .tab-content {
     padding: 1rem;
   }
@@ -163,4 +164,308 @@
   padding: 2rem;
   color: #6c757d;
   font-style: italic;
+}
+
+/* ── Master-detail split view ───────────────────────────────────────────── */
+
+.tg-split {
+  display: flex;
+  height: calc(100vh - 120px);
+  min-height: 500px;
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+}
+
+/* ── Left panel — record list ────────────────────────────── */
+
+.tg-list-panel {
+  width: 280px;
+  min-width: 220px;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #dee2e6;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.tg-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #dee2e6;
+  gap: 0.5rem;
+  background: #fafafa;
+}
+
+.tg-list-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  min-width: 0;
+}
+
+.tg-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.4rem;
+  height: 1.4rem;
+  padding: 0 0.35rem;
+  background: #e9ecef;
+  border-radius: 1rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #495057;
+  flex-shrink: 0;
+}
+
+.tg-list-search {
+  padding: 0.5rem;
+  border-bottom: 1px solid #f0f0f0;
+  background: #fafafa;
+}
+
+.tg-search-icon {
+  background: var(--bs-body-bg, transparent);
+  border-color: var(--bs-border-color, #ced4da);
+  border-right: none;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.8rem;
+  color: var(--bs-secondary-color, #6c757d);
+}
+
+.tg-search-input {
+  border-left: none;
+  font-size: 0.85rem;
+  background: var(--bs-body-bg, transparent);
+  color: var(--bs-body-color, inherit);
+  border-color: var(--bs-border-color, #ced4da);
+}
+
+.tg-search-input:focus {
+  background: var(--bs-body-bg, #fff);
+  border-color: var(--bs-border-color, #ced4da);
+  box-shadow: none;
+}
+
+.tg-record-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
+  background: #fff;
+}
+
+.tg-record-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.55rem 0.75rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f4f4f4;
+  border-left: 3px solid transparent;
+  transition: background 0.1s ease, border-color 0.1s ease;
+  user-select: none;
+}
+
+.tg-record-item:hover {
+  background: #f0f4ff;
+  border-left-color: #c7d7fd;
+}
+
+.tg-record-item.active {
+  background: #eef2ff;
+  border-left-color: #4f46e5;
+}
+
+.tg-record-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  letter-spacing: 0.04em;
+}
+
+.tg-record-item.active .tg-record-avatar {
+  background: linear-gradient(135deg, #4338ca 0%, #7c3aed 100%);
+}
+
+.tg-record-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  color: #374151;
+}
+
+.tg-record-item.active .tg-record-label {
+  color: #3730a3;
+  font-weight: 600;
+}
+
+/* ── Right panel — detail ────────────────────────────────── */
+
+.tg-detail-panel {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem;
+  min-width: 0;
+  background: #f8f9fa;
+}
+
+/* ── Record detail card ───────────────────────────────────── */
+
+.tg-record-detail {
+  background: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.tg-detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  background: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.tg-detail-id {
+  font-size: 0.78rem;
+  color: #9ca3af;
+  font-family: ui-monospace, "SFMono-Regular", monospace;
+  letter-spacing: 0.02em;
+}
+
+.tg-fields-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.tg-field-item {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  border-right: 1px solid #f3f4f6;
+}
+
+.tg-field-item:nth-child(even) {
+  border-right: none;
+}
+
+.tg-field-item:last-child,
+.tg-field-item:nth-last-child(2):nth-child(odd) {
+  border-bottom: none;
+}
+
+.tg-field-label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #9ca3af;
+  margin-bottom: 0.2rem;
+}
+
+.tg-field-value {
+  display: block;
+  font-size: 0.9rem;
+  color: #111827;
+  word-break: break-word;
+  min-height: 1.1em;
+}
+
+/* ── Empty state ───────────────────────────────────────────── */
+
+.tg-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  color: #d1d5db;
+  text-align: center;
+}
+
+/* ── Accordion refinements ─────────────────────────────────── */
+
+.tg-detail-panel .accordion {
+  --bs-accordion-border-color: #e5e7eb;
+  --bs-accordion-btn-bg: #f9fafb;
+  --bs-accordion-active-bg: #f0f4ff;
+  --bs-accordion-active-color: #3730a3;
+  --bs-accordion-btn-focus-box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.15);
+}
+
+.tg-detail-panel .accordion-item {
+  border-radius: 0.4rem !important;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.tg-detail-panel .accordion-item+.accordion-item {
+  margin-top: 0;
+}
+
+.tg-detail-panel .accordion-button {
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.7rem 1rem;
+}
+
+.tg-detail-panel .accordion-button:not(.collapsed) {
+  color: #3730a3;
+  background: #eef2ff;
+  box-shadow: none;
+}
+
+.tg-detail-panel .accordion-body {
+  padding: 1rem;
+  background: #fff;
+}
+
+/* ── Mobile: stack vertically ────────────────────────────── */
+
+@media (max-width: 768px) {
+  .tg-split {
+    flex-direction: column;
+    height: auto;
+    min-height: unset;
+  }
+
+  .tg-list-panel {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    max-height: 260px;
+    border-right: none;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .tg-fields-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tg-field-item:nth-child(even) {
+    border-right: none;
+  }
 }

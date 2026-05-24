@@ -2,7 +2,7 @@
   (:require
    [compojure.core :refer [defroutes GET POST context]]
    [ring.util.response :refer [redirect]]
-   [hiccup.core :refer [html]]
+   [hiccup2.core :refer [html]]
    [{{sanitized}}.engine.config :as config]
    [{{sanitized}}.engine.query :as query]
    [{{sanitized}}.engine.crud :as crud]
@@ -39,30 +39,44 @@
         content (render/render-not-authorized entity (user-level request))]
     (application request title ok nil content)))
 
+(defn- render-html
+  [hiccup-body]
+  (str (html hiccup-body)))
+
 (defn handle-grid
   "Handles grid/list view for an entity."
   [request]
   (if-let [entity (get-entity-from-request request)]
-    (do
-      (if (check-permission entity request)
-        (try
-          (let [config (config/get-entity-config entity)
-                title (:title config)
+    (if (check-permission entity request)
+      (try
+        (let [config (config/get-entity-config entity)
+              title (:title config)
+              ok (get-session-id request)
+              parent-id (get-in request [:params :id])
+              open-accordion (get-in request [:params :open_accordion])
+              ;; Validate to prevent XSS — only safe ID characters allowed
+              safe-accordion (when (and open-accordion
+                                        (re-matches #"[a-zA-Z0-9_\-]+" open-accordion))
+                               open-accordion)
+              js (when safe-accordion
+                   [:script
+                    (str "document.addEventListener('DOMContentLoaded',function(){"
+                         "setTimeout(function(){"
+                         "var p=document.getElementById('" safe-accordion "');"
+                         "if(p&&!p.classList.contains('show')){"
+                         "bootstrap.Collapse.getOrCreateInstance(p,{toggle:false}).show();"
+                         "}},150);});")])
+              ;; Always use TabGrid for consistency
+              content (tabgrid/render-tabgrid request entity parent-id)]
+          (application request title ok js content))
+        (catch Exception e
+          (println "[ERROR] Grid handler failed:" (.getMessage e))
+          (.printStackTrace e)
+          (let [title "Error"
                 ok (get-session-id request)
-                parent-id (get-in request [:params :id])]
-
-            ;; Always use TabGrid for consistency
-            (let [content (tabgrid/render-tabgrid request entity parent-id)]
-              (application request title ok nil content)))
-          (catch Exception e
-            (println "[ERROR] Grid handler failed:" (.getMessage e))
-            (.printStackTrace e)
-            (let [title "Error"
-                  ok (get-session-id request)
-                  content (render/render-error (.getMessage e))]
-              (application request title ok nil content))))
-        (do
-          (unauthorized-response entity request))))
+                content (render/render-error (.getMessage e))]
+            (application request title ok nil content))))
+      (unauthorized-response entity request))
     (error-404 "Entity not found" "/")))
 
 (defn handle-dashboard
@@ -93,9 +107,7 @@
   (if-let [entity (get-entity-from-request request)]
     (if (check-permission entity request)
       (try
-        (let [config (config/get-entity-config entity)
-              title (str "New " (:title config))
-              parent-id (get-in request [:params :parent_id])
+        (let [parent-id (get-in request [:params :parent_id])
               parent-entity-str (get-in request [:params :parent_entity])
               ;; For subgrids, find the FK field from parent's subgrid config
               subgrid-fk (when (and parent-id parent-entity-str)
@@ -106,14 +118,19 @@
                                                             (:subgrids parent-config)))]
                              (:foreign-key matching-sg)))
               row (when (and parent-id subgrid-fk)
-                    {subgrid-fk parent-id})]
-          (html (render/render-form request entity row subgrid-fk)))
+                    {subgrid-fk parent-id})
+              accordion-id (when (and parent-id parent-entity-str)
+                             (str parent-entity-str "-" (name entity) "-collapse"))
+              return-url (when (and parent-id parent-entity-str)
+                           (str "/admin/" parent-entity-str "?id=" parent-id
+                                "&open_accordion=" accordion-id))]
+          (render-html (render/render-form request entity row subgrid-fk return-url)))
         (catch Exception e
           (println "[ERROR] Add form handler failed:" (.getMessage e))
           (.printStackTrace e)
-          (html (render/render-error (.getMessage e)))))
-      (html (render/render-error "Not authorized")))
-    (html (render/render-error "Entity not found"))))
+          (render-html (render/render-error (.getMessage e)))))
+      (render-html (render/render-error "Not authorized")))
+    (render-html (render/render-error "Entity not found"))))
 
 (defn handle-edit-form
   "Handles edit form display."
@@ -121,19 +138,17 @@
   (if-let [entity (get-entity-from-request request)]
     (if (check-permission entity request)
       (try
-        (let [config (config/get-entity-config entity)
-              id (get-in request [:params :id])
-              title (str "Edit " (:title config))
+        (let [id (get-in request [:params :id])
               row (query/get-with-hooks entity id)]
           (if row
-            (html (render/render-form request entity row))
-            (html (render/render-error "Record not found"))))
+            (render-html (render/render-form request entity row))
+            (render-html (render/render-error "Record not found"))))
         (catch Exception e
           (println "[ERROR] Edit form handler failed:" (.getMessage e))
           (.printStackTrace e)
-          (html (render/render-error (.getMessage e)))))
-      (html (render/render-error "Not authorized")))
-    (html (render/render-error "Entity not found"))))
+          (render-html (render/render-error (.getMessage e)))))
+      (render-html (render/render-error "Not authorized")))
+    (render-html (render/render-error "Entity not found"))))
 
 (defn handle-save
   "Handles form save (create/update)."
@@ -152,10 +167,11 @@
           (if (:success result)
             (let [entity-name (name entity)
                   record-id (:success result)
-                  return-tab (get params "return_tab" (get params :return_tab))
-                  url (str "/admin/" entity-name
-                           (when (and record-id (number? record-id))
-                             (str "?id=" record-id)))]
+                  return-url (or (get params :return_url) (get params "return_url"))
+                  url (or return-url
+                          (str "/admin/" entity-name
+                               (when (and record-id (number? record-id))
+                                 (str "?id=" record-id))))]
               (redirect url))
             {:status 400
              :headers {"Content-Type" "application/json"}
@@ -212,7 +228,6 @@
         (let [parent-id (get-in request [:params :parent_id])
               parent-entity-str (get-in request [:params :parent_entity])
               config (config/get-entity-config entity)
-              title (:title config)
 
               ;; Get all rows first
               all-rows (query/list-records entity)
@@ -234,8 +249,7 @@
                                            fk-candidates (filter #(= :select (:type %)) fields)]
                                        (:id (first fk-candidates))))]
                        (if fk-field
-                         (do
-                           (filter #(= (str (get % fk-field)) (str parent-id)) all-rows))
+                         (filter #(= (str (get % fk-field)) (str parent-id)) all-rows)
                          (do
                            (println "[WARN] Could not determine FK field for subgrid filtering")
                            all-rows)))
@@ -245,19 +259,19 @@
 
           {:status 200
            :headers {"Content-Type" "text/html"}
-           :body (html content)})
+           :body (render-html content)})
         (catch Exception e
           (println "[ERROR] Subgrid handler failed:" (.getMessage e))
           (.printStackTrace e)
           {:status 500
            :headers {"Content-Type" "text/html"}
-           :body (html (render/render-error (.getMessage e)))}))
+           :body (render-html (render/render-error (.getMessage e)))}))
       {:status 403
        :headers {"Content-Type" "text/html"}
-       :body (html (render/render-error "Not authorized"))})
+       :body (render-html (render/render-error "Not authorized"))})
     {:status 404
      :headers {"Content-Type" "text/html"}
-     :body (html (render/render-error "Entity not found"))}))
+     :body (render-html (render/render-error "Entity not found"))}))
 
 (defroutes engine-routes
   ;; Admin Grid Routes
@@ -301,7 +315,7 @@
     (handle-dashboard (assoc-in request [:params :entity] entity)))
 
   ;; Development/Admin Routes
-  (GET "/admin/reload-config" request
+  (GET "/admin/reload-config" _request
     (try
       (config/reload-all!)
       {:status 200

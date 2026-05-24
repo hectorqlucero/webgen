@@ -1,5 +1,5 @@
-(defproject {{name}} "0.1.0"
-  :description "{{name}}"
+(defproject {{sanitized}} "0.1.0"
+  :description "{{sanitized}}"
   :url "http://example.com/FIXME" ; Change me - optional
   :license {:name "MIT License"
             :url "https://opensource.org/licenses/MIT"}
@@ -51,6 +51,11 @@
             ;;   lein database :pg      ; postgres (:pg)
             ;;   lein database localdb  ; sqlite (:localdb)
             "database" ["run" "-m" "{{sanitized}}.models.cdb/database" "--"]
+            ;; Seed all tables except users
+            ;;   lein seed-non-users
+            ;;   lein seed-non-users pg
+            ;;   lein seed-non-users localdb
+            "seed-non-users" ["run" "-m" "{{sanitized}}.models.cdb/seed-non-users" "--"]
             "scaffold" ["run" "-m" "{{sanitized}}.engine.scaffold"]
             ;; Convert SQLite migrations to MySQL/PostgreSQL
             ;;   lein convert-migrations mysql        ; default (mysql)

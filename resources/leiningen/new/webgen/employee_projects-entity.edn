@@ -1,0 +1,21 @@
+{:entity :employee_projects
+ :title "Employee Projects"
+ :table "employee_projects"
+ :connection :default
+ :rights ["U" "A" "S"]
+ :mode :parameter-driven
+ :menu-order 999
+ :menu-hidden true
+ :menu-icon "bi bi-person"
+
+ :fields [{:id :id :label "ID" :type :hidden}
+          {:id :employee_id :label "Employees ID" :type :hidden}
+          {:id :project_id :label "Projects ID" :type :hidden}
+          {:id :role :label "Role" :type :textarea :placeholder "Role..."}
+          {:id :hours_per_week :label "Hours Per Week" :type :number}
+          {:id :assigned_on :label "Assigned On" :type :date}]
+
+ :queries {:list "SELECT emp.*, emp1.department_id as employee_nombre, pro.name as project_nombre FROM employee_projects emp LEFT JOIN employees emp1 ON emp.employee_id = emp1.id LEFT JOIN projects pro ON emp.project_id = pro.id ORDER BY emp.id DESC"
+           :get "SELECT * FROM employee_projects WHERE id = ?"}
+
+ :actions {:new true :edit true :delete true}}

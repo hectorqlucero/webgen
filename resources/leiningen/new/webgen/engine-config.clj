@@ -222,9 +222,12 @@
    :email {:type :email :required? false}
    :password {:type :password :required? true}
    :date {:type :date :required? false}
+   :datetime {:type :datetime :required? false}
    :number {:type :number :required? false}
+   :decimal {:type :decimal :required? false}
    :select {:type :select :required? false :options []}
    :radio {:type :radio :required? false :options []}
+   :checkbox {:type :checkbox :required? false}
    :textarea {:type :textarea :required? false}
    :file {:type :file :required? false}
    :hidden {:type :hidden}})

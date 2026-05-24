@@ -1,4 +1,4 @@
-(ns {{sanitized}}.hooks.siblings
+(ns {{sanitized}}.hooks.employee-profiles
   (:require [{{sanitized}}.models.util :refer [image-link]]))
 
 (defn before-load [params]
@@ -6,14 +6,14 @@
 
 (defn after-load [rows _params]
   (map #(-> %
-            (assoc :imagen (image-link (:imagen %)))) rows))
+            (assoc :avatar (image-link (:avatar %)))) rows))
 
 (defn before-save [params]
-  (if-let [file-data (:imagen params)]
+  (if-let [file-data (:avatar params)]
     (if (and (map? file-data) (:tempfile file-data))
       (-> params
-          (assoc :file file-data :file-column :imagen)
-          (dissoc :imagen))
+          (assoc :file file-data :file-column :avatar)
+          (dissoc :avatar))
       params)
     params))
 

@@ -5,6 +5,8 @@
    [clojure.pprint :as pp]
    [clojure.string :as str]))
 
+(def default-category-key :admin)
+
 (defn discover-entities
   "Discovers all entity configuration files in resources/entities/
    Works when resources are on the filesystem or packaged inside a JAR."
@@ -51,11 +53,14 @@
   [entity-name]
   (when-let [config (load-entity-config entity-name)]
     ;; Skip hidden entities
-    (when-not (:menu-hidden? config)
+    (when-not (or (:menu-hidden config) (:menu-hidden? config))
       (let [entity-kw (:entity config)
             title (:title config)
             rights (:rights config)
-            category (or (:menu-category config) :admin)
+            category (:menu-category config)
+            category-order (:menu-category-order config)
+            category-label (:menu-category-label config)
+            category-icon (:menu-category-icon config)
             order (or (:menu-order config) 999)
             menu-icon (:menu-icon config)
             dropdown-icon (:dropdown-icon config)]
@@ -64,63 +69,50 @@
          :href (str "/admin/" (name entity-kw))
          :rights rights
          :category category
+         :category-order category-order
+         :category-label category-label
+         :category-icon category-icon
          :order order
          :menu-icon menu-icon
          :dropdown-icon dropdown-icon}))))
 
-(def default-categories
-  "Default menu categories with Spanish labels for real estate system"
-  {:clients {:label "Clientes" :order 1 :icon "👥"}
-   :properties {:label "Propiedades" :order 2 :icon "🏠"}
-   :transactions {:label "Transacciones" :order 3 :icon "📋"}
-   :financial {:label "Finanzas" :order 4 :icon "💰"}
-   :documents {:label "Documentos" :order 5 :icon "📄"}
-   :system {:label "Sistema" :order 6 :icon "⚙️"}
-   :admin {:label "Administración" :order 7 :icon "🔧"}
-   :reports {:label "Reportes" :order 8 :icon "📊"}})
+(defn normalize-category-key
+  "Normalizes menu category values to keyword keys. Returns nil when category is absent."
+  [category]
+  (cond
+    (nil? category) nil
+    (keyword? category) category
+    (string? category) (-> category
+                           str/trim
+                           str/lower-case
+                           (str/replace #"[^a-z0-9]+" "-")
+                           (str/replace #"(^-+|-+$)" "")
+                           keyword)
+    :else (keyword (str category))))
 
-(defn categorize-entity
-  "Auto-categorizes entity based on name patterns"
-  [entity-name]
-  (let [name-lower (str/lower-case (name entity-name))]
-    (cond
-      (re-find #"cliente|client|customer" name-lower) :clients
-      (re-find #"propiedad|property|inmueble" name-lower) :properties
-      (re-find #"agente|agent|broker" name-lower) :clients
-      (re-find #"alquiler|rental|renta" name-lower) :transactions
-      (re-find #"venta|sale|sell" name-lower) :transactions
-      (re-find #"contrato|contract" name-lower) :transactions
-      (re-find #"tramite|process|transaction" name-lower) :transactions
-      (re-find #"pago|payment|pay" name-lower) :financial
-      (re-find #"comision|commission" name-lower) :financial
-      (re-find #"avaluo|appraisal|valuation" name-lower) :financial
-      (re-find #"documento|document|file" name-lower) :documents
-      (re-find #"fiador|guarantor|aval" name-lower) :documents
-      (re-find #"user|usuario" name-lower) :system
-      (re-find #"bitacora|log|audit" name-lower) :system
-      (re-find #"product" name-lower) :admin
-      :else :admin)))
-
-(defn enhance-entity-info
-  "Adds auto-categorization to entity info"
-  [entity-info]
-  (let [auto-category (categorize-entity (:entity entity-info))
-        final-category (if (= (:category entity-info) :admin)
-                         auto-category
-                         (:category entity-info))]
-    (assoc entity-info :category final-category)))
+(defn category->label
+  "Builds a display label for a category key when no explicit label is configured."
+  [category-key]
+  (-> category-key
+      name
+      (str/replace #"[-_]+" " ")
+      str/capitalize))
 
 (defn generate-menu-items
-  "Generates menu items from all discovered entities"
+  "Generates menu items from discovered entities.
+   Entities without :menu-category are placed in the default admin category."
   []
-  (->> (discover-entities)
-       (map get-entity-info)
-       (filter some?)
-       (map enhance-entity-info)
-       (group-by :category)
-       (map (fn [[category items]]
-              [category (sort-by :order items)]))
-       (into {})))
+  (let [entities (->> (discover-entities)
+                      (map get-entity-info)
+                      (filter some?)
+                      (map #(update % :category normalize-category-key))
+                      (map (fn [entity]
+                             (update entity :category #(or % default-category-key)))))]
+    (->> entities
+         (group-by :category)
+         (map (fn [[category items]]
+                [category (sort-by :order items)]))
+         (into {}))))
 
 (defn format-menu-item
   "Formats a single menu item as [href title rights-or-nil order icon?].
@@ -139,29 +131,34 @@
 (defn generate-dropdown-config
   "Generates dropdown configuration for a category"
   [category-key items idx]
-  (let [category-info (get default-categories category-key)
-        label (or (:label category-info) (str/capitalize (name category-key)))
-        category-icon (some :menu-icon items)]
+  (let [explicit-label (some :category-label items)
+        explicit-icon (some :category-icon items)
+        explicit-order (some :category-order items)
+        category-icon (or explicit-icon (some :menu-icon items))]
     {:id (str "navdrop" idx)
      :data-id (name category-key)
-     :label label
-     :order (apply min (map :order items))
+     :label (or explicit-label
+                (when (= category-key default-category-key) :menu/admin)
+                (category->label category-key))
+     :order (or explicit-order (apply min (map :order items)))
      :icon category-icon
      :items (map format-menu-item items)}))
 
 (defn generate-full-menu-config
   "Generates complete menu configuration"
   []
-  (let [menu-items (generate-menu-items)
-        sorted-categories (sort-by #(get-in default-categories [% :order] 999)
-                                   (keys menu-items))
+  (let [categorized (generate-menu-items)
+        sorted-categories (sort-by (fn [category]
+                                     (or (some :category-order (get categorized category))
+                                         (apply min (map :order (get categorized category)))))
+                                   (keys categorized))
         dropdowns (into {}
                         (map-indexed
                          (fn [idx category]
                            [category
                             (generate-dropdown-config
                              category
-                             (get menu-items category)
+                             (get categorized category)
                              idx)])
                          sorted-categories))]
     {:nav-links []
@@ -185,13 +182,8 @@
   ;; Test single entity info
   (get-entity-info "clientes")
 
-  ;; Test categorization
-  (categorize-entity :clientes)
-  (categorize-entity :propiedades)
-  (categorize-entity :pagos_renta)
-
   ;; Generate full menu
-  (clojure.pprint/pprint (generate-full-menu-config))
+  (pp/pprint (generate-full-menu-config))
 
   ;; Test menu items by category
   (generate-menu-items))

@@ -5,11 +5,10 @@
    [{{sanitized}}.engine.crud :as crud]
    [{{sanitized}}.models.crud :as model-crud]
    [{{sanitized}}.models.util :refer [json-response]]
-   [{{sanitized}}.i18n.core :as i18n]
    [clojure.string :as str]
    [clojure.data.json :as json]
    [{{sanitized}}.engine.render :as render]
-   [hiccup.core :refer [html]]))
+   [hiccup2.core :refer [html]]))
 
 ;; === Helper Functions ===
 (defn- parse-entity-param

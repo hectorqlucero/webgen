@@ -1,0 +1,46 @@
+{:entity :employees
+ :title "Employees"
+ :table "employees"
+ :connection :default
+ :rights ["U" "A" "S"]
+ :mode :parameter-driven
+ :menu-order 999
+ :menu-icon "bi bi-person"
+
+ :fields [{:id :id :label "ID" :type :hidden}
+          {:id :department_id :label "Departments ID" :type :hidden}
+          {:id :manager_id :label "Employees ID" :type :hidden}
+          {:id :first_name :label "First Name" :type :textarea :required? true :placeholder "First Name..."}
+          {:id :last_name :label "Last Name" :type :textarea :required? true :placeholder "Last Name..."}
+          {:id :email :label "Email" :type :email :placeholder "user@example.com"}
+          {:id :active :label "Active" :type :textarea :placeholder "Active..."}]
+
+ :queries {:list "SELECT emp.*, dep.name as department_nombre, emp1.department_id as employee_nombre FROM employees emp LEFT JOIN departments dep ON emp.department_id = dep.id LEFT JOIN employees emp1 ON emp.manager_id = emp1.id ORDER BY emp.id DESC"
+           :get "SELECT * FROM employees WHERE id = ?"}
+
+ :actions {:new true :edit true :delete true}
+
+ :subgrids [{:entity :employee_profiles
+             :title "Employee Profiles"
+             :foreign-key :employee_id
+             :icon "bi bi-file-earmark-text"
+             :label "Employee Profiles"
+             :relationship-type :one-to-one}
+            {:entity :employee_projects
+             :title "Projects (via Employee Projects)"
+             :foreign-key :employee_id
+             :icon "bi bi-person"
+             :label "Projects (via Employee Projects)"
+             :relationship-type :many-to-many
+             :through-table :employee_projects
+             :related-entity :projects
+             :related-fk :project_id}
+            {:entity :employee_skills
+             :title "Skills (via Employee Skills)"
+             :foreign-key :employee_id
+             :icon "bi bi-person"
+             :label "Skills (via Employee Skills)"
+             :relationship-type :many-to-many
+             :through-table :employee_skills
+             :related-entity :skills
+             :related-fk :skill_id}]}

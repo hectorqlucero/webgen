@@ -1,10 +1,10 @@
 (ns {{sanitized}}.models.form
   (:require
-   [ring.util.anti-forgery :refer [anti-forgery-field]]
    [clojure.java.io :as io]
    [clojure.string :as str]
    [{{sanitized}}.i18n.core :as i18n]
-   [{{sanitized}}.models.crud :refer [config]]))
+   [{{sanitized}}.models.crud :refer [config]]
+   [{{sanitized}}.web.csrf :refer [csrf-field]]))
 
 (defn password-form
   "Renders a professional password change form with Bootstrap 5 styling"
@@ -21,7 +21,7 @@
               :action "/change/password"
               :class "needs-validation"
               :novalidate true}
-       (anti-forgery-field)
+       (csrf-field)
        [:div.mb-3
         [:label.form-label.fw-semibold {:for "email"}
          [:i.bi.bi-envelope.me-2] (i18n/tr nil :form/email)]
@@ -62,7 +62,7 @@
               :action href
               :class "needs-validation"
               :novalidate true}
-       (anti-forgery-field)
+       (csrf-field)
        [:div.mb-3
         [:label.form-label.fw-semibold {:for "username"}
          [:i.bi.bi-person.me-2] (i18n/tr nil :form/email)]
@@ -443,7 +443,7 @@
                :action href
                :class "needs-validation"
                :novalidate false}
-        (anti-forgery-field)
+        (csrf-field)
         fields
         [:div.d-flex.gap-2.justify-content-end.mt-4
          (cond
@@ -468,7 +468,7 @@
                    :action href
                    :class "needs-validation"
                    :novalidate true}
-            (anti-forgery-field)
+            (csrf-field)
             fields
             [:div.d-flex.gap-2.justify-content-end.mt-4
              (cond

@@ -1,0 +1,27 @@
+{:entity :skills
+ :title "Skills"
+ :table "skills"
+ :connection :default
+ :rights ["U" "A" "S"]
+ :mode :parameter-driven
+ :menu-order 999
+ :menu-icon "bi bi-table"
+
+ :fields [{:id :id :label "ID" :type :hidden}
+          {:id :name :label "Name" :type :textarea :required? true :placeholder "Name..."}
+          {:id :category :label "Category" :type :textarea :placeholder "Category..."}]
+
+ :queries {:list "SELECT * FROM skills ORDER BY id DESC"
+           :get "SELECT * FROM skills WHERE id = ?"}
+
+ :actions {:new true :edit true :delete true}
+
+ :subgrids [{:entity :employee_skills
+             :title "Employees (via Employee Skills)"
+             :foreign-key :skill_id
+             :icon "bi bi-person"
+             :label "Employees (via Employee Skills)"
+             :relationship-type :many-to-many
+             :through-table :employee_skills
+             :related-entity :employees
+             :related-fk :employee_id}]}

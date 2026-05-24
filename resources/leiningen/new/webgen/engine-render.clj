@@ -287,9 +287,11 @@
 
 (defn render-form
   "Renders a form for an entity based on its configuration.
-   Optional subgrid-fk: FK field id to hide and render as hidden input instead."
-  ([request entity row] (render-form request entity row nil))
-  ([request entity row subgrid-fk]
+   Optional subgrid-fk: FK field id to hide and render as hidden input instead.
+   Optional return-url: URL to redirect to after saving (used for subgrid forms)."
+  ([request entity row] (render-form request entity row nil nil))
+  ([request entity row subgrid-fk] (render-form request entity row subgrid-fk nil))
+  ([request entity row subgrid-fk return-url]
    (let [config (config/get-entity-config entity)
          fields (config/get-form-fields entity subgrid-fk)
          entity-name (name entity)
@@ -302,10 +304,15 @@
                                             :id (name subgrid-fk)
                                             :name (name subgrid-fk)
                                             :value (get row subgrid-fk)}))
+             return-url-hidden (when return-url
+                                 (form/build-field {:type "hidden"
+                                                    :id "return_url"
+                                                    :name "return_url"
+                                                    :value return-url}))
              field-elements (map #(render-field % row) fields)
-             all-elements (if fk-hidden
-                            (cons fk-hidden field-elements)
-                            field-elements)
+             all-elements (cond-> field-elements
+                            fk-hidden (as-> els (cons fk-hidden els))
+                            return-url-hidden (as-> els (concat els [return-url-hidden])))
              buttons (form/build-modal-buttons request)]
          (form/form href all-elements buttons))))))
 

@@ -1,0 +1,25 @@
+{:entity :organizations
+ :title "Organizations"
+ :table "organizations"
+ :connection :default
+ :rights ["U" "A" "S"]
+ :mode :parameter-driven
+ :menu-order 999
+ :menu-icon "bi bi-people"
+
+ :fields [{:id :id :label "ID" :type :hidden}
+          {:id :name :label "Name" :type :textarea :required? true :placeholder "Name..."}
+          {:id :code :label "Code" :type :textarea :placeholder "Code..."}
+          {:id :active :label "Active" :type :textarea :placeholder "Active..."}]
+
+ :queries {:list "SELECT * FROM organizations ORDER BY id DESC"
+           :get "SELECT * FROM organizations WHERE id = ?"}
+
+ :actions {:new true :edit true :delete true}
+
+ :subgrids [{:entity :departments
+             :title "Departments"
+             :foreign-key :organization_id
+             :icon "bi bi-list-ul"
+             :label "Departments"
+             :relationship-type :one-to-many}]}

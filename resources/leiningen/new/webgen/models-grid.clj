@@ -1,9 +1,8 @@
 (ns {{sanitized}}.models.grid
   (:require
    [clojure.string :as st]
-   [hiccup.util :refer [raw-string]]
-   [ring.util.anti-forgery :refer [anti-forgery-field]]
-   [{{sanitized}}.i18n.core :as i18n]))
+   [{{sanitized}}.i18n.core :as i18n]
+   [{{sanitized}}.web.csrf :refer [csrf-field]]))
 
 (defn build-grid-head
   [request href fields & args]
@@ -82,7 +81,7 @@
                       :action (str href "/delete/" (:id row))
                       :style "display:inline"
                       :onsubmit "return confirm('Are you sure?')"}
-               (raw-string (anti-forgery-field))
+               (csrf-field)
                [:button.btn.btn-danger.btn-lg.fw-semibold.shadow-sm.rounded-pill
                 {:type "submit"
                  :tabindex (when disabled? -1)
@@ -306,7 +305,7 @@
                     :action (str href "/delete/" (:id row))
                     :style "display:inline"
                     :onsubmit "return confirm('Are you sure?')"}
-             (raw-string (anti-forgery-field))
+             (csrf-field)
              [:button.btn.btn-danger.btn-sm.fw-semibold.shadow-sm.rounded-pill
               {:type "submit"
                :tabindex (when disabled? -1)

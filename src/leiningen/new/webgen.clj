@@ -89,6 +89,14 @@
              ["src/{{sanitized}}/hooks/contactos.clj" (render "hooks-contactos.clj" data)]
              ["src/{{sanitized}}/hooks/cars.clj" (render "hooks-cars.clj" data)]
              ["src/{{sanitized}}/hooks/siblings.clj" (render "hooks-siblings.clj" data)]
+             ["src/{{sanitized}}/hooks/departments.clj" (render "hooks-departments.clj" data)]
+             ["src/{{sanitized}}/hooks/employees.clj" (render "hooks-employees.clj" data)]
+             ["src/{{sanitized}}/hooks/employee_profiles.clj" (render "hooks-employee_profiles.clj" data)]
+             ["src/{{sanitized}}/hooks/employee_projects.clj" (render "hooks-employee_projects.clj" data)]
+             ["src/{{sanitized}}/hooks/employee_skills.clj" (render "hooks-employee_skills.clj" data)]
+             ["src/{{sanitized}}/hooks/organizations.clj" (render "hooks-organizations.clj" data)]
+             ["src/{{sanitized}}/hooks/projects.clj" (render "hooks-projects.clj" data)]
+             ["src/{{sanitized}}/hooks/skills.clj" (render "hooks-skills.clj" data)]
 
              ;; Engine
              ["src/{{sanitized}}/engine/config.clj" (render "engine-config.clj" data)]
@@ -142,6 +150,9 @@
              ;; gen-handler
              ["src/{{sanitized}}/gen/handler.clj" (render "gen-handler.clj" data)]
 
+             ;; Web
+             ["src/{{sanitized}}/web/csrf.clj" (render "csrf.clj" data)]
+
              ;; Test
              ["test/{{sanitized}}/core_test.clj" (render "core_test.clj" data)]
              ["test/{{sanitized}}/db_test.clj" (render "db_test.clj" data)]
@@ -167,6 +178,16 @@
              ["resources/entities/cars.edn" (render "cars-entity.edn" data)]
              ["resources/entities/siblings.edn" (render "siblings-entity.edn" data)]
              ["resources/entities/audit_log.edn" (render "audit-log-entity.edn" data)]
+
+             ;; Relationship example entities (M2M / 1:1 / 1:N demos)
+             ["resources/entities/employees.edn" (render "employees-entity.edn" data)]
+             ["resources/entities/departments.edn" (render "departments-entity.edn" data)]
+             ["resources/entities/skills.edn" (render "skills-entity.edn" data)]
+             ["resources/entities/organizations.edn" (render "organizations-entity.edn" data)]
+             ["resources/entities/projects.edn" (render "projects-entity.edn" data)]
+             ["resources/entities/employee_profiles.edn" (render "employee_profiles-entity.edn" data)]
+             ["resources/entities/employee_projects.edn" (render "employee_projects-entity.edn" data)]
+             ["resources/entities/employee_skills.edn" (render "employee_skills-entity.edn" data)]
 
              ;; Config file (must be rendered to replace {{name}})
              ["resources/config/app-config.edn" (render "config-app-config.edn" data)]

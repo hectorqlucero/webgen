@@ -7,31 +7,31 @@
    [clojure.walk :as walk]))
 
 ;; start needed require
-; [contactos.handlers.admin.siblingscontactos.model :require [get-siblings]]
-; [contactos.handlers.admin.carscontactos.model :require [get-cars]]
-; [contactos.models.tabgrid :require [tab-plugin]]
+; [{{sanitized}}.handlers.admin.siblings{{sanitized}}.model :require [get-siblings]]
+; [{{sanitized}}.handlers.admin.cars{{sanitized}}.model :require [get-cars]]
+; [{{sanitized}}.models.tabgrid :require [tab-plugin]]
 ;; end needed require
 
 ;; start example setup
 ;; content (tab-plugin request
-;;                     {:table "contactos"
+;;                     {:table "{{sanitized}}"
 ;;                      :labels ["Name" "Email" "Phone" "Image"]
 ;;                      :dbfields [:name :email :phone :image]
-;;                      :href "/admin/contactos"
-;;                      :get-id-fn get-contactos-id
-;;                      :get-all-fn get-contactos}
+;;                      :href "/admin/{{sanitized}}"
+;;                      :get-id-fn get-{{sanitized}}-id
+;;                      :get-all-fn get-{{sanitized}}}
 ;;                     {:table "siblings"
 ;;                      :fkey :contacto_id
 ;;                      :labels ["Name" "Age" "Image"]
 ;;                      :dbfields [:name :age :image]
-;;                      :href "/admin/siblingscontactos"
+;;                      :href "/admin/siblings{{sanitized}}"
 ;;                      :fetch-fn get-siblings
 ;;                      :fetch-args [:parent-id]}
 ;;                     {:table "cars"
 ;;                      :fkey :contacto_id
 ;;                      :labels ["Company" "Model" "Year" "Image"]
 ;;                      :dbfields [:compay :model :year :image]
-;;                      :href "/admin/carscontactos"
+;;                      :href "/admin/cars{{sanitized}}"
 ;;                      :fetch-fn get-cars
 ;;                      :fetch-args [:parent-id]})]))
 ;; End example setup
