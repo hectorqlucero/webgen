@@ -33,7 +33,7 @@
   {:host (:email-host config)
    :port (:email-port config)
    :user (:email-user config)
-   :pass (:email-pwd config)
+   :pass (:email-passwd config)
    :ssl  (:email-ssl config)})
 
 (def body
