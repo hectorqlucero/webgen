@@ -98,4 +98,11 @@
 
  ;; --- File Upload Settings ---
  :max-upload-mb 5
- :allowed-image-exts ["jpg" "jpeg" "png" "gif" "bmp" "webp"]}
+ :allowed-image-exts ["jpg" "jpeg" "png" "gif" "bmp" "webp"]
+
+ ;; --- Email Settings ---
+ :email-host "change_me" ; smtp.provider.com
+ :email-port 465
+ :email-user "change_me" ; joeblo@server.com
+ :email-passwd "change_me" ; The email provider password
+ :email-ssl true}

@@ -31,18 +31,19 @@
 
 (def host
   {:host (:email-host config)
+   :port (:email-port config)
    :user (:email-user config)
    :pass (:email-pwd config)
-   :ssl  true})
+   :ssl  (:email-ssl config)})
 
 (def body
-  {:from    "marcopescador@lucero-systems.cf"
+  {:from    "admin@ciclismomexicali.org"
    :to      "hectorqlucero@gmail.com"
    :subject "Hi!"
    :body    [{:type    "text/html;charset=utf-8"
               :content "<b>Testing</b>"}]})
-(defn send-email [host body]
+(defn send-email [body]
   (send-message host body))
 
 (comment 
-  (send-email host body))
+  (send-email body))
