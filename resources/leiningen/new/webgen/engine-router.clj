@@ -1,5 +1,6 @@
 (ns {{sanitized}}.engine.router
   (:require
+   [clojure.string :as str]
    [compojure.core :refer [defroutes GET POST context]]
    [ring.util.response :refer [redirect]]
    [hiccup2.core :refer [html]]
@@ -166,12 +167,22 @@
                        (crud/save-record entity params {:user-id user-id}))]
           (if (:success result)
             (let [entity-name (name entity)
-                  record-id (:success result)
-                  selected-id (cond
-                                (number? record-id) record-id
-                                (and (string? record-id)
-                                     (re-matches #"\d+" record-id)) record-id
-                                :else nil)
+                  parse-id (fn [v]
+                             (cond
+                               (number? v) (long v)
+                               (string? v) (let [s (str/trim v)]
+                                             (when (re-matches #"\d+" s)
+                                               (Long/parseLong s)))
+                               :else nil))
+                  ;; Backward/forward compatible id resolution:
+                  ;; - old style: :success returns inserted id
+                  ;; - newer style: :data may contain :id
+                  ;; - updates: submitted form :id should remain selected
+                  selected-id (or (parse-id (:success result))
+                                  (parse-id (:id result))
+                                  (parse-id (get-in result [:data :id]))
+                                  (parse-id (get params :id))
+                                  (parse-id (get params "id")))
                   return-url (or (get params :return_url) (get params "return_url"))
                   url (or return-url
                           (str "/admin/" entity-name

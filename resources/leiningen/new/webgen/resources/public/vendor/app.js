@@ -261,7 +261,7 @@ $(document).ready(function () {
     var ajaxOptions = {
       url: $($form).attr('action'),
       type: 'POST',
-      success: function () {
+      success: function (_data, _textStatus, jqXHR) {
         if (isSubgridContext) {
           if (subgridUrl && parentId) {
             subgridModal.find('#subgrid-content').html("<div class='text-center p-4'><div class='spinner-border text-primary' role='status'></div><div class='mt-2'>Refreshing...</div></div>");
@@ -307,7 +307,12 @@ $(document).ready(function () {
             subgridModal.addClass('show').css('display', 'block');
           }
         } else {
-          location.reload();
+          var targetUrl = jqXHR && jqXHR.responseURL ? jqXHR.responseURL : null;
+          if (targetUrl && targetUrl !== window.location.href) {
+            window.location.assign(targetUrl);
+          } else {
+            location.reload();
+          }
         }
       },
       error: function () {

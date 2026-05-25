@@ -366,6 +366,7 @@
             var parentField = selectEl.getAttribute('data-fk-parent');
             var fkFormFields = selectEl.getAttribute('data-fk-form-fields');
             var parentValue = '';
+            var createdId = response['new-id'] != null ? String(response['new-id']) : '';
 
             // If not on select, look in the input-group sibling button
             if (!fkFormFields) {
@@ -399,16 +400,25 @@
               })
               .then(function (data) {
                 if (data.ok && data.options) {
+                  var matchedIndex = -1;
                   selectEl.innerHTML = '';
-                  data.options.forEach(function (opt) {
+                  data.options.forEach(function (opt, idx) {
                     var option = document.createElement('option');
                     option.value = opt.value;
                     option.textContent = opt.label;
                     selectEl.appendChild(option);
+                    if (createdId && String(opt.value) === createdId) {
+                      matchedIndex = idx;
+                    }
                   });
-                  // Select the last option (most recently created)
+
                   if (selectEl.options.length > 0) {
-                    selectEl.selectedIndex = selectEl.options.length - 1;
+                    if (matchedIndex >= 0) {
+                      selectEl.selectedIndex = matchedIndex;
+                    } else {
+                      // Backward-compatible fallback when backend does not provide new-id.
+                      selectEl.selectedIndex = selectEl.options.length - 1;
+                    }
                     selectEl.dispatchEvent(new Event('change', { bubbles: true }));
                   }
                 } else {
