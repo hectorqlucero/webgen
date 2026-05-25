@@ -1,15 +1,15 @@
-(ns {{sanitize}}.engine.router
+(ns {{sanitized}}.engine.router
   (:require
    [compojure.core :refer [defroutes GET POST context]]
    [ring.util.response :refer [redirect]]
    [hiccup2.core :refer [html]]
-   [{{sanitize}}.engine.config :as config]
-   [{{sanitize}}.engine.query :as query]
-   [{{sanitize}}.engine.crud :as crud]
-   [{{sanitize}}.engine.render :as render]
-   [{{sanitize}}.tabgrid.core :as tabgrid]
-   [{{sanitize}}.models.util :refer [get-session-id user-level]]
-   [{{sanitize}}.layout :refer [application error-404]]))
+   [{{sanitized}}.engine.config :as config]
+   [{{sanitized}}.engine.query :as query]
+   [{{sanitized}}.engine.crud :as crud]
+   [{{sanitized}}.engine.render :as render]
+   [{{sanitized}}.tabgrid.core :as tabgrid]
+   [{{sanitized}}.models.util :refer [get-session-id user-level]]
+   [{{sanitized}}.layout :refer [application error-404]]))
 
 (defn- get-entity-from-request
   "Extracts and validates entity from request parameters."

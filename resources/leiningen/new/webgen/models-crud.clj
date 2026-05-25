@@ -1,11 +1,11 @@
-(ns {{sanitize}}.models.crud
+(ns {{sanitized}}.models.crud
   (:require
    [clojure.java.io :as io]
    [clojure.java.jdbc :as j]
    [clojure.string :as st]
    [clojure.edn :as edn]
-   [{{sanitize}}.models.db :as db]
-   [{{sanitize}}.config.loader :as cfg]))
+   [{{sanitized}}.models.db :as db]
+   [{{sanitized}}.config.loader :as cfg]))
 
 ;; Reusable regex patterns (private constants)
 (def ^:private true-re  #"(?i)^(true|on|1)$")

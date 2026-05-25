@@ -1,13 +1,13 @@
-(ns {{sanitize}}.layout
+(ns {{sanitized}}.layout
   (:require
    [clj-time.core :as t]
    [clojure.data.json :as json]
    [clojure.string :as str]
    [hiccup.page :refer [html5]]
-   [{{sanitize}}.models.crud :refer [config]]
-   [{{sanitize}}.models.util :refer [user-level user-name]]
-   [{{sanitize}}.menu :as menu]
-   [{{sanitize}}.i18n.core :as i18n]))
+   [{{sanitized}}.models.crud :refer [config]]
+   [{{sanitized}}.models.util :refer [user-level user-name]]
+   [{{sanitized}}.menu :as menu]
+   [{{sanitized}}.i18n.core :as i18n]))
 
 (defn generate-data-id [href]
   (-> href
@@ -200,7 +200,7 @@
 
 ;; MENU FUNCTIONS
 (defn menus-private [request]
-  (let [{:keys [nav-links dropdowns]} ({{sanitize}}.menu/get-menu-config)]
+  (let [{:keys [nav-links dropdowns]} ({{sanitized}}.menu/get-menu-config)]
     [:nav.navbar.navbar-expand-lg.navbar-dark.bg-gradient.bg-primary.shadow-lg.fixed-top
      [:div.container-fluid
       (brand-logo)
