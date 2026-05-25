@@ -1,11 +1,11 @@
-(ns {{sanitized}}.models.crud
+(ns {{sanitize}}.models.crud
   (:require
    [clojure.java.io :as io]
    [clojure.java.jdbc :as j]
    [clojure.string :as st]
    [clojure.edn :as edn]
-   [{{sanitized}}.models.db :as db]
-   [{{sanitized}}.config.loader :as cfg]))
+   [{{sanitize}}.models.db :as db]
+   [{{sanitize}}.config.loader :as cfg]))
 
 ;; Reusable regex patterns (private constants)
 (def ^:private true-re  #"(?i)^(true|on|1)$")
@@ -614,10 +614,22 @@
                               (and (string? v) (st/blank? v))
                               (and (number? v) (= v 0))
                               (= (str v) "0"))) m)))
+          (extract-insert-id [result]
+            (let [m (cond
+                      (map? result) result
+                      (sequential? result) (first result)
+                      :else nil)]
+              (when (map? m)
+                (or (:generated_key m)
+                    (:generated-key m)
+                    (:id m)
+                    (:last_insert_rowid m)
+                    (:scope_identity m)))))
           (try-save [db* table postvars where-clause]
             (try
               (if (and (map? postvars) (seq postvars))
-                (boolean (Save db* (keyword table) postvars where-clause))
+                ;; Keep raw Save result so callers can extract inserted IDs.
+                (Save db* (keyword table) postvars where-clause)
                 false)
               (catch Exception e
                 (let [cause (or (.getCause e) e)
@@ -633,18 +645,13 @@
               postvars (cond-> (-> (build-postvars table params :conn conn)
                                    blank->nil)
                          (= id 0) (dissoc :id))
-              where-clause (single-id-where id)]
-          (let [result (try-save db* table postvars where-clause)]
-            (if (and result (= id 0))
-              (or (when (map? result)
-                    (or (:generated_key result)
-                        (:generated-key result)
-                        (:id result)
-                        (:last_insert_rowid result)
-                        (:scope_identity result)))
-                  (db/last-insert-id db* db*)
-                  result)
-              result)))
+              where-clause (single-id-where id)
+              result (try-save db* table postvars where-clause)]
+          (if (and result (= id 0))
+            (or (extract-insert-id result)
+                (db/last-insert-id db* db*)
+                result)
+            (boolean result)))
         (let [pk-map (get-primary-key-map table params :conn conn)
               is-new? (pk-is-new? pk-map)
               base-postvars (-> (build-postvars table params :conn conn) blank->nil)

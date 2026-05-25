@@ -1,13 +1,13 @@
-(ns {{sanitized}}.routes.fk-api
+(ns {{sanitize}}.routes.fk-api
   (:require
    [compojure.core :refer [defroutes GET POST]]
-   [{{sanitized}}.engine.config :as config]
-   [{{sanitized}}.engine.crud :as crud]
-   [{{sanitized}}.models.crud :as model-crud]
-   [{{sanitized}}.models.util :refer [json-response]]
+   [{{sanitize}}.engine.config :as config]
+   [{{sanitize}}.engine.crud :as crud]
+   [{{sanitize}}.models.crud :as model-crud]
+   [{{sanitize}}.models.util :refer [json-response]]
    [clojure.string :as str]
    [clojure.data.json :as json]
-   [{{sanitized}}.engine.render :as render]
+   [{{sanitize}}.engine.render :as render]
    [hiccup2.core :refer [html]]))
 
 ;; === Helper Functions ===
@@ -176,10 +176,11 @@
               form-fields (map #(select-keys % [:id :label :type :required? :placeholder
                                                 :options :fk :fk-field :fk-parent])
                                fields)
-              rendered (let [render-fn #'{{sanitized}}.engine.render/render-field]
+              rendered (let [render-fn #'{{sanitize}}.engine.render/render-field]
+                         ;; Render each field separately and concatenate HTML to avoid fragment artifacts.
                          (->> fields
-                              (map #(render-fn % {}))
-                              (html)))]
+                              (map #(str (html (render-fn % {}))))
+                              (apply str)))]
           (json-response {:ok true
                           :entity entity
                           :title (:title entity-config)

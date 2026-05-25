@@ -64,11 +64,38 @@ window.TabGrid = (function () {
     initTabListeners();
     initListPanel();
     initEditButtons();
+    focusSelectedRecordInList();
 
     // Restore open accordion sections after page reload (e.g. after M2M link)
     restoreAccordionState();
     // Open accordion specified in URL param (e.g. after subgrid save redirect)
     openAccordionFromUrl();
+  }
+
+  /**
+   * Ensure selected parent is visible in the left record list after redirects.
+   */
+  function focusSelectedRecordInList() {
+    if (!selectedParentId) return;
+
+    var list = document.querySelector('.tg-record-list');
+    if (!list) return;
+
+    var activeItem = list.querySelector('.tg-record-item.active') ||
+      list.querySelector('.tg-record-item[data-parent-id="' + String(selectedParentId) + '"]');
+
+    if (!activeItem) return;
+
+    if (!activeItem.classList.contains('active')) {
+      activeItem.classList.add('active');
+    }
+
+    activeItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+
+    activeItem.classList.add('tg-record-item-spotlight');
+    setTimeout(function () {
+      activeItem.classList.remove('tg-record-item-spotlight');
+    }, 900);
   }
 
   /**

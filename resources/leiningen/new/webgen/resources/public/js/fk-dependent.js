@@ -100,6 +100,23 @@
   // Create modal HTML
   function createFkModalHtml(entity, fieldId, parentField, parentValue, fkFormFields, title) {
     var fields = fkFormFields ? fkFormFields.split(',') : [];
+    var formFieldsHtml = fields.map(function (fieldName) {
+      var cleanName = String(fieldName || '').trim();
+      if (!cleanName) return '';
+
+      var label = cleanName.replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+      return '<div class="mb-3">' +
+        '<label class="form-label fw-semibold">' + escapeHtml(label) + '</label>' +
+        '<input type="text" class="form-control form-control-lg" name="' + escapeHtml(cleanName) + '" placeholder="' + escapeHtml(label + '...') + '" required>' +
+        '</div>';
+    }).join('');
+
+    if (!formFieldsHtml) {
+      formFieldsHtml = '<div class="mb-3">' +
+        '<label class="form-label fw-semibold">Nombre</label>' +
+        '<input type="text" class="form-control form-control-lg" name="nombre" placeholder="Nombre..." required>' +
+        '</div>';
+    }
 
     return '<div class="modal fade" id="fkCreateModal" tabindex="-1">' +
       '<div class="modal-dialog modal-lg">' +
@@ -113,6 +130,7 @@
       '<form id="fkCreateForm">' +
       '<input type="hidden" name="entity" value="' + entity + '">' +
       (parentField ? '<input type="hidden" name="' + parentField + '" value="' + parentValue + '">' : '') +
+      formFieldsHtml +
       '</form>' +
       '</div>' +
       '<div class="modal-footer">' +

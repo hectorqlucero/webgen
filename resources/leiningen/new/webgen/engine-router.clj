@@ -1,15 +1,15 @@
-(ns {{sanitized}}.engine.router
+(ns {{sanitize}}.engine.router
   (:require
    [compojure.core :refer [defroutes GET POST context]]
    [ring.util.response :refer [redirect]]
    [hiccup2.core :refer [html]]
-   [{{sanitized}}.engine.config :as config]
-   [{{sanitized}}.engine.query :as query]
-   [{{sanitized}}.engine.crud :as crud]
-   [{{sanitized}}.engine.render :as render]
-   [{{sanitized}}.tabgrid.core :as tabgrid]
-   [{{sanitized}}.models.util :refer [get-session-id user-level]]
-   [{{sanitized}}.layout :refer [application error-404]]))
+   [{{sanitize}}.engine.config :as config]
+   [{{sanitize}}.engine.query :as query]
+   [{{sanitize}}.engine.crud :as crud]
+   [{{sanitize}}.engine.render :as render]
+   [{{sanitize}}.tabgrid.core :as tabgrid]
+   [{{sanitize}}.models.util :refer [get-session-id user-level]]
+   [{{sanitize}}.layout :refer [application error-404]]))
 
 (defn- get-entity-from-request
   "Extracts and validates entity from request parameters."
@@ -167,11 +167,16 @@
           (if (:success result)
             (let [entity-name (name entity)
                   record-id (:success result)
+                  selected-id (cond
+                                (number? record-id) record-id
+                                (and (string? record-id)
+                                     (re-matches #"\d+" record-id)) record-id
+                                :else nil)
                   return-url (or (get params :return_url) (get params "return_url"))
                   url (or return-url
                           (str "/admin/" entity-name
-                               (when (and record-id (number? record-id))
-                                 (str "?id=" record-id))))]
+                               (when selected-id
+                                 (str "?id=" selected-id))))]
               (redirect url))
             {:status 400
              :headers {"Content-Type" "application/json"}

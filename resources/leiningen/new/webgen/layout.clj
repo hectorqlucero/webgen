@@ -1,13 +1,13 @@
-(ns {{sanitized}}.layout
+(ns {{sanitize}}.layout
   (:require
    [clj-time.core :as t]
    [clojure.data.json :as json]
    [clojure.string :as str]
    [hiccup.page :refer [html5]]
-   [{{sanitized}}.models.crud :refer [config]]
-   [{{sanitized}}.models.util :refer [user-level user-name]]
-   [{{sanitized}}.menu :as menu]
-   [{{sanitized}}.i18n.core :as i18n]))
+   [{{sanitize}}.models.crud :refer [config]]
+   [{{sanitize}}.models.util :refer [user-level user-name]]
+   [{{sanitize}}.menu :as menu]
+   [{{sanitize}}.i18n.core :as i18n]))
 
 (defn generate-data-id [href]
   (-> href
@@ -200,7 +200,7 @@
 
 ;; MENU FUNCTIONS
 (defn menus-private [request]
-  (let [{:keys [nav-links dropdowns]} ({{sanitized}}.menu/get-menu-config)]
+  (let [{:keys [nav-links dropdowns]} ({{sanitize}}.menu/get-menu-config)]
     [:nav.navbar.navbar-expand-lg.navbar-dark.bg-gradient.bg-primary.shadow-lg.fixed-top
      [:div.container-fluid
       (brand-logo)
@@ -321,7 +321,7 @@
    [:script {:src "/vendor/buttons.print.min.js"}]
    (i18n-js-vars request)
    [:script {:src "/vendor/app.js"}]
-   [:script {:src "/js/tabgrid.js?v=4"}]
+   [:script {:src "/js/tabgrid.js?v=5"}]
    [:script {:src "/js/mhighlight.js"}]
    [:script {:src "/js/lang.js"}]
    ;; fk-dependent.js contains the logic for dependent selects & create modal
