@@ -58,6 +58,25 @@ window.TabGrid = (function () {
 
     if (!container) return;
 
+    // --- Hard-refresh-safe viewport lock ---
+    // Browsers use document.documentElement as the scrolling element, NOT body.
+    // CSS body:has(.tabgrid-container) alone may not prevent viewport scroll
+    // in all browsers; apply overflow directly via JS so it's unconditional.
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    // Kill any scroll position the browser may have restored on hard refresh.
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+
+    // The shared layout template wraps workspace content in a div with inline
+    // max-height + overflow-y — strip those so the ws-layout can size freely.
+    var contentWrap = container.closest('.container-fluid.px-4');
+    if (contentWrap) {
+      contentWrap.style.maxHeight = 'none';
+      contentWrap.style.overflowY = 'hidden';
+      contentWrap.style.paddingBottom = '0';
+    }
+
     currentEntity = container.dataset.entity;
     selectedParentId = container.dataset.selectedParentId;
 

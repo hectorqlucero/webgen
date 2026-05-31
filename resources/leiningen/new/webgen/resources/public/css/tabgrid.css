@@ -35,6 +35,8 @@
 .tabgrid-container {
   margin: 0;
   padding: 0;
+  height: 100%;
+  /* fill the flex-sized content div */
 }
 
 /* Prevent page-level scroll on workspace pages (the ws-layout fills the
@@ -55,8 +57,8 @@ body:has(.tabgrid-container) .container-fluid.px-4 {
 /* ══ Layout ══════════════════════════════════════════════════════ */
 .ws-layout {
   display: flex;
-  /* 175px = ~70px spacer + ~16px pt-3 + ~32px margin-top + ~57px footer+gap */
-  height: calc(100vh - 175px);
+  height: 100%;
+  /* fill .tabgrid-container which fills the flex content div */
   min-height: 520px;
   background: var(--ws-bg);
   border-radius: var(--ws-radius);

@@ -358,15 +358,16 @@
     (app-css)
     [:title title]]
    [:body.preload.theme-sketchy
-    [:div {:style "height: 70px;"}]
+    {:style "display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden;"}
+    [:div {:style "flex-shrink:0;height:70px;"}]
     [:div.container-fluid.pt-3
-     {:style "min-height: 100vh;"}
+     {:style "flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden;"}
      (cond
        (= ok -1) (menus-none)
        (= ok 0) (menus-public)
        (> ok 0) (menus-private request))
      [:div.container-fluid.px-4
-      {:style "margin-top:32px; max-height:calc(100vh - 200px); overflow-y:auto; padding-bottom:80px;"}
+      {:style "margin-top:32px;flex:1;min-height:0;max-height:calc(100vh - 200px);overflow-y:auto;padding-bottom:80px;"}
       (doall content)]]
     [:div#exampleModal.modal.fade
      {:tabindex "-1" :aria-labelledby "exampleModalLabel" :aria-hidden "true"}
