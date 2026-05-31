@@ -188,6 +188,7 @@ body:has(.tabgrid-container) .container-fluid.px-4 {
   padding: .375rem 0;
   overflow-y: auto;
   flex: 1;
+  max-height: calc(100vh - 210px);
 }
 
 .ws-record-item {

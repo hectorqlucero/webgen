@@ -321,7 +321,7 @@
    [:script {:src "/vendor/buttons.print.min.js"}]
    (i18n-js-vars request)
    [:script {:src "/vendor/app.js"}]
-   [:script {:src "/js/tabgrid.js?v=5"}]
+   [:script {:src "/js/tabgrid.js?v=6"}]
    [:script {:src "/js/mhighlight.js"}]
    [:script {:src "/js/lang.js"}]
    ;; fk-dependent.js contains the logic for dependent selects & create modal

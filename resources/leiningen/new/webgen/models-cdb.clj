@@ -73,20 +73,105 @@
    {:employee_id 3 :skill_id 2 :proficiency 4}
    {:employee_id 4 :skill_id 3 :proficiency 4}])
 
-(def contactos-rows
-  [{:id 1 :name "Juan Perez" :email "juan@example.com" :phone "555-2001" :imagen nil}
-   {:id 2 :name "Maria Gomez" :email "maria@example.com" :phone "555-2002" :imagen nil}
-   {:id 3 :name "Luis Torres" :email "luis@example.com" :phone "555-2003" :imagen nil}])
+(def ^:private first-names
+  ["Juan" "Maria" "Luis" "Ana" "Carlos" "Sofia" "Pedro" "Laura" "Diego" "Valentina"
+   "Andres" "Camila" "Jorge" "Isabella" "Miguel" "Gabriela" "Fernando" "Lucia"
+   "Alejandro" "Elena" "Pablo" "Mariana" "Sergio" "Daniela" "Ricardo" "Rosa"
+   "Alberto" "Carmen" "Rafael" "Patricia" "Hector" "Monica" "Enrique" "Teresa"
+   "Oscar" "Claudia" "Arturo" "Leticia" "Raul" "Veronica"])
 
-(def cars-rows
-  [{:id 1 :company "Toyota" :model "Corolla" :year 2018 :imagen nil :contacto_id 1}
-   {:id 2 :company "Honda" :model "Civic" :year 2020 :imagen nil :contacto_id 1}
-   {:id 3 :company "Nissan" :model "Sentra" :year 2019 :imagen nil :contacto_id 2}])
+(def ^:private last-names
+  ["Garcia" "Rodriguez" "Martinez" "Hernandez" "Lopez" "Gonzalez" "Perez" "Sanchez"
+   "Ramirez" "Torres" "Flores" "Rivera" "Gomez" "Diaz" "Cruz" "Morales" "Ortiz"
+   "Reyes" "Vazquez" "Ramos" "Jimenez" "Moreno" "Romero" "Alvarez" "Castillo"
+   "Medina" "Acosta" "Delgado" "Chavez" "Santiago" "Cardenas" "Padilla" "Rios"
+   "Mendoza" "Guerrero" "Pena" "Aguilar" "Cano" "Vega" "Campos"])
 
-(def siblings-rows
-  [{:id 1 :name "Ana Perez" :age 26 :imagen nil :contacto_id 1}
-   {:id 2 :name "Jose Gomez" :age 31 :imagen nil :contacto_id 2}
-   {:id 3 :name "Elena Torres" :age 22 :imagen nil :contacto_id 3}])
+(def ^:private car-companies
+  ["Toyota" "Honda" "Ford" "Chevrolet" "Nissan" "Volkswagen" "Hyundai" "Kia"
+   "Mazda" "Subaru" "BMW" "Mercedes-Benz" "Audi" "Lexus" "Tesla"])
+
+(def ^:private car-models
+  {"Toyota" ["Corolla" "Camry" "RAV4" "Tacoma" "Highlander" "Prius"]
+   "Honda" ["Civic" "Accord" "CR-V" "Pilot" "Fit" "HR-V"]
+   "Ford" ["Mustang" "F-150" "Explorer" "Escape" "Focus" "Ranger"]
+   "Chevrolet" ["Silverado" "Equinox" "Malibu" "Tahoe" "Camaro" "Traverse"]
+   "Nissan" ["Altima" "Sentra" "Rogue" "Frontier" "Pathfinder" "Versa"]
+   "Volkswagen" ["Jetta" "Passat" "Tiguan" "Golf" "Atlas" "Beetle"]
+   "Hyundai" ["Elantra" "Sonata" "Tucson" "Santa Fe" "Kona" "Palisade"]
+   "Kia" ["Forte" "Sportage" "Sorento" "Telluride" "Soul" "Rio"]
+   "Mazda" ["Mazda3" "CX-5" "CX-9" "MX-5 Miata" "CX-30" "Mazda6" "CX-50" "MX-30" "CX-90"]
+   "Subaru" ["Outback" "Forester" "Crosstrek" "Legacy" "Impreza" "Ascent"]
+   "BMW" ["3 Series" "5 Series" "X3" "X5" "7 Series" "M4"]
+   "Mercedes-Benz" ["C-Class" "E-Class" "GLC" "GLE" "A-Class" "S-Class"]
+   "Audi" ["A3" "A4" "Q5" "Q7" "A6" "e-tron"]
+   "Lexus" ["RX" "ES" "NX" "IS" "GX" "UX"]
+   "Tesla" ["Model 3" "Model Y" "Model S" "Model X" "Cybertruck"]
+   "Mini" ["Cooper" "Countryman" "Clubman" "Convertible"]
+   "Jeep" ["Wrangler" "Grand Cherokee" "Cherokee" "Compass" "Renegade"]
+   "Volvo" ["XC40" "XC60" "XC90" "S60" "S90"]
+   "Ram" ["1500" "2500" "ProMaster"]})
+
+(defn- random-contactos
+  [n start-id]
+  (let [rng (java.util.Random. 42)]
+    (mapv (fn [i]
+            (let [first-name (nth first-names (mod i (count first-names)))
+                  last-name  (nth last-names (mod (* i 7) (count last-names)))]
+              {:id i
+               :name (str first-name " " last-name)
+               :email (str (st/lower-case first-name) "." (st/lower-case last-name) i "@example.com")
+               :phone (str "555-" (format "%04d" (+ 3000 i)))
+               :imagen nil}))
+          (range start-id (inc n)))))
+
+(defn- random-siblings
+  [contactos-rows]
+  (let [rng (java.util.Random. 123)
+        nombres-hijos ["Ana" "Jose" "Elena" "Carlos" "Sofia" "Miguel" "Laura"
+                       "Diego" "Camila" "Andres" "Valentina" "Fernando" "Lucia"
+                       "Gabriela" "Pablo" "Mariana" "Sergio" "Daniela" "Ricardo"
+                       "Rosa" "Hector" "Monica" "Alberto" "Pedro" "Rafael"]]
+    (->> contactos-rows
+         (mapcat (fn [contacto]
+                   (let [n-sibs (mod (.nextInt rng) 4)] ;; 0-3 siblings
+                     (mapv (fn [j]
+                             (let [sib-name (str (nth nombres-hijos
+                                                      (mod (+ (* (:id contacto) 7) j)
+                                                           (count nombres-hijos)))
+                                                 " "
+                                                 (last (re-find #"^(\S+)\s+(\S+)" (:name contacto))))]
+                               {:name sib-name
+                                :age (+ 15 (mod (.nextInt rng) 35))
+                                :imagen nil
+                                :contacto_id (:id contacto)}))
+                           (range n-sibs)))))
+         (map-indexed (fn [idx m] (assoc m :id (inc idx))))
+         (vec))))
+
+(defn- random-cars
+  [contactos-rows]
+  (let [rng (java.util.Random. 456)]
+    (->> contactos-rows
+         (mapcat (fn [contacto]
+                   (let [n-cars (mod (.nextInt rng) 3)] ;; 0-2 cars
+                     (mapv (fn [j]
+                             (let [company (nth car-companies
+                                                (mod (+ (* (:id contacto) 13) j)
+                                                     (count car-companies)))
+                                   models (get car-models company (car-models "Toyota"))]
+                               {:company company
+                                :model (nth models (mod (+ (* (:id contacto) 3) j) (count models)))
+                                :year (+ 2015 (mod (.nextInt rng) 10))
+                                :imagen nil
+                                :contacto_id (:id contacto)}))
+                           (range n-cars)))))
+         (map-indexed (fn [idx m] (assoc m :id (inc idx))))
+         (vec))))
+
+(def contactos-rows (random-contactos 30 1))
+(def siblings-rows (random-siblings contactos-rows))
+(def cars-rows (random-cars contactos-rows))
 
 (def audit-log-rows
   [{:id 1 :entity "employees" :operation "seed" :data "initial dataset" :user_id 1 :timestamp "2024-01-01 10:00:00"}
@@ -204,9 +289,9 @@
 
 (defn seed-non-users
   "Usage:
-   - lein run -m {{sanitized}}.models.cdb/seed-non-users
-   - lein run -m {{sanitized}}.models.cdb/seed-non-users pg
-   - lein run -m {{sanitized}}.models.cdb/seed-non-users localdb
+   - lein run -m contactos.models.cdb/seed-non-users
+   - lein run -m contactos.models.cdb/seed-non-users pg
+   - lein run -m contactos.models.cdb/seed-non-users localdb
 
    Seeds all configured tables except users."
   [& args]

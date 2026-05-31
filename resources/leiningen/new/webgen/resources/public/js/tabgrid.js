@@ -59,6 +59,10 @@ window.TabGrid = (function () {
     if (!container) return;
 
     // --- Hard-refresh-safe viewport lock ---
+    // Prevent the browser from restoring scroll position on reload.
+    if (window.history && 'scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
     // Browsers use document.documentElement as the scrolling element, NOT body.
     // CSS body:has(.tabgrid-container) alone may not prevent viewport scroll
     // in all browsers; apply overflow directly via JS so it's unconditional.
