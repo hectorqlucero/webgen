@@ -439,13 +439,6 @@
               (when-let [cnt (:count sg)]
                 [:span.ws-tab-count cnt])]))
          subgrids)))
-;; Relationship legend popup using rel-svg-icon
-(defn rel-legend-popup []
-  [:div.ws-rel-legend-popup
-   [:ul.list-unstyled.mb-0
-    [:li.mb-2 (rel-svg-icon :one-to-one) [:span.ms-2 "One to One"]]
-    [:li.mb-2 (rel-svg-icon :one-to-many) [:span.ms-2 "One to Many"]]
-    [:li.mb-2 (rel-svg-icon :many-to-many) [:span.ms-2 "Many to Many"]]]])
 
 (defn- render-tab-panes
   [request entity-name subgrids selected-parent-id]
@@ -480,10 +473,6 @@
      (when (seq subgrids)
        [:div.ws-tabs-container
         (render-tab-strip entity-name subgrids)
-        [:button.ws-rel-legend-btn {:type "button" :tabIndex -1 :title "Relationship legend"}
-         [:span.d-none.d-md-inline "Rel legend"]
-         [:span.d-md-none "?"]]
-        (rel-legend-popup)
         (render-tab-panes request entity-name subgrids selected-parent-id)])]))
 
 (defn render-tab-content
