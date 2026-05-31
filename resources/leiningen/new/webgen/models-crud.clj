@@ -624,6 +624,7 @@
                     (:generated-key m)
                     (:id m)
                     (:last_insert_rowid m)
+                    ((keyword "last_insert_rowid()") m)
                     (:scope_identity m)))))
           (try-save [db* table postvars where-clause]
             (try

@@ -66,10 +66,27 @@ window.TabGrid = (function () {
     initEditButtons();
     focusSelectedRecordInList();
 
-    // Restore open accordion sections after page reload (e.g. after M2M link)
-    restoreAccordionState();
-    // Open accordion specified in URL param (e.g. after subgrid save redirect)
-    openAccordionFromUrl();
+    // Restore saved tab or URL-specified tab first, then load the active pane.
+    restoreTabState();
+    openTabFromUrl();
+
+    // Load data for whichever pane is now active (may have been changed by
+    // restoreTabState/openTabFromUrl, otherwise it's the server-rendered first tab).
+    loadInitialPane();
+  }
+
+  /**
+   * Load subgrid data for the initially-active pane on page load.
+   * Deferred slightly so the DOM is fully ready after Bootstrap's own setup.
+   */
+  function loadInitialPane() {
+    setTimeout(function () {
+      var pane = document.querySelector('.ws-tab-pane.active');
+      if (pane && pane.dataset.subgridEntity && pane.dataset.loaded !== 'true') {
+        pane.dataset.loaded = 'true';
+        loadSubgridData(pane);
+      }
+    }, 50);
   }
 
   /**
@@ -78,11 +95,11 @@ window.TabGrid = (function () {
   function focusSelectedRecordInList() {
     if (!selectedParentId) return;
 
-    var list = document.querySelector('.tg-record-list');
+    var list = document.querySelector('.ws-record-list');
     if (!list) return;
 
-    var activeItem = list.querySelector('.tg-record-item.active') ||
-      list.querySelector('.tg-record-item[data-parent-id="' + String(selectedParentId) + '"]');
+    var activeItem = list.querySelector('.ws-record-item.active') ||
+      list.querySelector('.ws-record-item[data-parent-id="' + String(selectedParentId) + '"]');
 
     if (!activeItem) return;
 
@@ -91,11 +108,6 @@ window.TabGrid = (function () {
     }
 
     activeItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-
-    activeItem.classList.add('tg-record-item-spotlight');
-    setTimeout(function () {
-      activeItem.classList.remove('tg-record-item-spotlight');
-    }, 900);
   }
 
   /**
@@ -125,7 +137,8 @@ window.TabGrid = (function () {
               const form = $('#exampleModal form');
               if (form.length) {
                 form.off('submit').on('submit', function () {
-                  saveAccordionState();
+                  var activeTab = document.querySelector('.ws-tab.active');
+                  if (activeTab && currentEntity) saveTabState(currentEntity, activeTab.dataset.pane);
                 });
               }
             }, 100);
@@ -173,8 +186,6 @@ window.TabGrid = (function () {
       const subgridEntity = $(this).data('subgrid-entity');
       const parentId = $(this).data('parent-id');
       const parentEntity = $(this).data('parent-entity');
-      // Capture the accordion pane now — it is already open when user clicks "New"
-      const accordionPane = this.closest('.accordion-collapse');
       const url = '/admin/' + subgridEntity + '/add-form/' + parentId + '?parent_entity=' + encodeURIComponent(parentEntity);
 
       // Set modal title for new subgrid record
@@ -192,12 +203,11 @@ window.TabGrid = (function () {
             if (form) {
               $(form).off('submit').on('submit', function (evt) {
                 evt.preventDefault();
-                // Save accordion state before page reload so restoreAccordionState()
-                // can reopen it after the server redirects back to the parent entity.
-                if (accordionPane) {
-                  saveAccordionState(accordionPane);
+                // Save active tab so it is restored after the server redirects back.
+                var activeTab = document.querySelector('.ws-tab.active');
+                if (activeTab && currentEntity) {
+                  saveTabState(currentEntity, activeTab.dataset.pane);
                 }
-                // Submit form normally; server saves and redirects to parent page.
                 form.submit();
               });
             }
@@ -214,95 +224,70 @@ window.TabGrid = (function () {
     });
   }
 
-  /**
-   * Save open accordion section IDs to sessionStorage before a page reload.
-   * Pass the element that triggered the action so we can walk up to its
-   * ancestor .accordion-collapse as a guaranteed reference (querySelectorAll
-   * may miss it while a Bootstrap modal is actively open on top).
-   */
-  function saveAccordionState(referenceEl) {
-    var ids = [];
-    // Capture the current open set of accordion sections. This allows us to
-    // restore the exact visible state after reload instead of defaulting back
-    // to the parent contact accordion.
-    document.querySelectorAll('.accordion-collapse.show').forEach(function (el) {
-      if (el.id && ids.indexOf(el.id) === -1) ids.push(el.id);
+  /** Save the active tab pane ID for an entity to sessionStorage. */
+  function saveTabState(entity, paneId) {
+    if (entity && paneId) {
+      sessionStorage.setItem('activeTab-' + entity, paneId);
+    }
+  }
+
+  /** Activate a .ws-tab button and its corresponding .ws-tab-pane. */
+  function activateTab(tab) {
+    var strip = tab.closest('.ws-tab-strip');
+    if (!strip) return;
+    strip.querySelectorAll('.ws-tab').forEach(function (t) {
+      t.classList.remove('active');
+    });
+    tab.classList.add('active');
+
+    var container = strip.closest('.ws-tabs-container');
+    if (!container) return;
+    container.querySelectorAll('.ws-tab-pane').forEach(function (p) {
+      p.classList.remove('active');
     });
 
-    // Ensure the pane that triggered the action is included, even if Bootstrap
-    // has not yet updated the DOM state at the time of the click.
-    if (referenceEl && typeof referenceEl.closest === 'function') {
-      var directPane = referenceEl.closest('.accordion-collapse');
-      if (directPane && directPane.id && ids.indexOf(directPane.id) === -1) {
-        ids.push(directPane.id);
+    var paneId = tab.dataset.pane;
+    var pane = paneId ? container.querySelector(paneId) : null;
+    if (pane) {
+      pane.classList.add('active');
+      if (pane.dataset.subgridEntity && pane.dataset.loaded !== 'true') {
+        pane.dataset.loaded = 'true'; // mark before async call to prevent double-load
+        loadSubgridData(pane);
       }
-    }
-
-    if (ids.length > 0) {
-      sessionStorage.setItem('openAccordions', JSON.stringify(ids));
-    } else {
-      sessionStorage.removeItem('openAccordions');
     }
   }
 
-  /**
-   * Open an accordion pane specified in the URL's open_accordion query parameter.
-   * Used after subgrid save redirects to reopen the correct subgrid section.
-   */
-  function openAccordionFromUrl() {
-    var params = new URLSearchParams(window.location.search);
-    var accordionId = params.get('open_accordion');
-    if (!accordionId) return;
-    setTimeout(function () {
-      var pane = document.getElementById(accordionId);
-      if (pane && !pane.classList.contains('show')) {
-        bootstrap.Collapse.getOrCreateInstance(pane, { toggle: false }).show();
-      }
-      // Remove the open_accordion parameter after using it so a later reload
-      // does not reopen the same accordion unexpectedly.
-      params.delete('open_accordion');
-      var newUrl = window.location.origin + window.location.pathname;
-      var query = params.toString();
-      if (query) newUrl += '?' + query;
-      newUrl += window.location.hash;
-      window.history.replaceState({}, '', newUrl);
-    }, 50);
-  }
-
-  function restoreAccordionState() {
-    var saved = sessionStorage.getItem('openAccordions');
+  /** Restore the previously active tab for the current entity. */
+  function restoreTabState() {
+    if (!currentEntity) return;
+    var saved = sessionStorage.getItem('activeTab-' + currentEntity);
     if (!saved) return;
-    sessionStorage.removeItem('openAccordions');
-    try {
-      var ids = JSON.parse(saved);
-      if (!Array.isArray(ids) || ids.length === 0) return;
+    var tab = document.querySelector('.ws-tab[data-pane="' + saved + '"]');
+    if (tab) activateTab(tab);
+  }
 
-      // Defer to next paint cycle so Bootstrap has finished its own DOM setup.
-      setTimeout(function () {
-        // Collapse everything first, then reopen only the saved panes.
-        document.querySelectorAll('.accordion-collapse').forEach(function (el) {
-          if (el.id && ids.indexOf(el.id) === -1) {
-            bootstrap.Collapse.getOrCreateInstance(el, { toggle: false }).hide();
-          }
-        });
-
-        ids.forEach(function (id) {
-          var pane = document.getElementById(id);
-          if (pane && !pane.classList.contains('show')) {
-            bootstrap.Collapse.getOrCreateInstance(pane, { toggle: false }).show();
-          }
-        });
-      }, 50);
-    } catch (e) { }
+  /** Open tab specified in URL's open_tab query param; cleans the param after. */
+  function openTabFromUrl() {
+    var params = new URLSearchParams(window.location.search);
+    var paneId = params.get('open_tab');
+    if (!paneId) return;
+    var tab = document.querySelector('.ws-tab[data-pane="#' + paneId + '"]');
+    if (tab) activateTab(tab);
+    params.delete('open_tab');
+    var newUrl = window.location.origin + window.location.pathname;
+    var qs = params.toString();
+    if (qs) newUrl += '?' + qs;
+    newUrl += window.location.hash;
+    window.history.replaceState({}, '', newUrl);
   }
 
   /**
    * Initialize left-panel record list clicks.
-   * Clicking any .tg-record-item selects that parent via page reload.
+   * Clicking any .ws-record-item selects that parent via page reload.
    */
   function initListPanel() {
     document.addEventListener('click', function (e) {
-      const item = e.target.closest('.tg-record-item');
+      const item = e.target.closest('.ws-record-item');
       if (item && item.dataset.parentId) {
         selectParent(item.dataset.parentId);
       }
@@ -315,8 +300,8 @@ window.TabGrid = (function () {
    */
   function filterRecordList(input) {
     var query = input.value.toLowerCase();
-    document.querySelectorAll('.tg-record-item').forEach(function (item) {
-      var label = item.querySelector('.tg-record-label');
+    document.querySelectorAll('.ws-record-item').forEach(function (item) {
+      var label = item.querySelector('.ws-record-label');
       var text = label ? label.textContent.toLowerCase() : item.textContent.toLowerCase();
       item.style.display = text.includes(query) ? '' : 'none';
     });
@@ -340,81 +325,16 @@ window.TabGrid = (function () {
   }
 
   /**
-   * Initialize tab change listeners
+   * Initialize workspace tab click listeners.
+   * Tabs are .ws-tab buttons with data-pane="#pane-id".
    */
   function initTabListeners() {
-    const tabs = document.querySelectorAll('.nav-tabs .nav-link');
-
-    // Manually initialize Bootstrap tabs
-    tabs.forEach((tabEl) => {
-      if (typeof bootstrap !== 'undefined' && bootstrap.Tab) {
-        new bootstrap.Tab(tabEl);
-      }
-    });
-
-    // Use event delegation on document to catch all tab clicks
-    $(document).on('click', '.nav-tabs .nav-link', function (e) {
+    document.addEventListener('click', function (e) {
+      var tab = e.target.closest('.ws-tab');
+      if (!tab) return;
       e.preventDefault();
-      const tab = this;
-      const targetId = tab.dataset.bsTarget;
-
-      // Manually handle tab switching
-      const allTabs = document.querySelectorAll('.nav-tabs .nav-link');
-      const allPanes = document.querySelectorAll('.tab-pane');
-
-      // Remove active from all tabs and panes
-      allTabs.forEach(t => t.classList.remove('active'));
-      allPanes.forEach(p => p.classList.remove('show', 'active'));
-
-      // Add active to clicked tab
-      tab.classList.add('active');
-
-      // Show target pane
-      const targetPane = document.querySelector(targetId);
-      if (targetPane) {
-        targetPane.classList.add('show', 'active');
-
-        // If it's a subgrid tab, load data
-        if (targetPane.dataset.subgridEntity) {
-          // Check if already loaded
-          const tableWrapper = targetPane.querySelector('.subgrid-table-wrapper');
-          const dataTableWrapper = tableWrapper ? tableWrapper.querySelector('.dataTables_wrapper') : null;
-          const isLoaded = targetPane.dataset.loaded === 'true';
-
-          if (!isLoaded) {
-            setTimeout(() => {
-              loadSubgridData(targetPane);
-            }, 50);
-          }
-        }
-      }
-    });
-
-    // Bootstrap tab event listeners
-    $(document).on('shown.bs.tab', '.nav-tabs .nav-link', function (event) {
-      const targetId = event.target.dataset.bsTarget;
-      const targetPane = document.querySelector(targetId);
-
-      if (targetPane && targetPane.dataset.subgridEntity) {
-        const tableWrapper = targetPane.querySelector('.subgrid-table-wrapper');
-        const hasData = tableWrapper && tableWrapper.querySelector('.dataTable');
-
-        if (!hasData) {
-          loadSubgridData(targetPane);
-        }
-      }
-    });
-
-    $(document).on('shown.bs.tab', 'a[data-bs-toggle="tab"]', function (event) {
-      // Additional handler for any tab element
-    });
-
-    // Accordion expand → lazy-load 1:many subgrids
-    $(document).on('shown.bs.collapse', '.accordion-collapse', function (e) {
-      var pane = e.target;
-      if (pane.dataset.subgridEntity && pane.dataset.loaded !== 'true') {
-        loadSubgridData(pane);
-      }
+      activateTab(tab);
+      if (currentEntity) saveTabState(currentEntity, tab.dataset.pane);
     });
   }
 
@@ -618,8 +538,9 @@ window.TabGrid = (function () {
     var confirmMsg = (window.i18nStrings && window.i18nStrings.confirmDelete) || 'Are you sure?';
     if (!window.confirm(confirmMsg)) return;
 
-    // Save accordion state before reload so it can be restored
-    saveAccordionState(btn);
+    // Save active tab before reload so it can be restored
+    var activeTab = document.querySelector('.ws-tab.active');
+    if (activeTab && currentEntity) saveTabState(currentEntity, activeTab.dataset.pane);
 
     var tokenEl = document.querySelector('input[name="__anti-forgery-token"]');
     var headers = { 'X-Requested-With': 'XMLHttpRequest' };
