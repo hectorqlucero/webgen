@@ -87,10 +87,10 @@ body,
   min-height: 0 !important;
 }
 
-.container-fluid,
-.container,
-.row,
-.content {
+body:has(.tabgrid-container) .container-fluid,
+body:has(.tabgrid-container) .container,
+body:has(.tabgrid-container) .row,
+body:has(.tabgrid-container) .content {
   margin-top: 0 !important;
   padding-top: 0 !important;
 }

@@ -367,7 +367,7 @@
        (= ok 0) (menus-public)
        (> ok 0) (menus-private request))
      [:div.container-fluid.px-4
-      {:style "margin-top:32px;flex:1;min-height:0;max-height:calc(100vh - 200px);overflow-y:auto;padding-bottom:80px;"}
+      {:style "flex:1;min-height:0;max-height:calc(100vh - 200px);overflow-y:auto;padding-bottom:80px;"}
       (doall content)]]
     [:div#exampleModal.modal.fade
      {:tabindex "-1" :aria-labelledby "exampleModalLabel" :aria-hidden "true"}
