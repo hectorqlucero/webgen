@@ -2,40 +2,61 @@
    Entity Workspace — Complete UI
    Replaces accordion TabGrid with a permanent workspace layout.
    ═══════════════════════════════════════════════════════════════ */
+html,
+body {
+  height: 100%;
+  min-height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+#app,
+.tabgrid-container,
+.ws-layout {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+}
 
 /* ── Design tokens ──────────────────────────────────────────────── */
 :root {
-  --ws-primary: #4f46e5;
-  --ws-primary-dk: #3730a3;
-  --ws-primary-lt: #eef2ff;
-  --ws-primary-mid: #818cf8;
+  --footer-height: 3rem;
+  /* Adjust to match your actual footer height */
+  --ws-primary: var(--bs-primary, #4f46e5);
+  --ws-primary-dk: var(--bs-primary-dark, #3730a3);
+  --ws-primary-lt: var(--bs-primary-light, #eef2ff);
+  --ws-primary-mid: var(--bs-primary, #818cf8);
 
-  --ws-rel-o2o: #0369a1;
-  --ws-rel-o2o-bg: #f0f9ff;
-  --ws-rel-o2o-mid: #bae6fd;
-  --ws-rel-otm: #047857;
-  --ws-rel-otm-bg: #f0fdf4;
-  --ws-rel-otm-mid: #bbf7d0;
-  --ws-rel-m2m: #6d28d9;
-  --ws-rel-m2m-bg: #faf5ff;
-  --ws-rel-m2m-mid: #ddd6fe;
+  --ws-warning: var(--bs-warning, #ffc107);
+  --ws-warning-bg: var(--bs-warning-bg-subtle, #fffbe6);
+  --ws-danger: var(--bs-danger, #dc3545);
+  --ws-danger-bg: var(--bs-danger-bg-subtle, #fff0f0);
 
-  --ws-bg: #f0f2f5;
-  --ws-surface: #ffffff;
-  --ws-border: #e5e7eb;
-  --ws-text: #111827;
-  --ws-muted: #6b7280;
+  --ws-rel-m2m-bg: var(--bs-light, #faf5ff);
+  --ws-rel-m2m-mid: var(--bs-light, #ddd6fe);
+
+  --ws-bg: var(--bs-body-bg, #f0f2f5);
+  --ws-surface: var(--bs-body-bg, #ffffff);
+  --ws-border: var(--bs-border-color, #e5e7eb);
+  --ws-text: var(--bs-body-color, #111827);
+  --ws-muted: var(--bs-secondary-color, #6b7280);
+
   --ws-radius: 8px;
   --ws-radius-sm: 5px;
   --ws-shadow: 0 1px 3px rgba(0, 0, 0, .08), 0 1px 2px rgba(0, 0, 0, .04);
   --ws-shadow-md: 0 4px 16px rgba(0, 0, 0, .10);
 }
 
-/* ══ Root container ═══════════════════════════════════════════════ */
 .tabgrid-container {
   margin: 0;
   padding: 0;
   height: 100%;
+  padding-top: 1rem;
+  padding-bottom: var(--footer-height);
   /* fill the flex-sized content div */
 }
 
@@ -54,12 +75,124 @@ body:has(.tabgrid-container) .container-fluid.px-4 {
   padding-bottom: 0 !important;
 }
 
+/* Aggressive layout fix for grid/navbar gap and sidebar scroll */
+html,
+body,
+#app,
+.tabgrid-container,
+.ws-layout,
+.ws-nav,
+.ws-record-list {
+  height: 100% !important;
+  min-height: 0 !important;
+}
+
+.container-fluid,
+.container,
+.row,
+.content {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+
+.ws-nav {
+  overflow: hidden !important;
+}
+
+.ws-record-list {
+  padding-bottom: calc(var(--footer-height) + 0.5rem) !important;
+  box-sizing: border-box;
+}
+
+.ws-record-item:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* Relationship Type Icon Styles */
+.ws-rel-icon {
+  display: inline-block;
+  width: 1.1em;
+  height: 1.1em;
+  vertical-align: middle;
+  margin-right: .35em;
+}
+
+.ws-rel-icon-1to1 {
+  color: #3b82f6;
+  fill: currentColor;
+}
+
+.ws-rel-icon-1ton {
+  color: #22c55e;
+  fill: currentColor;
+}
+
+.ws-rel-icon-mton {
+  color: #a21caf;
+  fill: currentColor;
+}
+
+/* Tooltip for relationship icons */
+.ws-rel-tooltip {
+  position: absolute;
+  z-index: 1000;
+  background: var(--ws-surface);
+  color: var(--ws-text);
+  border: 1px solid var(--ws-border);
+  border-radius: var(--ws-radius-sm);
+  font-size: .85em;
+  padding: .35em .7em;
+  box-shadow: var(--ws-shadow);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .15s;
+}
+
+.ws-rel-icon:hover+.ws-rel-tooltip,
+.ws-rel-icon:focus+.ws-rel-tooltip {
+  opacity: 1;
+}
+
+/* Legend/info button */
+.ws-rel-legend-btn {
+  background: none;
+  border: none;
+  color: var(--ws-muted);
+  font-size: 1.1em;
+  cursor: pointer;
+  margin-left: .5em;
+  vertical-align: middle;
+  padding: 0;
+}
+
+.ws-rel-legend-popup {
+  position: absolute;
+  right: 0;
+  top: 2.2em;
+  background: var(--ws-surface);
+  color: var(--ws-text);
+  border: 1px solid var(--ws-border);
+  border-radius: var(--ws-radius-sm);
+  box-shadow: var(--ws-shadow-md);
+  font-size: .95em;
+  padding: .7em 1.2em;
+  min-width: 180px;
+  z-index: 2000;
+  display: none;
+}
+
+.ws-rel-legend-btn:focus+.ws-rel-legend-popup,
+.ws-rel-legend-btn:hover+.ws-rel-legend-popup {
+  display: block;
+}
+
 /* ══ Layout ══════════════════════════════════════════════════════ */
 .ws-layout {
   display: flex;
   height: 100%;
+  min-height: 0;
   /* fill .tabgrid-container which fills the flex content div */
-  min-height: 520px;
   background: var(--ws-bg);
   border-radius: var(--ws-radius);
   overflow: hidden;
@@ -75,6 +208,7 @@ body:has(.tabgrid-container) .container-fluid.px-4 {
   background: var(--ws-surface);
   border-right: 1px solid var(--ws-border);
   flex-shrink: 0;
+  min-height: 0;
 }
 
 .ws-nav-header {
@@ -121,9 +255,9 @@ body:has(.tabgrid-container) .container-fluid.px-4 {
   width: 2rem;
   height: 2rem;
   border-radius: var(--ws-radius-sm);
-  background: var(--ws-primary);
+  background: linear-gradient(135deg, var(--ws-primary) 0%, var(--ws-primary-mid) 100%);
   border: none;
-  color: #fff;
+  color: var(--ws-surface);
   cursor: pointer;
   transition: background .15s, transform .1s;
   font-size: 1.1rem;
@@ -142,7 +276,7 @@ body:has(.tabgrid-container) .container-fluid.px-4 {
 
 .ws-nav-search {
   padding: .5rem .75rem;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--ws-border);
   flex-shrink: 0;
 }
 
@@ -166,7 +300,7 @@ body:has(.tabgrid-container) .container-fluid.px-4 {
   font-size: .8rem;
   border: 1px solid var(--ws-border);
   border-radius: var(--ws-radius-sm);
-  background: #f8fafc;
+  background: var(--ws-bg);
   color: var(--ws-text);
   outline: none;
   transition: border-color .15s, box-shadow .15s;
@@ -175,7 +309,7 @@ body:has(.tabgrid-container) .container-fluid.px-4 {
 .ws-search-input:focus {
   border-color: var(--ws-primary-mid);
   box-shadow: 0 0 0 3px rgba(79, 70, 229, .08);
-  background: #fff;
+  background: var(--ws-surface);
 }
 
 .ws-search-input::placeholder {
@@ -185,10 +319,11 @@ body:has(.tabgrid-container) .container-fluid.px-4 {
 .ws-record-list {
   list-style: none;
   margin: 0;
-  padding: .375rem 0;
+  padding: 0;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
-  flex: 1;
-  max-height: calc(100vh - 210px);
+  box-sizing: border-box;
 }
 
 .ws-record-item {
@@ -219,17 +354,17 @@ body:has(.tabgrid-container) .container-fluid.px-4 {
   width: 2rem;
   height: 2rem;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  color: #fff;
+  background: linear-gradient(135deg, var(--ws-primary) 0%, var(--ws-primary-mid) 100%);
+  color: var(--ws-surface);
   font-size: .65rem;
   font-weight: 700;
   flex-shrink: 0;
   letter-spacing: .04em;
-  box-shadow: 0 1px 3px rgba(99, 102, 241, .22);
+  box-shadow: var(--ws-shadow);
 }
 
 .ws-record-item.active .ws-avatar {
-  background: linear-gradient(135deg, #4338ca 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, var(--ws-primary-dk) 0%, var(--ws-primary) 100%);
 }
 
 .ws-record-info {
@@ -246,7 +381,7 @@ body:has(.tabgrid-container) .container-fluid.px-4 {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #374151;
+  color: var(--ws-text);
   line-height: 1.3;
 }
 
@@ -281,10 +416,11 @@ body:has(.tabgrid-container) .container-fluid.px-4 {
 
 /* ════ WORKSPACE (right side) ════════════════════════════════════ */
 .ws-main {
-  flex: 1;
+  flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   min-width: 0;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -309,12 +445,12 @@ body:has(.tabgrid-container) .container-fluid.px-4 {
   width: 2.75rem;
   height: 2.75rem;
   border-radius: 50%;
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-  color: #fff;
+  background: linear-gradient(135deg, var(--ws-primary) 0%, var(--ws-primary-mid) 100%);
+  color: var(--ws-surface);
   font-size: .9rem;
   font-weight: 700;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(79, 70, 229, .30);
+  box-shadow: var(--ws-shadow-md);
 }
 
 .ws-hero-meta {
@@ -477,11 +613,11 @@ body:has(.tabgrid-container) .container-fluid.px-4 {
   min-width: 1.2rem;
   height: 1.2rem;
   padding: 0 .28rem;
-  background: #e2e8f0;
+  background: var(--ws-border);
   border-radius: 999px;
   font-size: .62rem;
   font-weight: 700;
-  color: #64748b;
+  color: var(--ws-muted);
   transition: background .15s, color .15s;
 }
 
@@ -576,8 +712,8 @@ body:has(.tabgrid-container) .container-fluid.px-4 {
   font-weight: 600;
   padding: .15em .55em;
   border-radius: 999px;
-  background: #dcfce7;
-  color: #166534;
+  background: var(--ws-rel-otm-bg);
+  color: var(--ws-rel-otm);
 }
 
 .ws-o2o-status-unlinked {
@@ -585,9 +721,9 @@ body:has(.tabgrid-container) .container-fluid.px-4 {
   font-weight: 600;
   padding: .15em .55em;
   border-radius: 999px;
-  background: #f1f5f9;
+  background: var(--ws-bg);
   color: var(--ws-muted);
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--ws-border);
 }
 
 .ws-o2o-body {
@@ -662,7 +798,7 @@ body:has(.tabgrid-container) .container-fluid.px-4 {
 
 .ws-link-modal-header {
   background: var(--ws-rel-m2m);
-  color: #fff;
+  color: var(--ws-surface);
 }
 
 .ws-link-modal-header .btn-close {
@@ -686,8 +822,8 @@ body:has(.tabgrid-container) .container-fluid.px-4 {
   padding: 1rem;
 }
 
-/* ════ RESPONSIVE ════════════════════════════════════════════════ */
-@media (max-width: 768px) {
+/* Responsive Design Enhancements */
+@media (max-width: 992px) {
   .ws-layout {
     flex-direction: column;
     height: auto;
@@ -700,10 +836,135 @@ body:has(.tabgrid-container) .container-fluid.px-4 {
     max-height: 240px;
     border-right: none;
     border-bottom: 1px solid var(--ws-border);
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
   }
 
-  .ws-fields-grid,
-  .ws-o2o-body {
-    grid-template-columns: 1fr;
+  .ws-record-list {
+    flex-direction: row;
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    width: 100%;
+    height: auto;
+    padding-bottom: 1rem !important;
   }
+
+  .ws-record-item {
+    min-width: 180px;
+    max-width: 220px;
+    flex: 0 0 auto;
+    margin-right: .5rem;
+    margin-bottom: 0;
+  }
+
+  .ws-main {
+    padding: 0 .5rem;
+  }
+
+  .ws-tab-content {
+    padding: .5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .ws-nav {
+    max-height: 120px;
+  }
+
+  .ws-record-item {
+    min-width: 140px;
+    max-width: 180px;
+    font-size: .9em;
+  }
+
+  .ws-main {
+    padding: 0 .25rem;
+  }
+}
+
+/* Consistent Button Styles */
+.btn,
+.btn-warning,
+.btn-danger,
+.btn-primary,
+.btn-success,
+.btn-info,
+.btn-secondary {
+  border-radius: var(--ws-radius-sm) !important;
+  font-weight: 500;
+  font-size: .98rem;
+  padding: .45em 1.1em;
+  display: inline-flex;
+  align-items: center;
+  gap: .5em;
+  transition: background .15s, color .15s, box-shadow .15s;
+  box-shadow: none;
+}
+
+.btn i,
+.btn svg {
+  font-size: 1.1em;
+  vertical-align: middle;
+}
+
+.btn:focus {
+  outline: 2px solid var(--ws-primary-mid);
+  outline-offset: 2px;
+}
+
+.btn-warning,
+.btn.btn-warning {
+  background-color: var(--ws-warning) !important;
+  border-color: var(--ws-warning) !important;
+  color: var(--ws-text) !important;
+}
+
+.btn-warning:hover,
+.btn-warning:focus {
+  background-color: var(--ws-warning-bg) !important;
+  color: var(--ws-text) !important;
+}
+
+.btn-danger,
+.btn.btn-danger {
+  background-color: var(--ws-danger) !important;
+  border-color: var(--ws-danger) !important;
+  color: var(--ws-surface) !important;
+}
+
+.btn-danger:hover,
+.btn-danger:focus {
+  background-color: var(--ws-danger-bg) !important;
+  color: var(--ws-danger) !important;
+}
+
+.btn-primary,
+.btn.btn-primary {
+  background-color: var(--ws-primary) !important;
+  border-color: var(--ws-primary) !important;
+  color: var(--ws-surface) !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: var(--ws-primary-mid) !important;
+  color: var(--ws-surface) !important;
+}
+
+/* --- Button group fix for actions column --- */
+.table td .btn-group,
+.table td .btn+.btn {
+  display: inline-flex;
+  gap: .5rem;
+  vertical-align: middle;
+}
+
+.table td .btn {
+  margin-right: 0 !important;
+}
+
+.table td .btn-group .btn {
+  margin-right: 0 !important;
 }

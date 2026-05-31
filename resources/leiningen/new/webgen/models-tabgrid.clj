@@ -3,38 +3,49 @@
   (:require
    [clojure.string :as str]
    [cheshire.core :as json]
-   [{{sanitized}}.models.grid :refer [build-grid build-grid-with-custom-new]]
-   [clojure.walk :as walk]))
+   [{{sanitized}}.models.grid :refer [build-grid build-grid-with-custom-new]]))
 
-;; start needed require
-; [{{sanitized}}.handlers.admin.siblings{{sanitized}}.model :require [get-siblings]]
-; [{{sanitized}}.handlers.admin.cars{{sanitized}}.model :require [get-cars]]
-; [{{sanitized}}.models.tabgrid :require [tab-plugin]]
-;; end needed require
+;; Relationship SVG icon helper
+(defn rel-svg-icon [rel-type]
+  (case rel-type
+    :1to1 [:svg.ws-rel-icon {:viewBox "0 0 24 24" :width 18 :height 18 :fill "currentColor" :aria-label "1:1"}
+           [:rect {:x 2 :y 7 :width 7 :height 10 :rx 2 :class "ws-rel-rect"}]
+           [:rect {:x 15 :y 7 :width 7 :height 10 :rx 2 :class "ws-rel-rect"}]
+           [:text {:x 5.5 :y 15 :textAnchor "middle" :fontSize 8 :fill "#fff"} "1"]
+           [:text {:x 18.5 :y 15 :textAnchor "middle" :fontSize 8 :fill "#fff"} "1"]]
+    :1ton [:svg.ws-rel-icon {:viewBox "0 0 24 24" :width 18 :height 18 :fill "currentColor" :aria-label "1:N"}
+           [:rect {:x 2 :y 7 :width 7 :height 10 :rx 2 :class "ws-rel-rect"}]
+           [:rect {:x 15 :y 7 :width 7 :height 10 :rx 2 :class "ws-rel-rect"}]
+           [:text {:x 5.5 :y 15 :textAnchor "middle" :fontSize 8 :fill "#fff"} "1"]
+           [:text {:x 18.5 :y 15 :textAnchor "middle" :fontSize 8 :fill "#fff"} "N"]]
+    :mton [:svg.ws-rel-icon {:viewBox "0 0 24 24" :width 18 :height 18 :fill "currentColor" :aria-label "N:M"}
+           [:rect {:x 2 :y 7 :width 7 :height 10 :rx 2 :class "ws-rel-rect"}]
+           [:rect {:x 15 :y 7 :width 7 :height 10 :rx 2 :class "ws-rel-rect"}]
+           [:text {:x 5.5 :y 15 :textAnchor "middle" :fontSize 8 :fill "#fff"} "N"]
+           [:text {:x 18.5 :y 15 :textAnchor "middle" :fontSize 8 :fill "#fff"} "M"]]
+    nil))
 
-;; start example setup
-;; content (tab-plugin request
-;;                     {:table "{{sanitized}}"
-;;                      :labels ["Name" "Email" "Phone" "Image"]
-;;                      :dbfields [:name :email :phone :image]
-;;                      :href "/admin/{{sanitized}}"
-;;                      :get-id-fn get-{{sanitized}}-id
-;;                      :get-all-fn get-{{sanitized}}}
-;;                     {:table "siblings"
-;;                      :fkey :contacto_id
-;;                      :labels ["Name" "Age" "Image"]
-;;                      :dbfields [:name :age :image]
-;;                      :href "/admin/siblings{{sanitized}}"
-;;                      :fetch-fn get-siblings
-;;                      :fetch-args [:parent-id]}
-;;                     {:table "cars"
-;;                      :fkey :contacto_id
-;;                      :labels ["Company" "Model" "Year" "Image"]
-;;                      :dbfields [:compay :model :year :image]
-;;                      :href "/admin/cars{{sanitized}}"
-;;                      :fetch-fn get-cars
-;;                      :fetch-args [:parent-id]})]))
-;; End example setup
+;; Relationship legend button and popup
+(def rel-legend-btn
+  [:li.nav-item.float-end.ms-auto.d-flex.align-items-center
+   [:button.btn.btn-sm.btn-outline-secondary.ms-2 {:type "button" :data-bs-toggle "modal" :data-bs-target "#rel-legend-modal" :tabIndex -1 :title "Relationship legend"}
+    [:span.d-none.d-md-inline "Rel legend"]
+    [:span.d-md-none "?"]]])
+
+(def rel-legend-popup
+  [:div.modal.fade {:id "rel-legend-modal" :tabIndex -1 :role "dialog" :aria-labelledby "rel-legend-modal-label" :aria-hidden "true"}
+   [:div.modal-dialog.modal-dialog-centered {:role "document"}
+    [:div.modal-content
+     [:div.modal-header
+      [:h5.modal-title {:id "rel-legend-modal-label"} "Relationship Legend"]
+      [:button.btn-close {:type "button" :data-bs-dismiss "modal" :aria-label "Close"}]]
+     [:div.modal-body
+      [:ul.list-unstyled.mb-0
+       [:li.mb-2 [:span.me-2 (rel-svg-icon :1to1)] "1:1 (One to One)"]
+       [:li.mb-2 [:span.me-2 (rel-svg-icon :1ton)] "1:N (One to Many)"]
+       [:li.mb-2 [:span.me-2 (rel-svg-icon :mton)] "N:M (Many to Many)"]]]
+     [:div.modal-footer
+      [:button.btn.btn-secondary {:type "button" :data-bs-dismiss "modal"} "Close"]]]]])
 
 (defn- safe-id [s]
   (-> (or s "")
@@ -55,7 +66,7 @@
 (def ^:private onclick-fn
   "event.preventDefault(); (function(){var id=this.dataset.target; localStorage.setItem('active-tab', id); document.querySelectorAll('.nav-tabs .nav-link').forEach(function(x){x.classList.remove('active');});this.classList.add('active');document.querySelectorAll('.tab-pane').forEach(function(p){p.classList.remove('show','active');});var t=document.getElementById(id); if(t){t.classList.add('show','active');} if(history && history.replaceState){history.replaceState(null,null,'#'+id);}}).call(this);")
 
-(defn- build-tab-nav-item [nav-id pane-id label active?]
+(defn- build-tab-nav-item [nav-id pane-id label active? & [rel-type]]
   [:li.nav-item {:role "presentation"}
    [:a.nav-link
     (merge
@@ -68,6 +79,7 @@
       :aria-selected (if active? "true" "false")
       :data-target pane-id
       :onclick onclick-fn})
+    (when rel-type (rel-svg-icon rel-type))
     label]])
 
 (defn- build-tab-pane [pane-id nav-id active? content]
@@ -138,7 +150,7 @@
         nav-id (str base "-link")
         fields (fields-map dbfields labels)
         grid-fn (or (:grid-fn spec) build-grid-with-custom-new)
-        parent-id-kw (or (:parent-id-kw spec) :parent-id)
+        ;; parent-id-kw (or (:parent-id-kw spec) :parent-id) ; removed unused binding
         parent-id-val parent-id
         fetch-args (or (:fetch-args spec) [parent-id-val])
         rows (cond
@@ -188,47 +200,24 @@
                    nil)
         all-parent-records (if (fn? (:get-all-fn parent-conf)) (apply (:get-all-fn parent-conf) []) nil)
         child-confs (map-indexed (fn [idx s] (normalize-child parent-table p-id idx s)) child-specs)
-        parent-grid ((:grid-fn parent-conf) parent-title grid-row parent-table parent-fields parent-href parent-args)
-        tabs (concat [{:tabname parent-title :id (:id parent-conf) :pane-id (:pane-id parent-conf) :nav-id (:nav-id parent-conf) :grid parent-grid}]
-                     (map (fn [c]
-                            {:tabname (:title c) :id (:id c) :pane-id (:pane-id c) :nav-id (:nav-id c)
-                             :grid ((:grid-fn c) (:title c) (:rows c) (:table c) (:fields c) (:href c) (:args c) (:new-href c))})
-                          child-confs))]
-    (list
-     [:div
+        tabs (concat [{:tabname parent-title :id (:id parent-conf) :pane-id (:pane-id parent-conf) :nav-id (:nav-id parent-conf) :grid ((:grid-fn parent-conf) parent-title grid-row parent-table parent-fields parent-href parent-args) :rel-type (or (:rel-type parent-spec) :1to1)}]
+                     (map-indexed (fn [i c]
+                                    (assoc {:tabname (:title c) :id (:id c) :pane-id (:pane-id c) :nav-id (:nav-id c)
+                                            :grid ((:grid-fn c) (:title c) (:rows c) (:table c) (:fields c) (:href c) (:args c) (:new-href c))}
+                                           :rel-type (or (:rel-type c)
+                                                         (when-let [spec (nth child-specs i nil)] (:rel-type spec))
+                                                         (cond (= i 0) :1ton :else :mton))))
+                                  child-confs))]
+    [[:div
       (parent-table-modal parent-table parent-dbfields parent-labels all-parent-records)
       [:ul.nav.nav-tabs {:role "tablist"}
        (doall (map-indexed (fn [idx t]
-                             (build-tab-nav-item (:nav-id t) (:pane-id t) (:tabname t) (zero? idx)))
-                           tabs))]
+                             (build-tab-nav-item (:nav-id t) (:pane-id t) (:tabname t) (zero? idx) (:rel-type t)))
+                           tabs))
+       rel-legend-btn rel-legend-popup]
       [:div.tab-content.mt-3
        (doall (map-indexed (fn [idx t]
                              (build-tab-pane (:pane-id t) (:nav-id t) (zero? idx) (:grid t)))
                            tabs))]]
      [:script
-      "document.addEventListener('DOMContentLoaded', function(){var id=localStorage.getItem('active-tab'); if(id){var sel='.nav-tabs .nav-link[href=\\\"#'+id+'\\\"]'; var el=document.querySelector(sel); if(el){try{bootstrap.Tab.getOrCreateInstance(el).show();}catch(e){el.click();}}}});"])))
-
-(defmacro tab-plugin
-  [request parent-spec & child-specs]
-  (let [params-sym (gensym "params")
-        id-sym (gensym "id")
-        rows-sym (gensym "rows")
-        parent-row-sym (gensym "parent_row")
-        parent-id-sym (gensym "parent_id")
-        ;; Deeply walk all child specs and replace every occurrence of symbol 'parent-id and keyword :parent-id
-        deep-replace (fn [form]
-                       (walk/prewalk
-                        #(cond
-                           (= % 'parent-id) parent-id-sym
-                           (= % :parent-id) parent-id-sym
-                           :else %)
-                        form))
-        child-specs-vec (mapv deep-replace child-specs)]
-    `(let [~params-sym (:params ~request)
-           ~id-sym (or (:id ~params-sym) nil)
-           ~rows-sym (if-not (nil? ~id-sym)
-                       [(apply (:get-id-fn ~parent-spec) [~id-sym])]
-                       (apply (:get-all-fn ~parent-spec) []))
-           ~parent-row-sym (first ~rows-sym)
-           ~parent-id-sym (:id ~parent-row-sym)]
-       (build-tabs ~(get parent-spec :table) ~parent-row-sym ~parent-spec ~child-specs-vec))))
+      "document.addEventListener('DOMContentLoaded', function(){var id=localStorage.getItem('active-tab'); if(id){var sel='.nav-tabs .nav-link[href=\\\"#'+id+'\\\"]'; var el=document.querySelector(sel); if(el){try{bootstrap.Tab.getOrCreateInstance(el).show();}catch(e){el.click();}}}});"]]))

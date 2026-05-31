@@ -238,42 +238,43 @@
            (for [[fid _] fields]
              [:td.small (render-field-value (get row fid))])
            [[:td
-             (when has-pivot?
-               [:button.btn.btn-sm.btn-outline-secondary.edit-btn.me-1
-                {:title          "Edit attributes"
-                 :data-url       (str "/tabgrid/pivot-form"
-                                      "?through_table=" through
-                                      "&parent_fk="  (when fk (name fk))
-                                      "&parent_id="  parent-id
-                                      "&related_fk=" (when related-fk (name related-fk))
-                                      "&related_id=" related-id)
-                 :data-bs-toggle "modal"
-                 :data-bs-target "#exampleModal"}
-                [:i.bi.bi-sliders]])
-             [:form.d-inline.m2m-dissociate-form
-              {:method      "POST"
-               :action      "/tabgrid/dissociate"
-               :data-row-id (str related-id)}
-              (csrf-field)
-              [:input {:type "hidden" :name "through_table"
-                       :value through}]
-              [:input {:type "hidden" :name "parent_fk"
-                       :value (when fk (name fk))}]
-              [:input {:type "hidden" :name "parent_id"
-                       :value (str parent-id)}]
-              [:input {:type "hidden" :name "related_fk"
-                       :value (when related-fk (name related-fk))}]
-              [:input {:type "hidden" :name "related_id"
-                       :value (str related-id)}]
-              [:span.m2m-unlink-confirm {:style "display:none"}
-               [:span.small.me-1 "Unlink?"]
-               [:button.btn.btn-sm.btn-danger.m2m-confirm-yes
-                {:type "submit"} [:i.bi.bi-check]]
-               [:button.btn.btn-sm.btn-outline-secondary.m2m-confirm-no
-                {:type "button"} [:i.bi.bi-x]]]
-              [:button.btn.btn-sm.btn-outline-danger.m2m-unlink-btn
-               {:type "button" :title "Unlink"}
-               [:i.bi.bi-x-circle]]]]]))))
+             [:div.d-flex.gap-1
+              (when has-pivot?
+                [:button.btn.btn-sm.btn-outline-secondary.edit-btn.me-1
+                 {:title          "Edit attributes"
+                  :data-url       (str "/tabgrid/pivot-form"
+                                       "?through_table=" through
+                                       "&parent_fk="  (when fk (name fk))
+                                       "&parent_id="  parent-id
+                                       "&related_fk=" (when related-fk (name related-fk))
+                                       "&related_id=" related-id)
+                  :data-bs-toggle "modal"
+                  :data-bs-target "#exampleModal"}
+                 [:i.bi.bi-sliders]])
+              [:form.d-inline.m2m-dissociate-form
+               {:method      "POST"
+                :action      "/tabgrid/dissociate"
+                :data-row-id (str related-id)}
+               (csrf-field)
+               [:input {:type "hidden" :name "through_table"
+                        :value through}]
+               [:input {:type "hidden" :name "parent_fk"
+                        :value (when fk (name fk))}]
+               [:input {:type "hidden" :name "parent_id"
+                        :value (str parent-id)}]
+               [:input {:type "hidden" :name "related_fk"
+                        :value (when related-fk (name related-fk))}]
+               [:input {:type "hidden" :name "related_id"
+                        :value (str related-id)}]
+               [:span.m2m-unlink-confirm {:style "display:none"}
+                [:span.small.me-1 "Unlink?"]
+                [:button.btn.btn-sm.btn-danger.m2m-confirm-yes
+                 {:type "submit"} [:i.bi.bi-check]]
+                [:button.btn.btn-sm.btn-outline-secondary.m2m-confirm-no
+                 {:type "button"} [:i.bi.bi-x]]]
+               [:button.btn.btn-sm.btn-outline-danger.m2m-unlink-btn
+                {:type "button" :title "Unlink"}
+                [:i.bi.bi-x-circle]]]]]]))))
 
 (defn- render-m2m-avail-row
   "One <tr> for an available (not yet linked) M2M record."
@@ -393,27 +394,58 @@
          "ws-tab ws-tab-otm")
        (when (= idx 0) " active")))
 
-(defn- tab-icon-cls [rel-type icon]
-  (case rel-type
-    :many-to-many "bi bi-diagram-3"
-    :one-to-one   "bi bi-person-vcard"
-    (or icon "bi bi-list-ul")))
 
+;; Use rel-svg-icon for relationship icons (copied from {{sanitized}}.models.tabgrid)
+
+(defn rel-svg-icon [rel-type]
+  (let [[svg label] (case rel-type
+                      :one-to-one [[:svg.ws-rel-icon {:viewBox "0 0 24 24" :width 18 :height 18 :fill "currentColor" :aria-label "1:1"}
+                                    [:rect {:x 2 :y 7 :width 7 :height 10 :rx 2 :class "ws-rel-rect"}]
+                                    [:rect {:x 15 :y 7 :width 7 :height 10 :rx 2 :class "ws-rel-rect"}]
+                                    [:text {:x 5.5 :y 15 :textAnchor "middle" :fontSize 8 :fill "#fff"} "1"]
+                                    [:text {:x 18.5 :y 15 :textAnchor "middle" :fontSize 8 :fill "#fff"} "1"]]
+                                   "1:1"]
+                      :one-to-many [[:svg.ws-rel-icon {:viewBox "0 0 24 24" :width 18 :height 18 :fill "currentColor" :aria-label "1:N"}
+                                     [:rect {:x 2 :y 7 :width 7 :height 10 :rx 2 :class "ws-rel-rect"}]
+                                     [:rect {:x 15 :y 7 :width 7 :height 10 :rx 2 :class "ws-rel-rect"}]
+                                     [:text {:x 5.5 :y 15 :textAnchor "middle" :fontSize 8 :fill "#fff"} "1"]
+                                     [:text {:x 18.5 :y 15 :textAnchor "middle" :fontSize 8 :fill "#fff"} "N"]]
+                                    "1:N"]
+                      :many-to-many [[:svg.ws-rel-icon {:viewBox "0 0 24 24" :width 18 :height 18 :fill "currentColor" :aria-label "N:M"}
+                                      [:rect {:x 2 :y 7 :width 7 :height 10 :rx 2 :class "ws-rel-rect"}]
+                                      [:rect {:x 15 :y 7 :width 7 :height 10 :rx 2 :class "ws-rel-rect"}]
+                                      [:text {:x 5.5 :y 15 :textAnchor "middle" :fontSize 8 :fill "#fff"} "N"]
+                                      [:text {:x 18.5 :y 15 :textAnchor "middle" :fontSize 8 :fill "#fff"} "M"]]
+                                     "N:M"]
+                      [nil nil])]
+    [:span.d-inline-flex.align-items-center.gap-1
+     svg
+     [:span.ws-rel-label {:style "font-size:0.85em; color:#888;"} label]]))
+
+;; Render tab strip with rel-svg-icon
 (defn- render-tab-strip [entity-name subgrids]
   (into [:div.ws-tab-strip {:role "tablist"}]
         (map-indexed
          (fn [idx sg]
            (let [sg-name (safe-id (name (:entity sg)))
-                 pane-id (str entity-name "-" sg-name "-pane")]
+                 pane-id (str entity-name "-" sg-name "-pane")
+                 rel-type (:relationship-type sg)]
              [:button
-              {:class     (tab-cls (:relationship-type sg) idx)
+              {:class     (tab-cls rel-type idx)
                :role      "tab"
                :data-pane (str "#" pane-id)}
-              [:i.me-1 {:class (tab-icon-cls (:relationship-type sg) (:icon sg))}]
-              (:title sg)
+              (rel-svg-icon rel-type)
+              [:span.ms-1 (:title sg)]
               (when-let [cnt (:count sg)]
                 [:span.ws-tab-count cnt])]))
          subgrids)))
+;; Relationship legend popup using rel-svg-icon
+(defn rel-legend-popup []
+  [:div.ws-rel-legend-popup
+   [:ul.list-unstyled.mb-0
+    [:li.mb-2 (rel-svg-icon :one-to-one) [:span.ms-2 "One to One"]]
+    [:li.mb-2 (rel-svg-icon :one-to-many) [:span.ms-2 "One to Many"]]
+    [:li.mb-2 (rel-svg-icon :many-to-many) [:span.ms-2 "Many to Many"]]]])
 
 (defn- render-tab-panes
   [request entity-name subgrids selected-parent-id]
@@ -439,35 +471,6 @@
                 (render-otm-pane request entity-name sg selected-parent-id))]))
          subgrids)))
 
-;;; -- Public API ------------------------------------------------------
-
-(defn render-parent-grid-table
-  "Backward-compat: standalone parent record card."
-  [request entity-name _title fields row actions]
-  (if-not row
-    [:div.ws-empty-state [:i.bi.bi-inbox] [:p (i18n/tr request :grid/no-records)]]
-    (let [rid (get-record-id entity-name row)]
-      [:div
-       [:div.d-flex.align-items-center.gap-2.p-2.border-bottom
-        [:small.text-muted [:i.bi.bi-hash] rid]
-        [:div.ms-auto.d-flex.gap-2
-         (when (:edit actions)
-           [:button.btn.btn-sm.btn-primary.edit-btn
-            {:data-url (str "/admin/" entity-name "/edit-form/" rid)
-             :data-bs-toggle "modal" :data-bs-target "#exampleModal"}
-            [:i.bi.bi-pencil.me-1] (i18n/tr request :common/edit)])
-         (when (:delete actions)
-           [:form.d-inline
-            {:method "POST"
-             :action (str "/admin/" entity-name "/delete/" rid)
-             :onsubmit (confirm-js request)}
-            (csrf-field)
-            [:button.btn.btn-sm.btn-outline-danger {:type "submit"}
-             [:i.bi.bi-trash.me-1] (i18n/tr request :common/delete)]])]]
-       [:div.ws-fields-grid
-        (for [[field-id field-label] fields]
-          (render-field-pair entity-name field-id field-label row))]])))
-
 (defn render-accordion-content
   "Legacy name -- now renders workspace tab content."
   [request entity-name title fields rows actions subgrids selected-parent-id]
@@ -477,6 +480,10 @@
      (when (seq subgrids)
        [:div.ws-tabs-container
         (render-tab-strip entity-name subgrids)
+        [:button.ws-rel-legend-btn {:type "button" :tabIndex -1 :title "Relationship legend"}
+         [:span.d-none.d-md-inline "Rel legend"]
+         [:span.d-md-none "?"]]
+        (rel-legend-popup)
         (render-tab-panes request entity-name subgrids selected-parent-id)])]))
 
 (defn render-tab-content
@@ -532,14 +539,5 @@
      [:div.ws-layout
       (render-navigator request entity-name title fields
                         all-rows selected-parent-id actions)
-      [:div.ws-main
-       (render-record-header request entity-name title fields
-                             first-row actions)
-       (if (seq subgrids)
-         [:div.ws-tabs-container
-          (render-tab-strip entity-name subgrids)
-          (render-tab-panes request entity-name subgrids selected-parent-id)]
-         [:div.ws-tabs-container
-          [:div.ws-empty-state
-           [:i.bi.bi-diagram-2]
-           [:p "No relationships configured"]]])]]]))
+      ;; The main content (tabs, panes, etc.) is rendered by render-accordion-content
+      (render-accordion-content request entity-name title fields rows actions subgrids selected-parent-id)]]))
