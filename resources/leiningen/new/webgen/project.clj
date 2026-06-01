@@ -35,14 +35,14 @@
                  [ring/ring-devel "1.15.4"]
                  [ring/ring-codec "1.3.0"]]
   :main {{sanitized}}.core
-  :plugins [[lein-ancient "0.7.0"]
+  :plugins [[lein-ancient "1.0.0"]
             [lein-pprint "1.3.2"]]
   :uberjar-name "{{sanitized}}.jar"
   :target-path "target/%s"
   :ring {:handler {{sanitized}}.core
          :auto-reload? true
          :auto-refresh? false}
-  :resource-paths ["shared" "resources"]
+  :resource-paths ["resources"]
   :aliases {"migrate"  ["run" "-m" "{{sanitized}}.migrations/migrate" "--"]
             "rollback" ["run" "-m" "{{sanitized}}.migrations/rollback" "--"]
             ;; Forward any extra args to the seeder fn, e.g.:
@@ -75,6 +75,8 @@
             "gen-handler" ["run" "-m" "{{sanitized}}.gen.handler" "--"]}
   :profiles {:uberjar {:aot :all
                        :main {{sanitized}}.core
-                       :jvm-opts ["-Dclojure.compiler.direct-linking=true"]}
+                       :jvm-opts ["-Dclojure.compiler.direct-linking=true"
+                                  "--enable-native-access=ALL-UNNAMED"]}
              :dev {:source-paths ["src" "dev"]
-                   :main {{sanitized}}.dev}})
+                   :main {{sanitized}}.dev
+                   :jvm-opts ["--enable-native-access=ALL-UNNAMED"]}})
