@@ -12,7 +12,21 @@
           {:id :skill_id :label "Skills ID" :type :hidden}
           {:id :proficiency :label "Proficiency" :type :number}]
 
- :queries {:list "SELECT emp.*, emp1.department_id as employee_nombre, ski.name as skill_nombre FROM employee_skills emp LEFT JOIN employees emp1 ON emp.employee_id = emp1.id LEFT JOIN skills ski ON emp.skill_id = ski.id ORDER BY emp.employee_id DESC"
-           :get "SELECT * FROM employee_skills WHERE employee_id = ?"}
+ :queries {:list "SELECT 
+           emp.*, 
+           emp1.department_id as employee_nombre, 
+           ski.name as skill_nombre 
+           FROM employee_skills emp 
+           LEFT JOIN employees emp1 ON emp.employee_id = emp1.id 
+           LEFT JOIN skills ski ON emp.skill_id = ski.id 
+           ORDER BY emp.employee_id DESC"
+           :get "SELECT 
+           emp.*, 
+           emp1.department_id as employee_nombre, 
+           ski.name as skill_nombre 
+           FROM employee_skills emp 
+           LEFT JOIN employees emp1 ON emp.employee_id = emp1.id 
+           LEFT JOIN skills ski ON emp.skill_id = ski.id 
+           WHERE emp.employee_id = ?"}
 
  :actions {:new true :edit true :delete true}}

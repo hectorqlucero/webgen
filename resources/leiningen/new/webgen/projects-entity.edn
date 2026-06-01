@@ -8,8 +8,8 @@
  :menu-icon "bi bi-kanban"
 
  :fields [{:id :id :label "ID" :type :hidden}
-          {:id :project_code :label "Project Code" :type :textarea :required? true :placeholder "Project Code..."}
-          {:id :name :label "Name" :type :textarea :required? true :placeholder "Name..."}
+          {:id :project_code :label "Project Code" :type :text :required? true :placeholder "Project Code..."}
+          {:id :name :label "Name" :type :text :required? true :placeholder "Name..."}
           {:id :starts_on :label "Starts On" :type :date}
           {:id :ends_on :label "Ends On" :type :date}]
 

@@ -8,9 +8,10 @@
  :menu-icon "bi bi-people"
 
  :fields [{:id :id :label "ID" :type :hidden}
-          {:id :name :label "Name" :type :textarea :required? true :placeholder "Name..."}
-          {:id :code :label "Code" :type :textarea :placeholder "Code..."}
-          {:id :active :label "Active" :type :textarea :placeholder "Active..."}]
+          {:id :name :label "Name" :type :text :required? true :placeholder "Name..."}
+          {:id :code :label "Code" :type :text :placeholder "Code..."}
+          {:id :active :label "Active" :type :radio :value "T" :options [{:id "activeT" :value "T" :label "Active"}
+                                                                         {:id "activeF" :value "F" :label "Inactive"}]}]
 
  :queries {:list "SELECT * FROM organizations ORDER BY id DESC"
            :get "SELECT * FROM organizations WHERE id = ?"}

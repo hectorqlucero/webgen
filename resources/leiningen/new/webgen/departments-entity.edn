@@ -8,12 +8,36 @@
  :menu-icon "bi bi-people"
 
  :fields [{:id :id :label "ID" :type :hidden}
-          {:id :organization_id :label "Organizations ID" :type :hidden}
-          {:id :name :label "Name" :type :textarea :required? true :placeholder "Name..."}
-          {:id :code :label "Code" :type :textarea :placeholder "Code..."}]
 
- :queries {:list "SELECT dep.*, org.name as organization_nombre FROM departments dep LEFT JOIN organizations org ON dep.organization_id = org.id ORDER BY dep.id DESC"
-           :get "SELECT * FROM departments WHERE id = ?"}
+          {:id :organization_id
+           :label "Organization"
+           :type :fk
+           :fk :organizations
+           :fk-field [:name :code]
+           :fk-can-create? true
+           :hidden-in-grid? true}
+          {:id :organization_nombre :label "Organization" :grid-only? true}
+
+          {:id :name :label "Name" :type :text :required? true :placeholder "Name..."}
+          {:id :code :label "Code" :type :select :options [{:value "FIN" :label "FIN"}
+                                                           {:value "HR" :label "HR"}
+                                                           {:value "ENG" :label "ENG"}
+                                                           {:value "SAL" :label "SAL"}
+                                                           {:value "OPS" :label "OPS"}
+                                                           {:value "IT" :label "IT"}]}]
+
+ :queries {:list "SELECT 
+           dep.*, 
+           org.name as organization_nombre 
+           FROM departments dep 
+           LEFT JOIN organizations org ON dep.organization_id = org.id 
+           ORDER BY dep.id DESC"
+           :get "SELECT 
+           dep.*, 
+           org.name as organization_nombre 
+           FROM departments dep 
+           LEFT JOIN organizations org ON dep.organization_id = org.id 
+           WHERE dep.id = ?"}
 
  :actions {:new true :edit true :delete true}
 

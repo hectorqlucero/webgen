@@ -9,15 +9,34 @@
  :menu-icon "bi bi-file-earmark-text"
 
  :fields [{:id :id :label "ID" :type :hidden}
-          {:id :employee_id :label "Employees ID" :type :hidden}
+
+          {:id :employee_id
+           :label "Employee"
+           :type :fk
+           :fk :employees
+           :fk-field [:first_name :last_name]
+           :fk-can-crete? true
+           :hidden-in-grid? true}
+          {:id :employee_nombre :label "Employee" :grid-only? true}
+
           {:id :bio :label "Bio" :type :textarea :placeholder "Bio..."}
           {:id :avatar :label "Avatar" :type :file}
           {:id :emergency_phone :label "Emergency Phone" :type :text :placeholder "Emergency Phone..."}]
 
- :queries {:list "SELECT emp.*, emp1.department_id as employee_nombre FROM employee_profiles emp LEFT JOIN employees emp1 ON emp.employee_id = emp1.id ORDER BY emp.id DESC"
-           :get "SELECT * FROM employee_profiles WHERE id = ?"}
+ :queries {:list "SELECT 
+           emp.*, 
+           emp1.department_id as employee_nombre 
+           FROM employee_profiles emp 
+           LEFT JOIN employees emp1 ON emp.employee_id = emp1.id 
+           ORDER BY emp.id DESC"
+           :get "SELECT 
+           emp.*, 
+           emp1.department_id as employee_nombre 
+           FROM employee_profiles emp 
+           LEFT JOIN employees emp1 ON emp.employee_id = emp1.id 
+           WHERE emp.id = ?"}
 
  :actions {:new true :edit true :delete true}
 
- :hooks {:after-load :{{sanitized}}.hooks.employee-profiles/after-load
-         :before-save :{{sanitized}}.hooks.employee-profiles/before-save}}
+ :hooks {:after-load :contactos.hooks.employee-profiles/after-load
+         :before-save :contactos.hooks.employee-profiles/before-save}}

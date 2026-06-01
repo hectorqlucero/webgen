@@ -8,8 +8,8 @@
  :menu-icon "bi bi-table"
 
  :fields [{:id :id :label "ID" :type :hidden}
-          {:id :name :label "Name" :type :textarea :required? true :placeholder "Name..."}
-          {:id :category :label "Category" :type :textarea :placeholder "Category..."}]
+          {:id :name :label "Name" :type :text :required? true :placeholder "Name..."}
+          {:id :category :label "Category" :type :text :placeholder "Category..."}]
 
  :queries {:list "SELECT * FROM skills ORDER BY id DESC"
            :get "SELECT * FROM skills WHERE id = ?"}

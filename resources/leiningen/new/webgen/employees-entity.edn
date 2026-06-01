@@ -8,15 +8,47 @@
  :menu-icon "bi bi-person"
 
  :fields [{:id :id :label "ID" :type :hidden}
-          {:id :department_id :label "Departments ID" :type :hidden}
-          {:id :manager_id :label "Employees ID" :type :hidden}
-          {:id :first_name :label "First Name" :type :textarea :required? true :placeholder "First Name..."}
-          {:id :last_name :label "Last Name" :type :textarea :required? true :placeholder "Last Name..."}
-          {:id :email :label "Email" :type :email :placeholder "user@example.com"}
-          {:id :active :label "Active" :type :textarea :placeholder "Active..."}]
 
- :queries {:list "SELECT emp.*, dep.name as department_nombre, emp1.department_id as employee_nombre FROM employees emp LEFT JOIN departments dep ON emp.department_id = dep.id LEFT JOIN employees emp1 ON emp.manager_id = emp1.id ORDER BY emp.id DESC"
-           :get "SELECT * FROM employees WHERE id = ?"}
+          {:id :department_id
+           :label "Department"
+           :type :fk
+           :fk :departments
+           :fk-field [:name]
+           :fk-can-create? true
+           :hidden-in-grid? true}
+          {:id :department_nombre :label "Department" :grid-only? true}
+
+          {:id :manager_id
+           :label "Manager"
+           :type :fk
+           :fk :employees
+           :fk-field [:first_name :last_name]
+           :fk-can-create? true
+           :hidden-in-grid? true}
+          {:id :employee_nombre :label "Manager" :grid-only? true}
+
+          {:id :first_name :label "First Name" :type :text :required? true :placeholder "First Name..."}
+          {:id :last_name :label "Last Name" :type :text :required? true :placeholder "Last Name..."}
+          {:id :email :label "Email" :type :email :placeholder "user@example.com"}
+          {:id :active :label "Active" :type :radio :value "T" :options [{:id "activeT" :value "T" :label "Activo"}
+                                                                         {:id "activeF" :value "F" :label "Inactivo"}]}]
+
+ :queries {:list "SELECT 
+           emp.*, 
+           dep.name as department_nombre, 
+           emp1.department_id as employee_nombre 
+           FROM employees emp 
+           LEFT JOIN departments dep ON emp.department_id = dep.id 
+           LEFT JOIN employees emp1 ON emp.manager_id = emp1.id 
+           ORDER BY emp.id DESC"
+           :get "SELECT 
+           emp.*, 
+           dep.name as department_nombre, 
+           emp1.department_id as employee_nombre 
+           FROM employees emp 
+           LEFT JOIN departments dep ON emp.department_id = dep.id 
+           LEFT JOIN employees emp1 ON emp.manager_id = emp1.id 
+           WHERE emp.id = ?"}
 
  :actions {:new true :edit true :delete true}
 
