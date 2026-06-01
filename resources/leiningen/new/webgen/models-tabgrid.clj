@@ -8,21 +8,9 @@
 ;; Relationship SVG icon helper
 (defn rel-svg-icon [rel-type]
   (case rel-type
-    :1to1 [:svg.ws-rel-icon {:viewBox "0 0 24 24" :width 18 :height 18 :fill "currentColor" :aria-label "1:1"}
-           [:rect {:x 2 :y 7 :width 7 :height 10 :rx 2 :class "ws-rel-rect"}]
-           [:rect {:x 15 :y 7 :width 7 :height 10 :rx 2 :class "ws-rel-rect"}]
-           [:text {:x 5.5 :y 15 :textAnchor "middle" :fontSize 8 :fill "#fff"} "1"]
-           [:text {:x 18.5 :y 15 :textAnchor "middle" :fontSize 8 :fill "#fff"} "1"]]
-    :1ton [:svg.ws-rel-icon {:viewBox "0 0 24 24" :width 18 :height 18 :fill "currentColor" :aria-label "1:N"}
-           [:rect {:x 2 :y 7 :width 7 :height 10 :rx 2 :class "ws-rel-rect"}]
-           [:rect {:x 15 :y 7 :width 7 :height 10 :rx 2 :class "ws-rel-rect"}]
-           [:text {:x 5.5 :y 15 :textAnchor "middle" :fontSize 8 :fill "#fff"} "1"]
-           [:text {:x 18.5 :y 15 :textAnchor "middle" :fontSize 8 :fill "#fff"} "N"]]
-    :mton [:svg.ws-rel-icon {:viewBox "0 0 24 24" :width 18 :height 18 :fill "currentColor" :aria-label "N:M"}
-           [:rect {:x 2 :y 7 :width 7 :height 10 :rx 2 :class "ws-rel-rect"}]
-           [:rect {:x 15 :y 7 :width 7 :height 10 :rx 2 :class "ws-rel-rect"}]
-           [:text {:x 5.5 :y 15 :textAnchor "middle" :fontSize 8 :fill "#fff"} "N"]
-           [:text {:x 18.5 :y 15 :textAnchor "middle" :fontSize 8 :fill "#fff"} "M"]]
+    :1to1 [:span.ws-rel-pill "1:1"]
+    :1ton [:span.ws-rel-pill "1:N"]
+    :mton [:span.ws-rel-pill "N:M"]
     nil))
 
 ;; Relationship legend button and popup

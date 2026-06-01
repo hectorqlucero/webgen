@@ -395,49 +395,27 @@
        (when (= idx 0) " active")))
 
 
-;; Use rel-svg-icon for relationship icons (copied from {{sanitized}}.models.tabgrid)
-
-(defn rel-svg-icon [rel-type]
-  (let [[svg label] (case rel-type
-                      :one-to-one [[:svg.ws-rel-icon {:viewBox "0 0 24 24" :width 18 :height 18 :fill "currentColor" :aria-label "1:1"}
-                                    [:rect {:x 2 :y 7 :width 7 :height 10 :rx 2 :class "ws-rel-rect"}]
-                                    [:rect {:x 15 :y 7 :width 7 :height 10 :rx 2 :class "ws-rel-rect"}]
-                                    [:text {:x 5.5 :y 15 :textAnchor "middle" :fontSize 8 :fill "#fff"} "1"]
-                                    [:text {:x 18.5 :y 15 :textAnchor "middle" :fontSize 8 :fill "#fff"} "1"]]
-                                   "1:1"]
-                      :one-to-many [[:svg.ws-rel-icon {:viewBox "0 0 24 24" :width 18 :height 18 :fill "currentColor" :aria-label "1:N"}
-                                     [:rect {:x 2 :y 7 :width 7 :height 10 :rx 2 :class "ws-rel-rect"}]
-                                     [:rect {:x 15 :y 7 :width 7 :height 10 :rx 2 :class "ws-rel-rect"}]
-                                     [:text {:x 5.5 :y 15 :textAnchor "middle" :fontSize 8 :fill "#fff"} "1"]
-                                     [:text {:x 18.5 :y 15 :textAnchor "middle" :fontSize 8 :fill "#fff"} "N"]]
-                                    "1:N"]
-                      :many-to-many [[:svg.ws-rel-icon {:viewBox "0 0 24 24" :width 18 :height 18 :fill "currentColor" :aria-label "N:M"}
-                                      [:rect {:x 2 :y 7 :width 7 :height 10 :rx 2 :class "ws-rel-rect"}]
-                                      [:rect {:x 15 :y 7 :width 7 :height 10 :rx 2 :class "ws-rel-rect"}]
-                                      [:text {:x 5.5 :y 15 :textAnchor "middle" :fontSize 8 :fill "#fff"} "N"]
-                                      [:text {:x 18.5 :y 15 :textAnchor "middle" :fontSize 8 :fill "#fff"} "M"]]
-                                     "N:M"]
-                      [nil nil])]
-    [:span.d-inline-flex.align-items-center.gap-1
-     svg
-     [:span.ws-rel-label {:style "font-size:0.85em; color:#888;"} label]]))
-
-;; Render tab strip with rel-svg-icon
 (defn- render-tab-strip [entity-name subgrids]
   (into [:div.ws-tab-strip {:role "tablist"}]
         (map-indexed
          (fn [idx sg]
            (let [sg-name (safe-id (name (:entity sg)))
                  pane-id (str entity-name "-" sg-name "-pane")
-                 rel-type (:relationship-type sg)]
+                 rel-type (:relationship-type sg)
+                 rel-label (case rel-type
+                             :one-to-one "1:1"
+                             :one-to-many "1:N"
+                             :many-to-many "N:M")
+                 cnt (:count sg)]
              [:button
-              {:class     (tab-cls rel-type idx)
-               :role      "tab"
+              {:class (tab-cls rel-type idx)
+               :role "tab"
                :data-pane (str "#" pane-id)}
-              (rel-svg-icon rel-type)
-              [:span.ms-1 (:title sg)]
-              (when-let [cnt (:count sg)]
-                [:span.ws-tab-count cnt])]))
+              [:span (:title sg)]
+              [:span.ws-tab-end
+               [:span.ws-tab-pill rel-label]
+               (when-let [c cnt]
+                 [:span.ws-tab-pill c])]]))
          subgrids)))
 
 (defn- render-tab-panes

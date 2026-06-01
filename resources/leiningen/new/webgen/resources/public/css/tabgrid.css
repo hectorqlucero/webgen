@@ -36,8 +36,15 @@ body {
   --ws-danger: var(--bs-danger, #dc3545);
   --ws-danger-bg: var(--bs-danger-bg-subtle, #fff0f0);
 
-  --ws-rel-m2m-bg: var(--bs-light, #faf5ff);
-  --ws-rel-m2m-mid: var(--bs-light, #ddd6fe);
+  --ws-rel-o2o: var(--ws-primary, #4f46e5);
+  --ws-rel-o2o-bg: var(--ws-primary-lt, #eef2ff);
+  --ws-rel-o2o-mid: var(--ws-primary-mid, #818cf8);
+  --ws-rel-otm: var(--ws-primary, #4f46e5);
+  --ws-rel-otm-bg: var(--ws-primary-lt, #eef2ff);
+  --ws-rel-otm-mid: var(--ws-primary-mid, #818cf8);
+  --ws-rel-m2m: var(--ws-primary, #4f46e5);
+  --ws-rel-m2m-bg: var(--ws-primary-lt, #eef2ff);
+  --ws-rel-m2m-mid: var(--ws-primary-mid, #818cf8);
 
   --ws-bg: var(--bs-body-bg, #f0f2f5);
   --ws-surface: var(--bs-body-bg, #ffffff);
@@ -108,51 +115,7 @@ body:has(.tabgrid-container) .content {
   margin-bottom: 0 !important;
 }
 
-/* Relationship Type Icon Styles */
-.ws-rel-icon {
-  display: inline-block;
-  width: 1.1em;
-  height: 1.1em;
-  vertical-align: middle;
-  margin-right: .35em;
-}
 
-.ws-rel-icon-1to1 {
-  color: #3b82f6;
-  fill: currentColor;
-}
-
-.ws-rel-icon-1ton {
-  color: #22c55e;
-  fill: currentColor;
-}
-
-.ws-rel-icon-mton {
-  color: #a21caf;
-  fill: currentColor;
-}
-
-/* Tooltip for relationship icons */
-.ws-rel-tooltip {
-  position: absolute;
-  z-index: 1000;
-  background: var(--ws-surface);
-  color: var(--ws-text);
-  border: 1px solid var(--ws-border);
-  border-radius: var(--ws-radius-sm);
-  font-size: .85em;
-  padding: .35em .7em;
-  box-shadow: var(--ws-shadow);
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity .15s;
-}
-
-.ws-rel-icon:hover+.ws-rel-tooltip,
-.ws-rel-icon:focus+.ws-rel-tooltip {
-  opacity: 1;
-}
 
 /* Legend/info button */
 .ws-rel-legend-btn {
@@ -185,6 +148,20 @@ body:has(.tabgrid-container) .content {
 .ws-rel-legend-btn:focus+.ws-rel-legend-popup,
 .ws-rel-legend-btn:hover+.ws-rel-legend-popup {
   display: block;
+}
+
+/* Relationship pill badge (for legend popup / old tab system) */
+.ws-rel-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 1.1rem;
+  padding: 0 .35rem;
+  background: var(--ws-border);
+  border-radius: 999px;
+  font-size: .6rem;
+  font-weight: 700;
+  color: var(--ws-muted);
+  vertical-align: middle;
 }
 
 /* ══ Layout ══════════════════════════════════════════════════════ */
@@ -606,32 +583,36 @@ body:has(.tabgrid-container) .content {
   color: var(--ws-rel-m2m);
 }
 
-.ws-tab-count {
+.ws-tab-end {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  min-width: 1.2rem;
+  gap: .25rem;
+}
+
+.ws-tab-pill {
+  display: inline-flex;
+  align-items: center;
   height: 1.2rem;
-  padding: 0 .28rem;
+  padding: 0 .35rem;
   background: var(--ws-border);
   border-radius: 999px;
   font-size: .62rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--ws-muted);
   transition: background .15s, color .15s;
 }
 
-.ws-tab-o2o.active .ws-tab-count {
+.ws-tab-o2o.active .ws-tab-pill {
   background: var(--ws-rel-o2o-bg);
   color: var(--ws-rel-o2o);
 }
 
-.ws-tab-otm.active .ws-tab-count {
+.ws-tab-otm.active .ws-tab-pill {
   background: var(--ws-rel-otm-bg);
   color: var(--ws-rel-otm);
 }
 
-.ws-tab-m2m.active .ws-tab-count {
+.ws-tab-m2m.active .ws-tab-pill {
   background: var(--ws-rel-m2m-bg);
   color: var(--ws-rel-m2m);
 }
